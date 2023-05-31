@@ -12,9 +12,8 @@
 #include <cassert>
 #include <iostream>
 #include <vector>
-#include <queue>
 
-#include "../definitions.h"
+#include "definitions.h"
 
 struct Node {
     EdgeID firstEdge;
@@ -128,10 +127,6 @@ private:
     // split properties for coarsening and uncoarsening
     std::vector<Node> m_nodes;
     std::vector<Edge> m_edges;
-
-    // this is the equivalent of xadj/adjncy for the 2-neighborhood.
-    std::vector<Node> m2_nodes; 
-    std::vector<Edge> m2_edges;
     
     std::vector<refinementNode> m_refinement_node_props;
     std::vector<coarseningEdge> m_coarsening_edge_props;
@@ -144,11 +139,9 @@ private:
 };
 
 //makros - graph access
-//adjust makros for the 2-packing set problem. 
 #define forall_edges(G,e) { for(EdgeID e = 0, end = G.number_of_edges(); e < end; ++e) {
 #define forall_nodes(G,n) { for(NodeID n = 0, end = G.number_of_nodes(); n < end; ++n) {
 #define forall_out_edges(G,e,n) { for(EdgeID e = G.get_first_edge(n), end = G.get_first_invalid_edge(n); e < end; ++e) {
-#define forall_out_edges2(G,e,n) { for(EdgeID e = G.get_first_edge2(n), end = G.get_first_invalid_edge2(n); e < end; ++e) {
 #define forall_out_edges_starting_at(G,e,n,e_bar) { for(EdgeID e = e_bar, end = G.get_first_invalid_edge(n); e < end; ++e) {
 #define forall_blocks(G,p) { for (PartitionID p = 0, end = G.get_partition_count(); p < end; p++) {
 #define endfor }}
@@ -157,9 +150,7 @@ private:
 class complete_boundary;
 
 class graph_access {
-
         friend class complete_boundary;
-
         public:
                 graph_access() { m_max_degree_computed = false; m_max_degree = 0; graphref = new basicGraph();}
                 virtual ~graph_access(){ delete graphref; };
@@ -178,16 +169,8 @@ class graph_access {
                 NodeID number_of_nodes();
                 EdgeID number_of_edges();
 
-		std::vector<bool> touched;
-		void init_touched(int n); 
-
                 EdgeID get_first_edge(NodeID node);
                 EdgeID get_first_invalid_edge(NodeID node);
-		// =========================================================================
-		// We need the equivalent of the above two functions for the 2-neighborhood.
-		EdgeID get_first_edge2(NodeID node); 
-		EdgeID get_first_invalid_edge2(NodeID node); 
-		// =========================================================================
 
                 PartitionID get_partition_count(); 
                 void set_partition_count(PartitionID count); 
@@ -205,12 +188,6 @@ class graph_access {
                 void setNodeWeight(NodeID node, NodeWeight weight);
 
                 EdgeWeight getNodeDegree(NodeID node);
-
-		// ==================================================================================
-		// here we add this function. We want to use it for the dynamic graph data structure. 
-		EdgeWeight get2Degree(NodeID node);
-		// ==================================================================================
-		
                 EdgeWeight getWeightedNodeDegree(NodeID node);
                 EdgeWeight getMaxDegree();
 
@@ -218,11 +195,6 @@ class graph_access {
                 void setEdgeWeight(EdgeID edge, EdgeWeight weight);
 
                 NodeID getEdgeTarget(EdgeID edge);
-
-		// =================================================================================
-		// we need the equivalent of getEdgeTarget for our macro equivalent
-		NodeID getEdgeTarget2(EdgeID edge); 
-		// =================================================================================
 
                 EdgeRatingType getEdgeRating(EdgeID edge);
                 void setEdgeRating(EdgeID edge, EdgeRatingType rating);
@@ -236,16 +208,10 @@ class graph_access {
                 int build_from_metis(int n, int* xadj, int* adjncy);
                 int build_from_metis_weighted(int n, int* xadj, int* adjncy, int * vwgt, int* adjwgt);
 
-		void construct_access(long unsigned int n, long unsigned int m, int* xadj, int* adjncy); 
-		void construct_2neighborhood(); 
-
                 //void set_node_queue_index(NodeID node, Count queue_index); 
                 //Count get_node_queue_index(NodeID node);
 
-                void copy(graph_access & Gcopy); 
-		std::vector<Edge> get2neighbors(NodeID node);
-	       	void construct_2neigh(); 
-		std::vector<std::vector<int>> two_neighbors; 	
+                void copy(graph_access & Gcopy);
         private:
                 basicGraph * graphref;     
                 bool         m_max_degree_computed;
@@ -261,10 +227,6 @@ inline void graph_access::start_construction(NodeID nodes, EdgeID edges) {
 
 inline NodeID graph_access::new_node() {
         return graphref->new_node();
-}
-
-inline void graph_access::init_touched(int a) {
-	touched.resize(a); 
 }
 
 inline EdgeID graph_access::new_edge(NodeID source, NodeID target) {
@@ -296,27 +258,9 @@ inline EdgeID graph_access::get_first_edge(NodeID node) {
 #endif
 }
 
-// ==============================================================
-// get_first_edge(NodeID node) equivalent for the 2-neighborhood.
-inline EdgeID graph_access::get_first_edge2(NodeID node) {
-#ifdef NDEBUG 
-	return graphref->m2_nodes[node].firstEdge; 
-#else
-	return graphref->m2_nodes.at(node).firstEdge; 
-#endif
-}
-// ===============================================================
-
 inline EdgeID graph_access::get_first_invalid_edge(NodeID node) {
         return graphref->m_nodes[node+1].firstEdge;
 }
-
-// ======================================================================
-// get_first_invalid_edge(NodeID node) equivalent for the 2-neighborhood. 
-inline EdgeID graph_access::get_first_invalid_edge2(NodeID node) {
-	return graphref->m2_nodes[node+1].firstEdge; 
-}
-// ======================================================================
 
 inline PartitionID graph_access::get_partition_count() {
         return m_partition_count;
@@ -395,16 +339,6 @@ inline NodeID graph_access::getEdgeTarget(EdgeID edge){
 #endif
 }
 
-// ===============================================================
-inline NodeID graph_access::getEdgeTarget2(EdgeID edge){
-#ifdef NDEBUG
-	return graphref->m2_edges[edge].target; 
-#else
-	return graphref->m2_edges.at(edge).target; 
-#endif
-}
-// ===============================================================
-
 inline EdgeRatingType graph_access::getEdgeRating(EdgeID edge) {
 #ifdef NDEBUG
         return graphref->m_coarsening_edge_props[edge].rating;        
@@ -424,13 +358,6 @@ inline void graph_access::setEdgeRating(EdgeID edge, EdgeRatingType rating){
 inline EdgeWeight graph_access::getNodeDegree(NodeID node) {
         return graphref->m_nodes[node+1].firstEdge-graphref->m_nodes[node].firstEdge;
 }
-
-// =======================================================================================
-// We want to get the degree of the degree 2 neighbors. 
-inline EdgeWeight graph_access::get2Degree(NodeID node) {
-	return graphref->m2_nodes[node+1].firstEdge - graphref->m2_nodes[node].firstEdge; 	
-}
-// =======================================================================================
 
 inline EdgeWeight graph_access::getWeightedNodeDegree(NodeID node) {
 	EdgeWeight degree = 0;
@@ -561,145 +488,6 @@ inline void graph_access::copy(graph_access & G_bar) {
         } endfor
 
         G_bar.finish_construction();
-}
-
-// ==============================================================================
-// Get the 2-neighbors that have distance two.
-inline std::vector<Edge> graph_access::get2neighbors(NodeID node) {
-	std::vector<Edge> deg2_nodes; 
-	std::queue<NodeID> bfsqueue;  
-	NodeID nodes_left = graphref->number_of_nodes(); 
-
-	// clear touched: 
-	for(int i = 0; i < graphref->number_of_nodes(); i++) {
-		touched[i] = false; 
-	}
-
-	touched[node] = true; 
-	bfsqueue.push(node);  
-	basicGraph& ref = *graphref; 
-	
-	if(!bfsqueue.empty()) {
-		NodeID source = bfsqueue.front(); 
-		bfsqueue.pop(); 
-		nodes_left--;
-			
-		forall_out_edges(ref,e,source) {
-			NodeID target = getEdgeTarget(e); 	
-			if(!touched[target]) {
-			       	touched[target] = true; 
-				bfsqueue.push(target); 	
-			}	
-		} endfor		
-	}
-	
-	while(!bfsqueue.empty()) {
-		NodeID now = bfsqueue.front(); 
-		bfsqueue.pop(); 
-
-		forall_out_edges(ref, e, now) {
-			NodeID target2 = getEdgeTarget(e);
-			if(!touched[target2]) {  
-				touched[target2] = true;
-				Edge vertex; 
-				vertex.target = target2; 
-				deg2_nodes.push_back(vertex); 	
-			}
-		} endfor	
-	}
-	
-	return deg2_nodes; 
-}
-// ====================================================================================
-
-// ====================================================================================
-// We want to build the neighbors of degree two for every node.
-// Implementation is still naive.  
-inline void graph_access::construct_2neigh() {
-	graphref->m2_nodes.resize(graphref->number_of_nodes()+1);	
-	int counter = 0;
-	basicGraph& ref = *graphref; 
-	init_touched(graphref->number_of_nodes()); 
-	forall_nodes(ref, node) {
-		graphref->m2_nodes[node].firstEdge = counter;
-	       	int internal_counter = 0; 
-	       	std::vector<Edge> neighs(get2neighbors(node)); 
-		//std::cout << node << std::endl; 	
-		for(long unsigned int j = 0; j < neighs.size(); j++) {
-			graphref->m2_edges.push_back(neighs[j]); 
-			internal_counter++; 
-		}
-		graphref->m2_nodes[node+1].firstEdge = counter+internal_counter;
-	       	
-		counter = counter+internal_counter; 	
-	} endfor	
-}
-
-inline void graph_access::construct_2neighborhood() {
-	two_neighbors.resize(number_of_nodes()); 
-	NodeID n = number_of_nodes(); 
-	for(int v_idx = 0; v_idx < n; v_idx++) {
-		std::vector<bool> touched(n, false); 
-		std::queue<int> bfsqueue; 
-		int nodes_left = n; 
-		int startNode = v_idx; 
-
-		touched[startNode] = true; 
-
-		nodes_left--; 
-
-		for(int j = graphref->m_nodes[v_idx].firstEdge; j < graphref->m_nodes[v_idx+1].firstEdge; j++) {
-			int target = graphref->m_edges[j].target; 
-			if(!touched[target]) {
-				//two_neighbors[v_idx].push_back(target); 
-				touched[target] = true; 
-				bfsqueue.push(target);  
-			}
-		}
-
-		while(!bfsqueue.empty()) {
-			int source = bfsqueue.front(); 
-			bfsqueue.pop(); 
-			nodes_left--; 
-
-			for(int j = graphref->m_nodes[source].firstEdge; j < graphref->m_nodes[source+1].firstEdge; j++) {
-				int target = graphref->m_edges[j].target; 
-				if(!touched[target]) {
-					two_neighbors[v_idx].push_back(target); 
-					touched[target] = true; 
-				}
-			}
-		}
-	}
-}
-// ======================================================================================
-
-inline void graph_access::construct_access(long unsigned int n, long unsigned int m, int* xadj, int* adjncy) {
-	graphref = new basicGraph(); 
-	graphref->m_nodes.resize(n+1); 
-	graphref->m_edges.resize(m); 
-
-	for(int i = 0; i < n+1; i++) {
-		Node new_node; 
-		new_node.firstEdge = xadj[i]; 
-		graphref->m_nodes[i] = new_node; 
-	}
-	for(int j = 0; j < m; j++) {
-		Edge new_edge; 
-		new_edge.target = adjncy[j];
-		if(adjncy[j] > 101996) {
-			std::cout << "error" << std::endl; 
-		}
-		graphref->m_edges[j] = new_edge;
-	}
-	/*
-	for(int i = 0; i < n; i++) {
-		for(int j = graphref->m_nodes[i].firstEdge; j < graphref->m_nodes[i+1].firstEdge; j++) {
-			std::cout << graphref->m_edges[j].target+1 << " "; 
-		}
-		std::cout << "\n"; 
-	}
-	*/
 }
 
 #endif /* end of include guard: GRAPH_ACCESS_EFRXO4X2 */

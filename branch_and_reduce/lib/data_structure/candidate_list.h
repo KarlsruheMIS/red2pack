@@ -6,8 +6,8 @@
  *
  *****************************************************************************/
 
-#ifndef _CANDIDATE_LIST_H_
-#define _CANDIDATE_LIST_H_
+#ifndef _2CANDIDATE_LIST_H_
+#define _2CANDIDATE_LIST_H_
 
 #include <vector>
 
@@ -127,6 +127,5 @@ class candidate_list {
                  */
                 NodeID remove_position(unsigned int position);
 };
-
 #endif
 

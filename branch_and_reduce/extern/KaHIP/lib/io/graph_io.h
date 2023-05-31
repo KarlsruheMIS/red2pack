@@ -18,6 +18,7 @@
 
 #include "definitions.h"
 #include "data_structure/graph_access.h"
+#include "data_structure/graph2_access.h"
 
 class graph_io {
         public:
@@ -26,6 +27,9 @@ class graph_io {
 
                 static 
                 int readGraphWeighted(graph_access & G, std::string filename);
+
+                static 
+                int readGraphWeighted(M2S_GRAPH::graph_access & G, std::string filename);
 
                 static
                 int writeGraphWeighted(graph_access & G, std::string filename);

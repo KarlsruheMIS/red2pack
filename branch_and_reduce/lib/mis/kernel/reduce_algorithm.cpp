@@ -5,6 +5,7 @@
 
 
 #include "reduce_algorithm.h"
+#include "m2s_config.h"
 
 #include<algorithm>
 #include<chrono>
@@ -20,24 +21,21 @@ struct deg_node {
 			return deg < rhs.deg; 
 		}
 };
-
-reduce_algorithm::reduce_algorithm(graph_access& G, bool called_from_fold) 
-	: global_status(G), set_1(global_status.n), set_2(global_status.n), double_set(global_status.n*2), buffers(2, sized_vector<NodeID>(global_status.n)) {
-		// I have no configurations, yet...
-		global_status.reductions = make_reduction_vector<clique_reduction, domination_reduction>(global_status.n);
-		global_reduction_map.resize(REDUCTION_NUM); 
-		for(size_t i = 0; i < global_status.reductions.size(); i++) {
-			global_reduction_map[global_status.reductions[i]->get_reduction_type()] = i; // Hm....
+/* reduce_algorithm::reduce_algorithm(graph_access& G, bool called_from_fold)  */
+reduce_algorithm::reduce_algorithm(M2S_GRAPH::graph_access& G, const M2SConfig & mis_config)//, bool called_from_fold) 
+	: config(mis_config), global_status(G), set_1(G.number_of_nodes()), set_2(G.number_of_nodes()), double_set(G.number_of_nodes()*2), buffers(2, sized_vector<NodeID>(G.number_of_nodes())) {
+        if (config.reduction_style2 == M2SConfig::Reduction_Style2::extended) {
+      global_status.reductions2 = make_2reduction_vector<deg_one_2reduction_e,cycle2_reduction_e,twin2_reduction_e,domination2_reduction_e,clique2_reduction_e>(global_status.n);
+        } else if (config.reduction_style2 == M2SConfig::Reduction_Style2::compact) {
+      global_status.reductions2 = make_2reduction_vector<clique2_reduction_e, domination2_reduction_e>(global_status.n);
+        } else { //  initial
+      global_status.reductions2 = make_2reduction_vector<cycle2_reduction,twin2_reduction,domination2_reduction,clique2_reduction>(global_status.n);
+        }
+		reduction_map.resize(m2ps_REDUCTION_NUM); 
+		for(size_t i = 0; i < global_status.reductions2.size(); i++) {
+			reduction_map[global_status.reductions2[i]->get_reduction_type()] = i; // Hm....
 		}
-
-		set_local_reductions = [this, called_from_fold]() {
-			status.reductions = make_reduction_vector<clique_reduction, domination_reduction>(status.n);
-			local_reduction_map.resize(REDUCTION_NUM);
-			for(size_t i = 0; i < status.reductions.size(); i++) {
-				local_reduction_map[status.reductions[i]->get_reduction_type()] = i; 
-			}
-		}; 
-	}
+}
 
 void reduce_algorithm::set_imprecise(NodeID node, pack_status mpack_status) {
 	if(mpack_status == pack_status::included) {
@@ -54,12 +52,36 @@ void reduce_algorithm::set_imprecise(NodeID node, pack_status mpack_status) {
 
 		for(auto neighbor : status.graph.get2neighbor_list(node)) {
 			status.node_status[neighbor] = pack_status::unsafe; 	
+      /* status.remaining_nodes--; */
 		}
 	} else {
 		status.node_status[node] = mpack_status; 
 		status.remaining_nodes--; 
 		status.graph.hide_node_imprecise(node); 
 	}
+}
+
+
+void reduce_algorithm::set(NodeID node, pack_status mpack_status) {
+
+	if(mpack_status == pack_status::included) {
+		status.node_status[node] = mpack_status; 
+		status.remaining_nodes--;
+		status.graph.hide_node_imprecise(node); 
+
+		for(auto neighbor : status.graph[node]) {
+            set(neighbor, excluded);
+		}
+
+		for(auto neighbor : status.graph.get2neighbor_list(node)) {
+            set(neighbor, excluded);
+        }
+
+	} else { // exclude
+		status.node_status[node] = mpack_status; 
+		status.remaining_nodes--; 
+		status.graph.hide_node_imprecise(node); 
+    }
 }
 
 size_t reduce_algorithm::deg(NodeID node) const {
@@ -72,7 +94,7 @@ size_t reduce_algorithm::two_deg(NodeID node) {
 
 void reduce_algorithm::add_next_level_node(NodeID node) {
 	// mark node for next round of status.reductions...
-	for(auto& reduction : status.reductions) {
+	for(auto& reduction : status.reductions2) {
 		if(reduction->has_run) {
 			reduction->marker.add(node); // mark: Probably because something has changed? 
 		}
@@ -99,23 +121,23 @@ void reduce_algorithm::add_next_level_neighborhood(const std::vector<NodeID>& no
 }
 
 void reduce_algorithm::init_reduction_step() {
-	if(!status.reductions[active_reduction_index]->has_run) {
-		status.reductions[active_reduction_index]->marker.fill_current_ascending(status.n);
-		status.reductions[active_reduction_index]->marker.clear_next();	
-		status.reductions[active_reduction_index]->has_run = true;
+	if(!status.reductions2[active_reduction_index]->has_run) {
+		status.reductions2[active_reduction_index]->marker.fill_current_ascending(status.n);
+		status.reductions2[active_reduction_index]->marker.clear_next();	
+		status.reductions2[active_reduction_index]->has_run = true;
 	}
 	else {
-		status.reductions[active_reduction_index]->marker.get_next(); 
+		status.reductions2[active_reduction_index]->marker.get_next(); 
 	}
 }
 
 void reduce_algorithm::initial_reduce() {
-	std::swap(global_reduction_map, local_reduction_map); 
+/* 	std::swap(global_reduction_map, local_reduction_map);  */
 	status = std::move(global_status); 
 	reduce_graph_internal(); 
 
 	global_status = std::move(status);
-	std::swap(global_reduction_map, local_reduction_map); 
+/* 	std::swap(global_reduction_map, local_reduction_map);  */
 }
 
 void reduce_algorithm::reduce_graph_internal() {
@@ -124,8 +146,8 @@ void reduce_algorithm::reduce_graph_internal() {
 	do {
 		progress = false; 
 
-		for(auto& reduction : status.reductions) {
-			active_reduction_index = local_reduction_map[reduction->get_reduction_type()];  
+		for(auto& reduction : status.reductions2) {
+			active_reduction_index = reduction_map[reduction->get_reduction_type()];  
 
 			init_reduction_step(); 
 			progress = reduction->reduce(this); 
@@ -134,45 +156,26 @@ void reduce_algorithm::reduce_graph_internal() {
 
 			active_reduction_index++; 
 		}
-	} while(progress); 
+	} while(progress && config.time_limit > t.elapsed()); 
 
 }
 
 void reduce_algorithm::run_reductions() {
-	//std::cout << "Start reducing the graph..." << std::endl; 
+    t.restart();
 	initial_reduce(); 
 }
 
 // gives us the actual two-packing set so far
-std::vector<NodeID> reduce_algorithm::get_status() {
+/* std::vector<NodeID> reduce_algorithm::get_status() { */
+/* } */
+
+void reduce_algorithm::get_solution (std::vector<bool> & solution_vec ) {
 
 	// Now check whether we include nodes that are in conflict...
-	std::vector<NodeID> set_so_far(global_status.n,0); 
-	for(size_t i = 0; i < set_so_far.size(); i++) {
+	for(size_t i = 0; i < solution_vec.size(); i++) {
 		if(global_status.node_status[i] == 1) {
-			set_so_far[i] = 1; 
+			solution_vec[i] = true; 
 		}
 	}
-
-	return set_so_far;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

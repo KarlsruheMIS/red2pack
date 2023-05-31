@@ -10,17 +10,20 @@
  *
  *****************************************************************************/
 
-#ifndef _MIS_PERMUTATION_H_
-#define _MIS_PERMUTATION_H_
+#ifndef _M2IS_PERMUTATION_H_
+#define _M2IS_PERMUTATION_H_
 
 #include <vector>
 
 #include "definitions.h"
 #include "graph_access.h"
 #include "data_structure/candidate_list.h"
+#include "ils/m2ps_ils.h"
+
 
 class mis_permutation {
-    friend class ils;
+    friend class m2ps_ils;
+
     public:
         /**
          * Default Constructor.
@@ -255,5 +258,4 @@ class mis_permutation {
          */
         void swap_nodes(unsigned int first_pos, unsigned int second_pos);
 };
-
 #endif

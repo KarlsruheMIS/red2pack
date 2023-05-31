@@ -14,7 +14,7 @@
 
 #include "data_structure/operation_log.h"
 #include "greedy_mis_online.h"
-#include "mis_log.h"
+#include "m2pack_log.h"
 #include "random_functions.h"
 
 online_ils::online_ils() {
@@ -34,7 +34,7 @@ online_ils::online_ils() {
 
 online_ils::~online_ils() { reset(); }
 
-void online_ils::perform_ils(MISConfig &config, graph_access &G,
+void online_ils::perform_ils(M2SConfig &config, graph_access &G,
                       unsigned int iteration_limit) {
   reset();
   // Init operation log
@@ -57,7 +57,7 @@ void online_ils::perform_ils(MISConfig &config, graph_access &G,
 
   // Start timer
   t.restart();
-  mis_log::instance()->restart_online_timer();
+  m2s_log::instance()->restart_online_timer();
 
   // Modification: Init marks
   degree_limit = G.getMaxDegree();
@@ -100,7 +100,7 @@ void online_ils::perform_ils(MISConfig &config, graph_access &G,
   local.direct_improvement(G, marked_degree, degree_limit);
 
   best_solution = perm->get_solution_size() + perm->get_folded_vertices();
-  mis_log::instance()->set_best_size_online(config, best_solution);
+  m2s_log::instance()->set_best_size_online(config, best_solution);
 
   unsigned int denominator = 4;
   unsigned int plateau = plateau_best * (perm->get_solution_size() + perm->get_folded_vertices());
@@ -118,7 +118,7 @@ void online_ils::perform_ils(MISConfig &config, graph_access &G,
     // Stop if the time limit was passed
     if (t.elapsed() > config.time_limit) break;
     if (iterations % 10000 == 0) {
-      mis_log::instance()->set_best_size_online(config, best_solution);
+      m2s_log::instance()->set_best_size_online(config, best_solution);
     }
 
     plateau--;
@@ -244,7 +244,7 @@ void online_ils::perform_ils(MISConfig &config, graph_access &G,
     if (solution_after > best_solution) {
       best_solution = perm->get_solution_size() + perm->get_folded_vertices();
       plateau = plateau_best * (perm->get_solution_size() + perm->get_folded_vertices());
-      // mis_log::instance()->set_best_size(config, best_solution);
+      // m2s_log::instance()->set_best_size(config, best_solution);
     } else if (solution_after > solution_before) {
       if (solution_after == best_solution) {
         plateau = plateau_best_again * (perm->get_solution_size() + perm->get_folded_vertices());
@@ -321,7 +321,7 @@ void online_ils::perform_ils(MISConfig &config, graph_access &G,
   //std::cout << "folded " << perm->get_folded_vertices() << std::endl;
 }
 
-void online_ils::force(MISConfig &config, graph_access &G, NodeID v,
+void online_ils::force(M2SConfig &config, graph_access &G, NodeID v,
                 candidate_list *force_list) {
   // Modification: Skip
   if (marked_degree[v] < 0 || marked_degree[v] > degree_limit) return;

@@ -15,7 +15,7 @@
 #include <queue>
 
 //local include 
-#include "../../extern/KaHIP/lib/data_structure/graph_access.h"
+#include "../../extern/KaHIP/lib/data_structure/graph2_access.h"
 #include "../mis/kernel/fast_set.h"
 //#include "evo_graph.h"
 class evo_graph; 
@@ -86,7 +86,7 @@ public:
        	
 	dynamic_graph_pack(size_t nodes = 0) : graph1(nodes), graph2(nodes) {graph1.reserve(nodes); graph2.reserve(nodes); }	
 
-	dynamic_graph_pack(graph_access& G) : graph1(G.number_of_nodes()), graph2(G.number_of_nodes()), hided_nodes(G.number_of_nodes(), false) {
+	dynamic_graph_pack(M2S_GRAPH::graph_access& G) : graph1(G.number_of_nodes()), graph2(G.number_of_nodes()), hided_nodes(G.number_of_nodes(), false) {
 		
 		neighbor_list* slotA; 
 
@@ -127,6 +127,7 @@ public:
 				hide_path(two_neighbor,node);
 		}
 	}
+
 	
 	// If we use this data structure we have to be carful, that we always use the right function
 	// depending on which case we look at
@@ -148,6 +149,18 @@ public:
 				return; 
 			}
 		}
+	}
+
+    // If we use this data structure we have to be carful, that we always use the right function
+	// depending on which case we look at
+	void add_edge_2(NodeID source, NodeID target) {
+		auto& slot = graph2[source]; 
+		for(size_t pos = 0; pos < slot.counter; pos++) {
+			if(slot.two_neighbors[pos] == target) return;
+        }
+		slot.two_neighbors[slot.counter++]=target; 
+  /* slot.two_neighbors[++slot.counter]=target;  */
+		return; 
 	}
 	
 	neighbor_list& operator[] (NodeID node) { return graph1[node]; }

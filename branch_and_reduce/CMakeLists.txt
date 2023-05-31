@@ -79,7 +79,8 @@ if(64BITMODE)
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/extern/argtable3-3.0.3)
-add_subdirectory(wmis)
+# add_subdirectory(wmis)
+add_subdirectory(extern/KaMIS)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/app)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/extern/argtable3-3.0.3)
@@ -92,48 +93,56 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/extern/KaHIP/lib/partition)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/extern/KaHIP/lib/partition/uncoarsening/refinement/quotient_graph_refinement/flow_refinement)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/extern/KaHIP/lib/partition/uncoarsening/refinement/cycle_improvements/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/extern/KaHIP/lib/tools)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/extern/KaHIP/lib/algorithms)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/extern/KaMIS/wmis/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/extern/KaMIS/wmis/lib/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/extern/KaMIS/wmis/lib/mis)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/extern/KaMIS/wmis/lib/mis/kernel)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/extern/KaMIS/wmis/lib/mis/mis_kernel)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/extern/KaMIS/wmis/lib/data_structure)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/mis)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/mis/evolutionary)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/mis/evolutionary/combine)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/mis/initial_mis)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/mis/ils)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/mis/evolutionary)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/mis/evolutionary/combine)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/mis/initial_mis)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/data_structure)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/io)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/tools)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/algorithms)
 
 set(LIBSOURCE_SOURCE_FILES
-lib/tools/mis_log.cpp
-lib/mis/ils/ils.cpp
-lib/mis/ils/local_search.cpp
-lib/mis/initial_mis/greedy_mis.cpp
-lib/mis/initial_mis/greedy_vertex.cpp
-lib/mis/initial_mis/random_mis.cpp
-lib/mis/initial_mis/initial_mis.cpp
-lib/data_structure/mis_permutation.cpp
-lib/data_structure/candidate_list.cpp
+lib/tools/m2pack_log.cpp
+# lib/mis/ils/m2ps_ils.cpp
+# lib/mis/ils/m2ps_local_search.cpp
+# lib/mis/initial_mis/greedy_mis.cpp
+# lib/mis/initial_mis/greedy_vertex.cpp
+# lib/mis/initial_mis/random_mis.cpp
+# lib/mis/initial_mis/initial_mis.cpp
+# lib/data_structure/mis_permutation.cpp
+# lib/data_structure/candidate_list.cpp
 lib/data_structure/operation_log.cpp
-lib/data_structure/priority_queues/bucket_array.cpp
-lib/mis/evolutionary/population_mis.cpp
-lib/mis/evolutionary/reduction_evolution.cpp
-lib/mis/hopcroft/bipartite_vertex_cover.cpp
-lib/mis/kernel/branch_and_reduce_algorithm.cpp
-lib/mis/kernel/modified.cpp
+# lib/data_structure/priority_queues/bucket_array.cpp
+# lib/mis/evolutionary/population_mis.cpp
+# lib/mis/evolutionary/reduction_evolution.cpp
+# lib/mis/hopcroft/bipartite_vertex_cover.cpp
+# lib/mis/kernel/branch_and_reduce_algorithm.cpp
+# lib/mis/kernel/modified.cpp
 lib/mis/kernel/reductions_pack.cpp
 lib/mis/kernel/reduce_algorithm.cpp
-lib/mis/evolutionary/separator_pool.cpp
-lib/mis/evolutionary/combine/combine.cpp
-lib/mis/evolutionary/combine/cover_combine.cpp
-lib/mis/evolutionary/combine/separator_combine.cpp
-lib/mis/evolutionary/combine/multiway_combine.cpp
+# lib/mis/evolutionary/separator_pool.cpp
+# lib/mis/evolutionary/combine/combine.cpp
+# lib/mis/evolutionary/combine/cover_combine.cpp
+# lib/mis/evolutionary/combine/separator_combine.cpp
+# lib/mis/evolutionary/combine/multiway_combine.cpp
 lib/mis/kernel/ParFastKer/fast_reductions/src/full_reductions.cpp
 lib/mis/kernel/ParFastKer/fast_reductions/src/MaximumMatching.cpp
 lib/mis/kernel/ParFastKer/fast_reductions/src/parallel_reductions.cpp
 lib/mis/kernel/ParFastKer/LinearTime/MIS_sigmod_pub/Graph.cpp
 lib/mis/kernel/ParFastKer/LinearTime/MIS_sigmod_pub/Utility.cpp
 extern/argtable3-3.0.3/argtable3.c)
-add_library(libfiles OBJECT ${LIBSOURCE_SOURCE_FILES})
+add_library(libfiles2 OBJECT ${LIBSOURCE_SOURCE_FILES})
 
 set(LIBKAFFPA_SOURCE_FILES
 extern/KaHIP/lib/data_structure/graph_hierarchy.cpp
@@ -193,30 +202,32 @@ extern/KaHIP/lib/algorithms/cycle_search.cpp
 extern/KaHIP/lib/partition/uncoarsening/refinement/cycle_improvements/cycle_refinement.cpp
 extern/KaHIP/lib/partition/uncoarsening/refinement/tabu_search/tabu_search.cpp
 extern/KaHIP/interface/kaHIP_interface.cpp)
-add_library(libkaffpa OBJECT ${LIBKAFFPA_SOURCE_FILES})
+add_library(libkaffpa3 OBJECT ${LIBKAFFPA_SOURCE_FILES})
 
 
-set(LIBONLINEMIS_FILES
-lib/mis/ils/online_ils.cpp
-lib/mis/ils/local_search_online.cpp
-lib/mis/initial_mis/greedy_mis_online.cpp
-lib/data_structure/mis_permutation_online.cpp)
-add_library(libonlinemis OBJECT ${LIBONLINEMIS_FILES})
 
-add_executable(prepare_graph app/prepare_graph.cpp $<TARGET_OBJECTS:libkaffpa> $<TARGET_OBJECTS:libfiles>)
+
+# set(LIBONLINEMIS_FILES
+# lib/mis/ils/online_ils.cpp
+# lib/mis/ils/local_search_online.cpp
+# lib/mis/initial_mis/greedy_mis_online.cpp
+# lib/data_structure/mis_permutation_online.cpp)
+# add_library(libonlinemis OBJECT ${LIBONLINEMIS_FILES})
+#
+add_executable(prepare_graph app/prepare_graph.cpp $<TARGET_OBJECTS:libkaffpa3> $<TARGET_OBJECTS:libfiles2> $<TARGET_OBJECTS:libkamis>)
 target_link_libraries(prepare_graph ${OpenMP_CXX_LIBRARIES})
 install(TARGETS prepare_graph DESTINATION bin)
 
-add_executable(graphchecker app/graphchecker.cpp $<TARGET_OBJECTS:libkaffpa> $<TARGET_OBJECTS:libfiles>)
+add_executable(graphchecker app/graphchecker.cpp $<TARGET_OBJECTS:libkaffpa3> $<TARGET_OBJECTS:libfiles2>)
 target_link_libraries(graphchecker ${OpenMP_CXX_LIBRARIES})
 install(TARGETS graphchecker DESTINATION bin)
 
-add_executable(sort_adjacencies app/sort_adjacencies.cpp $<TARGET_OBJECTS:libkaffpa> $<TARGET_OBJECTS:libfiles>)
+add_executable(sort_adjacencies app/sort_adjacencies.cpp $<TARGET_OBJECTS:libkaffpa3> $<TARGET_OBJECTS:libfiles2>)
 target_link_libraries(sort_adjacencies ${OpenMP_CXX_LIBRARIES})
 install(TARGETS sort_adjacencies DESTINATION bin)
 
-add_executable(online_mis app/online_mis.cpp $<TARGET_OBJECTS:libkaffpa> $<TARGET_OBJECTS:libfiles> $<TARGET_OBJECTS:libonlinemis>)
-target_compile_definitions(online_mis PRIVATE "-DOMIS")
-target_link_libraries(online_mis ${OpenMP_CXX_LIBRARIES})
-install(TARGETS online_mis DESTINATION bin)
+# add_executable(online_mis app/online_mis.cpp $<TARGET_OBJECTS:libkaffpa3> $<TARGET_OBJECTS:libfiles2> $<TARGET_OBJECTS:libonlinemis>)
+# target_compile_definitions(online_mis PRIVATE "-DOMIS")
+# target_link_libraries(online_mis ${OpenMP_CXX_LIBRARIES})
+# install(TARGETS online_mis DESTINATION bin)
 

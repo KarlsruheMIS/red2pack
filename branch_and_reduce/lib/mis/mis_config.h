@@ -8,67 +8,24 @@
 #define _MIS_CONFIG_H_
 
 #include <string>
+#include <cctype>
+#include <algorithm>
 
 #include "definitions.h"
 
 // Configuration for the calculation of the MIS
 struct MISConfig {
+    enum Weight_Source {FILE, HYBRID, UNIFORM, GEOMETRIC};
+    enum Reduction_Style {NORMAL, DENSE};
+
     // Name of the graph file.
     std::string graph_filename;
     // Name of the output file.
     std::string output_filename;
     // Seed for the RNG.
     int seed;
-    // Size of the population used.
-    unsigned int population_size;
-    // Imbalance. Used for the KaHIP-interface calls.
-    double imbalance;
-    // Mode for the KaHIP-framework.
-    unsigned int kahip_mode;
-    // Use full kernelization (true) or FastKer (false)
-    bool fullKernelization;
     // Time limit for the evolutionary algorithm
     double time_limit;
-    // Number of repetitions in each round.
-    unsigned int repetitions;
-    // Insert a solution if no new solution has been inserted
-    // for this amount of operations.
-    unsigned int insert_threshold;
-    // Update the pool of node separators.
-    unsigned int pool_threshold;
-    // Factor for timing based renewal of the separator.
-    // Time after building > Factor * Time taken for building triggers renewal.
-    double pool_renewal_factor;
-    // Should the imbalance be randomized?
-    bool randomize_imbalance;
-    // Diversify the initial solution?
-    bool diversify;
-    // Tournament or random selection of individuals?
-    bool enable_tournament_selection;
-    // Use the vertex cover approach for the multiway combine operator.
-    bool use_multiway_vc;
-    // Number of blocks used in multiway operators.
-    unsigned int multiway_blocks;
-    // Number of individuals in a tournament
-    unsigned int tournament_size;
-    // Percentage for the mutation of a solution.
-    int flip_coin;
-    // Force parameter for the mutation.
-    unsigned int force_k;
-    // Number of candidates for forced insertion.
-    unsigned int force_cand;
-    // Number of initial node separators to be constructed.
-    unsigned int number_of_separators;
-    // Number of initial partitions to be constructed.
-    unsigned int number_of_partitions;
-    // Number of initial k-separators to be constructed.
-    unsigned int number_of_k_separators;
-    // Number of initial k-partitions to be constructed.
-    unsigned int number_of_k_partitions;
-    // Print result of each repetition.
-    bool print_repetition;
-    // Print the population after each round.
-    bool print_population;
     // Write the log into a file
     bool print_log;
     // Write the inpendent set into a file
@@ -77,24 +34,50 @@ struct MISConfig {
     bool console_log;
     // Number of iterations for the ILS.
     unsigned int ils_iterations;
-    // Use the Hopcroft-Karp algorithm to fix vertex cover candidates
-    bool use_hopcroft;
     // Lower bound for the change rate between best individuals
     double best_limit;
-    // Fraction of independent set nodes that should be removed before reduction
-    double remove_fraction;
+    // Number of candidates for forced insertion.
+    unsigned int force_cand;
     // Optimize candidates for ILS.
     bool optimize_candidates;
-    // Remove IS nodes from best individual before recursive reduction
-    bool extract_best_nodes;
-    // Apply all reductions to reduce the graph size
-    bool all_reductions;
-    // Threshold for reducing the graph
-    unsigned int reduction_threshold;
     // Check graph sortedness
     bool check_sorted;
-    // Use adaptive greedy starting solution
-    bool start_greedy_adaptive;
+	// Sort free nodes in local search
+	bool sort_freenodes;
+	// Perform reduction
+	bool perform_reductions;
+    // Random weights or read weights from file
+    Weight_Source weight_source;
+    // Choose reduction order and amount for given graph type
+    Reduction_Style reduction_style;
+
+
+    void setReductionStyle(const std::string & redu_style) {
+        if (strCompare(redu_style, "normal") || strCompare(redu_style, "sparse")) {
+            reduction_style = Reduction_Style::NORMAL;
+        } else if (strCompare(redu_style, "dense") || strCompare(redu_style, "osm")) {
+            reduction_style = Reduction_Style::DENSE;
+        }
+    }
+
+    void setWeightSource(const std::string & source) {
+        if (strCompare(source, "file")) {
+            weight_source = Weight_Source::FILE;
+        } else if (strCompare(source, "hybrid")) {
+            weight_source = Weight_Source::HYBRID;
+        } else if (strCompare(source, "uniform")) {
+            weight_source = Weight_Source::UNIFORM;
+        } else if (strCompare(source, "geometric")) {
+            weight_source = Weight_Source::GEOMETRIC;
+        }
+    }
+
+
+    private:
+
+    bool strCompare(const std::string & str1, const std::string & str2) {
+        return str1.size() == str2.size() && std::equal(str1.begin(), str1.end(), str2.begin(), [](unsigned char c1, unsigned char c2){ return std::toupper(c1) == std::toupper(c2); });
+    }
 };
 
 #endif

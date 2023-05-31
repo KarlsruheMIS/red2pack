@@ -12,25 +12,103 @@
 
 typedef reduce_algorithm::pack_status pack_status; 
 
-bool deg_one_reduction::reduce(reduce_algorithm* algo) {
-	        auto& status = algo->status;
-		size_t oldn = status.remaining_nodes;
+bool deg_one_2reduction::reduce(reduce_algorithm* algo) {
+    auto config = algo->config;
+    if (config.disable_deg_one) return false;
+	auto& status = algo->status;
+	size_t oldn = status.remaining_nodes;
 
-		for(size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
-			NodeID v = marker.current_vertex(v_idx);
+/* 	for(size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) { */
+/* 		NodeID v = marker.current_vertex(v_idx); */
 
-			if(status.node_status[v] == pack_status::not_set) {
-				if(algo->deg(v) == 1) {
-					algo->set_imprecise(v, pack_status::included);
-					continue;
-				}
-			}
-		}
+/* 		if(status.node_status[v] == pack_status::not_set) { */
+/* 			if(algo->deg(v) == 1) { */
+/* 				algo->set_imprecise(v, pack_status::included); */
+/* 				continue; */
+/* 			} */
+/* 		} */
+/* 	} */
 
-		return oldn != status.remaining_nodes;
+    /* std::cout << "degree_one_reduction:" << oldn-status.remaining_nodes << std::endl; */
+	return oldn != status.remaining_nodes;
 }
 
-bool cycle_reduction::reduce(reduce_algorithm* algo) {
+bool deg_one_2reduction_e::reduce(reduce_algorithm* algo) {
+    auto config = algo->config;
+    if (config.disable_deg_one) return false;
+	auto& status = algo->status;
+	size_t oldn = status.remaining_nodes;
+
+	for(size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
+		NodeID v = marker.current_vertex(v_idx);
+
+        if (status.node_status[v] == pack_status::unsafe) {
+			if(algo->deg(v) <= 1) {
+				algo->set_imprecise(v, pack_status::excluded);
+            }
+        }
+
+		if(status.node_status[v] == pack_status::not_set) {
+
+			if(algo->deg(v) == 0 && algo->two_deg(v) <= 1 ) {
+				algo->set_imprecise(v, pack_status::included);
+				continue;
+			} else if(algo->deg(v) == 1 && algo->two_deg(v)==0){ 
+				algo->set_imprecise(v, pack_status::included);
+				continue;
+			}
+		}
+	}
+
+    /* std::cout << "degree_one_reduction_e:" << oldn-status.remaining_nodes << std::endl; */
+	return oldn != status.remaining_nodes;
+}
+
+bool cycle2_reduction::reduce(reduce_algorithm* algo) {
+    auto config = algo->config;
+    if (config.disable_cycle) return false;
+	auto& status = algo->status;
+	size_t oldn = status.remaining_nodes;
+
+/* 	for(size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) { */
+/* 		NodeID v = marker.current_vertex(v_idx); */
+/* 		 */
+/* 		if(status.node_status[v] == pack_status::not_set) { */
+/* 			if(algo->deg(v) == 2 && algo->two_deg(v) == 1) { */
+/* 				bool unsafe = false; */
+/* 				for(NodeID neighbor : status.graph[v]) { */
+/* 					if(status.node_status[neighbor] == pack_status::unsafe) { */
+/* 						unsafe == true; */
+/* 					} */
+/* 				} */
+
+    /* NodeID neighbor = status.graph.get2neighbor_list(v)[0]; */
+/* 				if(status.node_status[neighbor] == pack_status::unsafe) { */
+/* 					unsafe = true; */
+/* 				} */
+
+/* 				if(unsafe == true) { */
+/* 					unsafe = false; */
+/* 					continue; */
+/* 				} */
+
+    /* NodeID neighbor1 = status.graph[v][0]; */
+    /* NodeID neighbor2 = status.graph[v][1]; */
+    /* if(algo->deg(neighbor1 == 2 && algo->deg(neighbor2 == 2))) { */
+     /* algo->set_imprecise(v, pack_status::included); */
+     /* continue; */
+    /* }  */
+   /* } */
+  /* } */
+/* 	} */
+
+    /* std::cout << "cycle_reduction:" << oldn-status.remaining_nodes << std::endl; */
+	return oldn != status.remaining_nodes;
+}
+
+bool cycle2_reduction_e::reduce(reduce_algorithm* algo) {
+    auto config = algo->config;
+    if (config.disable_cycle) return false;
 	auto& status = algo->status;
 	size_t oldn = status.remaining_nodes;
 
@@ -38,11 +116,21 @@ bool cycle_reduction::reduce(reduce_algorithm* algo) {
 		NodeID v = marker.current_vertex(v_idx);
 		
 		if(status.node_status[v] == pack_status::not_set) {
+   /* if(algo->deg(v) == 0 && algo->two_deg(v) == 2) { */
+    /*             bool reduce = true; */
+    /* for(NodeID neighbor : status.graph[v]) { */
+    /*                 if (!algo->deg(neighbor)==0) { */
+    /*                     reduce = false; */
+                /*         break; */
+                /*     } */
+                /* } */
+            /* } */
 			if(algo->deg(v) == 2 && algo->two_deg(v) == 1) {
 				bool unsafe = false;
 				for(NodeID neighbor : status.graph[v]) {
 					if(status.node_status[neighbor] == pack_status::unsafe) {
 						unsafe == true;
+                        break;
 					}
 				}
 
@@ -58,7 +146,7 @@ bool cycle_reduction::reduce(reduce_algorithm* algo) {
 
 				NodeID neighbor1 = status.graph[v][0];
 				NodeID neighbor2 = status.graph[v][1];
-				if(algo->deg(neighbor1 == 2 && algo->deg(neighbor2 == 2))) {
+				if(algo->deg(neighbor1) == 2 && algo->deg(neighbor2) == 2) {
 					algo->set_imprecise(v, pack_status::included);
 					continue;
 				}
@@ -66,10 +154,59 @@ bool cycle_reduction::reduce(reduce_algorithm* algo) {
 		}
 	}
 
+    /* std::cout << "cycle_reduction_e:" << oldn-status.remaining_nodes << std::endl; */
 	return oldn != status.remaining_nodes;
 }
 
-bool twin_reduction::reduce(reduce_algorithm* algo) {
+bool twin2_reduction_e::reduce(reduce_algorithm* algo) {
+    auto config = algo->config;
+    if (config.disable_twin) return false;
+	auto& status = algo->status;
+	size_t oldn = status.remaining_nodes;
+	fast_set set_1(algo->status.n);
+
+
+	for(size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
+		NodeID v = marker.current_vertex(v_idx);
+
+		if(status.node_status[v] == pack_status::not_set) {
+			if(algo->deg(v) == 2) {
+				NodeID neighbor1 = status.graph[v][0];
+				NodeID neighbor2 = status.graph[v][1];
+
+				if(status.node_status[neighbor1] == pack_status::not_set && status.node_status[neighbor2] == pack_status::not_set) {
+					if(algo->deg(neighbor1) == 3 && algo->deg(neighbor2) == 3) {
+						for(NodeID neighbor : status.graph[neighbor1]) {
+							set_1.add(neighbor);
+						}
+
+						bool set_false = false;
+
+						for(NodeID neighbor : status.graph[neighbor2]) {
+							if(!set_1.get(neighbor)) {
+								set_false = true;
+							}
+						}
+
+						if(!set_false) {
+							algo->set_imprecise(v, pack_status::included);
+							continue;
+						}
+					}
+				} else {
+					continue;
+				}
+			}
+		}
+	}
+
+    /* std::cout << "twin_reduction_e:" << oldn-status.remaining_nodes << std::endl; */
+	return oldn != status.remaining_nodes;
+}
+
+bool twin2_reduction::reduce(reduce_algorithm* algo) {
+    auto config = algo->config;
+    if (config.disable_twin) return false;
 	auto& status = algo->status;
 	size_t oldn = status.remaining_nodes;
 	fast_set set_1(algo->status.n);
@@ -109,99 +246,88 @@ bool twin_reduction::reduce(reduce_algorithm* algo) {
 		}
 	}
 
+    /* std::cout << "twin_reduction:" << oldn-status.remaining_nodes << std::endl; */
 	return oldn != status.remaining_nodes;
 }
 
-bool fast_domination_reduction::reduce(reduce_algorithm* algo) {
-	auto& status = algo->status;
-	fast_set set_1(algo->status.n);
-	auto& neighbors = set_1;
-	size_t oldn = status.remaining_nodes;
+/* bool neighborhood2_reduction_e::reduce(reduce_algorithm* algo) { //only for weighted */
+/*     auto config = algo->config; */
+/*     if (config.disable_neighborhood) return false; */
+/* 	auto& status = algo->status;  */
+/* 	size_t oldn = status.remaining_nodes;  */
+
+/* 	for(size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) { */
+/* 		NodeID v = marker.current_vertex(v_idx);  */
+
+/* 		if(status.node_status[v] == pack_status::not_set) { */
+/* 			NodeWeight neighbor_weights = 0;  */
+/* 			 */
+/* 			// sum the weights of the neighbors of degree one. */
+/* 			for(NodeID u: status.graph[v]) { */
+/* 				if(status.node_status[u] == pack_status::not_set) { */
+/* 					neighbor_weights += status.weights[u]; */
+/* 				} */
+/* 			}  */
+/* 			 */
+/* 			// sum the the weights of the neighbors of degree two.  */
+/* 			for(NodeID w: status.graph.get2neighbor_list(v)) { */
+/* 				if(status.node_status[w] == pack_status::not_set) {	 */
+/* 					neighbor_weights += status.weights[w];  */
+/* 				} */
+/* 			} */
+/* 			 */
+/* 			if(status.weights[v] >= neighbor_weights) { */
+/* 				algo->set_imprecise(v, pack_status::included);  */
+/* 			} */
+/* 		} */
+/* 	} */
+
+    /* std::cout << "neighborhood_reduction_e:" << oldn-status.remaining_nodes << std::endl; */
+/* 	return oldn != status.remaining_nodes; */
+/*        	 */
+/* } */
+
+/* bool neighborhood2_reduction::reduce(reduce_algorithm* algo) { */
+/*     auto config = algo->config; */
+/*     if (config.disable_neighborhood) return false; */
+/* 	auto& status = algo->status;  */
+/* 	size_t oldn = status.remaining_nodes;  */
+
+/* 	for(size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) { */
+/* 		NodeID v = marker.current_vertex(v_idx);  */
+
+/* 		if(status.node_status[v] == pack_status::not_set) { */
+/* 			NodeWeight neighbor_weights = 0;  */
+/* 			 */
+/* 			// sum the weights of the neighbors of degree one. */
+/* 			for(NodeID u: status.graph[v]) { */
+/* 				if(status.node_status[u] != pack_status::unsafe) { */
+/* 					neighbor_weights += status.weights[u]; */
+/* 				} */
+/* 			}  */
+/* 			 */
+/* 			// sum the the weights of the neighbors of degree two.  */
+/* 			for(NodeID w: status.graph.get2neighbor_list(v)) { */
+/* 				if(status.node_status[w] != pack_status::unsafe) {	 */
+/* 					neighbor_weights += status.weights[w];  */
+/* 				} */
+/* 			} */
+/* 			 */
+/* 			if(status.weights[v] >= neighbor_weights) { */
+/* 				algo->set_imprecise(v, pack_status::included);  */
+/* 			} */
+/* 		} */
+/* 	} */
+
+/*     std::cout << "neighborhood_reduction:" << oldn-status.remaining_nodes << std::endl; */
+/* 	return oldn != status.remaining_nodes; */
+/*        	 */
+/* } */
 
 
-	for(size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
-		NodeID v = marker.current_vertex(v_idx);
-
-	
-		if(status.node_status[v] == pack_status::not_set) {
-			size_t neighbors_count = 0;
-			neighbors.clear();
-
-
-			for(NodeID neighbor : status.graph[v]) {
-				if(status.node_status[neighbor] != pack_status::unsafe) {
-					neighbors.add(neighbor);
-					neighbors_count++;
-				}
-			}
-
-			neighbors.add(v);
-			bool is_subset;
-
-			for(NodeID neighbor : status.graph[v]) {
-				if(algo->deg(neighbor) > neighbors_count || status.node_status[neighbor] == pack_status::unsafe) {
-					continue;
-				}
-
-				is_subset = true;
-
-				for(NodeID neighbor2 : status.graph[neighbor]) {
-					if(status.node_status[neighbor2] != pack_status::unsafe) {
-						if(!neighbors.get(neighbor2)) {
-							is_subset = false;
-							break;
-						}
-					}
-				}
-
-				if(is_subset) {
-					algo->set_imprecise(v, pack_status::excluded);
-					break;
-				}
-			}
-		}
-	}
-	return oldn != status.remaining_nodes;
-}
-
-
-
-bool neighborhood_reduction::reduce(reduce_algorithm* algo) {
-	auto& status = algo->status; 
-	size_t oldn = status.remaining_nodes; 
-
-	for(size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
-		NodeID v = marker.current_vertex(v_idx); 
-
-		if(status.node_status[v] == pack_status::not_set) {
-			NodeWeight neighbor_weights = 0; 
-			
-			// sum the weights of the neighbors of degree one.
-			for(NodeID u: status.graph[v]) {
-				if(status.node_status[u] != pack_status::unsafe) {
-					neighbor_weights += status.weights[u];
-				}
-			} 
-			
-			// sum the the weights of the neighbors of degree two. 
-			for(NodeID w: status.graph.get2neighbor_list(v)) {
-				if(status.node_status[w] != pack_status::unsafe) {	
-					neighbor_weights += status.weights[w]; 
-				}
-			}
-			
-			if(status.weights[v] >= neighbor_weights) {
-				std::cout << "Include node: " << v << std::endl; 
-				algo->set_imprecise(v, pack_status::included); 
-			}
-		}
-	}
-
-	return oldn != status.remaining_nodes;
-       	
-}
-
-bool domination_reduction::reduce(reduce_algorithm* algo) {
+bool domination2_reduction::reduce(reduce_algorithm* algo) {
+    auto config = algo->config;
+    if (config.disable_domination) return false;
 	auto& status = algo->status;  
 	fast_set set_1(algo->status.n); 
 	auto& neighbors = set_1; 
@@ -211,27 +337,24 @@ bool domination_reduction::reduce(reduce_algorithm* algo) {
 		NodeID v = marker.current_vertex(v_idx); 
 
 		if(status.node_status[v] == pack_status::not_set) {
-			NodeWeight neighbors_weight = 0;
-		       	size_t neighbors_count = 0; 
+		    size_t neighbors_count = 0; 
 			neighbors.clear(); 
 
 			for(NodeID neighbor : status.graph[v]) {
-				if(status.node_status[neighbor] != pack_status::unsafe) {
+				if(status.node_status[neighbor] == pack_status::not_set) {
 					neighbors.add(neighbor); 
-					neighbors_weight += status.weights[neighbor]; 
 					neighbors_count++; 
 				}
 			}
 			
 			for(NodeID neighbor : status.graph.get2neighbor_list(v)) {
-				if(status.node_status[neighbor] != pack_status::unsafe) {
+				if(status.node_status[neighbor] == pack_status::not_set) {
 					neighbors.add(neighbor); 
-					neighbors_weight += status.weights[neighbor]; 
 					neighbors_count++;
 				}
 			}
 			
-			if(status.weights[v] >= neighbors_weight) {
+			if(neighbors_count <=1) {
 				algo->set_imprecise(v, pack_status::included); 
 				continue; 
 			}
@@ -239,49 +362,51 @@ bool domination_reduction::reduce(reduce_algorithm* algo) {
 			neighbors.add(v); 
 			bool is_subset; 
 
-			for(NodeID neighbor : status.graph[v]) {
-				if(algo->deg(neighbor) + algo->two_deg(neighbor) > neighbors_count || status.node_status[neighbor] == pack_status::unsafe) {
+			for(NodeID u : status.graph[v]) {
+				if(algo->deg(u) + algo->two_deg(u) > neighbors_count || status.node_status[u] != pack_status::not_set) {
 					continue;
 				}
 
 				is_subset = true; 
 
-				for(NodeID neighbor2 : status.graph[neighbor]) {
-					if(status.node_status[neighbor2] != pack_status::unsafe) {
-						if(!neighbors.get(neighbor2)) {
+				for(NodeID neighbor : status.graph[u]) {
+					if(status.node_status[neighbor] == pack_status::not_set) {
+						if(!neighbors.get(neighbor)) {
 							is_subset = false;
 							break; 
 						}
 					}
 				}
+                if (is_subset) {
+				    for(NodeID neighbor : status.graph.get2neighbor_list(u)) {
+				    	if(status.node_status[neighbor] == pack_status::not_set) {	
+				    		if(!neighbors.get(neighbor)) {
+				    			is_subset = false; 
+				    			break; 
+				    		}
+				    	}
+				    }
+                }
 				
-				for(NodeID neighbor3 : status.graph.get2neighbor_list(neighbor)) {
-					if(status.node_status[neighbor3] != pack_status::unsafe) {	
-						if(!neighbors.get(neighbor3)) {
-							is_subset = false; 
-							break; 
-						}
-					}
-				}
-				
-				if(is_subset && status.weights[neighbor] >= status.weights[v]) {
+				if(is_subset) {
 					algo->set_imprecise(v, pack_status::excluded);
-				       	break; 	
+				    break; 	
 				}
 			}	
 		}
 	}
+    /* std::cout << "domination_reduction:" << oldn-status.remaining_nodes << std::endl; */
 	return oldn != status.remaining_nodes; 
 }
 
-bool clique_reduction::reduce(reduce_algorithm* algo) {
+bool clique2_reduction::reduce(reduce_algorithm* algo) {
 	
+    auto config = algo->config;
+    if (config.disable_clique) return false;
+
 	auto& status = algo->status; 
-	//auto& set_1 = algo->set_1; 
-	//auto& neighbors = algo->buffers[0]; 
-	//auto& isolated = algo->buffers[1];
 	fast_set set_1(algo->status.n);
-       	sized_vector<sized_vector<NodeID>> buffers(2, sized_vector<NodeID>(algo->status.n));
+    sized_vector<sized_vector<NodeID>> buffers(2, sized_vector<NodeID>(algo->status.n));
 	auto& neighbors = buffers[0];
 	auto& isolated = buffers[1]; 
 	std::vector<NodeID> non_isolated; 
@@ -299,15 +424,15 @@ bool clique_reduction::reduce(reduce_algorithm* algo) {
 		
 			// find potential 2-clique
 			for(NodeID neighbor : status.graph[node]) { // add neighbors with distance one.
-				if(status.node_status[node] != pack_status::unsafe) {
+				if(status.node_status[node] == pack_status::not_set) {
 					neighbors.push_back(neighbor); 
 					set_1.add(neighbor);
 				}
 			}
 
 			for(NodeID neighbor2 : status.graph.get2neighbor_list(node)) { // add neighbors with distance two.
-				if(status.node_status[node] != pack_status::unsafe) {
-					neighbors.push_back(neighbor2); 
+                if(status.node_status[node] == pack_status::not_set) {
+                    neighbors.push_back(neighbor2); 
 					set_1.add(neighbor2); 
 				}
 			}
@@ -325,20 +450,20 @@ bool clique_reduction::reduce(reduce_algorithm* algo) {
 			bool is_clique = false; 
 
 			for(auto neighbor : neighbors) {
-				if(status.node_status[neighbor] != pack_status::unsafe) {
+				if(status.node_status[neighbor] == pack_status::not_set) {
 					size_t count = 0; 
 					bool is_isolated = true; 
 
 					for(NodeID neighbor_2nd : status.graph[neighbor]) {
-						if(status.node_status[neighbor] != pack_status::unsafe) {
-							if(set_1.get(neighbor_2nd)) count++; 
+						if(status.node_status[neighbor] == pack_status::not_set) {
+							if(set_1.get(neighbor_2nd)) count++;
 							else is_isolated = false;
 						}
 					}
 
 					// same for the neighbors with distance two
 					for(NodeID neighbor_2nd : status.graph.get2neighbor_list(neighbor)) {
-						if(status.node_status[neighbor] != pack_status::unsafe) {
+						if(status.node_status[neighbor] == pack_status::not_set) {
 							if(set_1.get(neighbor_2nd)) count++; 
 							else is_isolated = false; 
 						}
@@ -370,7 +495,6 @@ bool clique_reduction::reduce(reduce_algorithm* algo) {
 				algo->set_imprecise(max_isolated.node, pack_status::included); 
 				continue; 
 			}
-
 			/* // Das wird im ungewichteten Fall irrelevant.
 			// remove all nodes from the 2-clique which have a smaller or equal weight than "max_isolated" -> we can always pick "max_isolated" over them.
 			isolated[max_isolated_idx] = isolated.back(); 
@@ -394,7 +518,157 @@ bool clique_reduction::reduce(reduce_algorithm* algo) {
 		}
 	}
 
+    /* std::cout << "clique_reduction:" << oldn-status.remaining_nodes << std::endl; */
 	return oldn != status.remaining_nodes;
 }
 
 
+
+bool domination2_reduction_e::reduce(reduce_algorithm* algo) {
+    auto config = algo->config;
+    if (config.disable_domination) return false;
+	auto& status = algo->status;  
+	fast_set set_1(algo->status.n); 
+	auto& neighbors = set_1; 
+	size_t oldn = status.remaining_nodes; 
+	
+	for(size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
+		NodeID v = marker.current_vertex(v_idx); 
+
+		if(status.node_status[v] == pack_status::not_set) {
+		    size_t neighbors_count = 0; 
+			neighbors.clear(); 
+
+			for(NodeID neighbor : status.graph[v]) {
+				if(status.node_status[neighbor] == pack_status::not_set) {
+					neighbors.add(neighbor); 
+					neighbors_count++; 
+				}
+			}
+			
+			for(NodeID neighbor : status.graph.get2neighbor_list(v)) {
+				if(status.node_status[neighbor] == pack_status::not_set) {
+					neighbors.add(neighbor); 
+					neighbors_count++;
+				}
+			}
+			
+            if(neighbors_count <=1) {
+                algo->set_imprecise(v, pack_status::included); 
+                continue; 
+            }
+
+			neighbors.add(v); 
+			bool is_subset; 
+
+			for(NodeID u : status.graph[v]) {
+				if(algo->deg(u) + algo->two_deg(u) > neighbors_count || status.node_status[u] != pack_status::not_set) {
+					continue;
+				}
+
+				is_subset = true; 
+
+				for(NodeID neighbor : status.graph[u]) {
+					if(status.node_status[neighbor] == pack_status::not_set) {
+						if(!neighbors.get(neighbor)) {
+							is_subset = false;
+							break; 
+						}
+					}
+				}
+                if (is_subset) {
+				    for(NodeID neighbor : status.graph.get2neighbor_list(u)) {
+				    	if(status.node_status[neighbor] == pack_status::not_set) {	
+				    		if(!neighbors.get(neighbor)) {
+				    			is_subset = false; 
+				    			break; 
+				    		}
+				    	}
+				    }
+                }
+				
+				if(is_subset) {
+					algo->set(v, pack_status::excluded);
+				    break; 	
+				}
+			}	
+		}
+	}
+			
+    /* std::cout << "domination_reduction_e:" << oldn-status.remaining_nodes << std::endl; */
+	return oldn != status.remaining_nodes; 
+}
+
+bool clique2_reduction_e::reduce(reduce_algorithm* algo) {
+    auto config = algo->config;
+    if (config.disable_clique) return false;
+	
+	auto& status = algo->status; 
+	fast_set neighbors_set(algo->status.n);
+    sized_vector<sized_vector<NodeID>> buffers(2, sized_vector<NodeID>(algo->status.n));
+	auto& neighbors = buffers[0];
+
+	size_t oldn = status.remaining_nodes; 
+	
+	for(size_t node_idx = 0; node_idx < marker.current_size(); node_idx++) {
+		NodeID node = marker.current_vertex(node_idx); 
+
+		if(status.node_status[node] == pack_status::not_set) {
+		
+			neighbors.clear(); 
+			neighbors_set.clear(); 
+			neighbors_set.add(node); 
+		
+			// find potential 2-clique
+			for(NodeID neighbor : status.graph[node]) { // add neighbors with distance one.
+				if(status.node_status[node] == pack_status::not_set) {
+					neighbors.push_back(neighbor); 
+					neighbors_set.add(neighbor);
+				}
+			}
+
+			for(NodeID neighbor2 : status.graph.get2neighbor_list(node)) { // add neighbors with distance two.
+				if(status.node_status[node] == pack_status::not_set) {
+					neighbors.push_back(neighbor2); 
+					neighbors_set.add(neighbor2); 
+				}
+			}
+			
+			
+			// check if 2-clique 
+
+			bool is_clique = false; 
+
+			for(auto neighbor : neighbors) {
+				if(status.node_status[neighbor] == pack_status::not_set) {
+					size_t count = 0; 
+
+					for(NodeID neighbor_2nd : status.graph[neighbor]) {
+						if(status.node_status[neighbor] == pack_status::not_set) {
+							if(neighbors_set.get(neighbor_2nd)) count++; 
+						}
+					}
+
+					    // same for the neighbors with distance two
+					    for(NodeID neighbor_2nd : status.graph.get2neighbor_list(neighbor)) {
+					    	if(status.node_status[neighbor] == pack_status::not_set) {
+					    		if(neighbors_set.get(neighbor_2nd)) count++; 
+					    	}
+                    } 
+	
+					is_clique = count == neighbors.size(); 
+                    if (!is_clique) break;
+                }
+            }
+            if (!is_clique) continue;
+
+			if(is_clique)  {
+                algo->set_imprecise(node, pack_status::included);
+                continue; 
+			}
+		}
+	}
+
+    /* std::cout << "clique_reduction_e:" << oldn-status.remaining_nodes << std::endl; */
+	return oldn != status.remaining_nodes;
+}

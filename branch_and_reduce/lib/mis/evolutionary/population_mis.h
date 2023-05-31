@@ -41,7 +41,7 @@ class population_mis {
          * @param config Config used for the population.
          * @param G Graph representation.
          */
-        void init(MISConfig & config, graph_access & G);
+        void init(M2SConfig & config, graph_access & G);
 
         /**
          * Create a single individuum.
@@ -52,7 +52,7 @@ class population_mis {
          * @param G Graph representation.
          * @param ind Individuum to create/refine.
          */
-        void create_individuum(MISConfig & config, graph_access & G, individuum_mis & ind);
+        void create_individuum(M2SConfig & config, graph_access & G, individuum_mis & ind);
 
         /**
          * Returns a certain individuum.
@@ -75,7 +75,7 @@ class population_mis {
          * @param config Config used for the population.
          * @param ind The random individuum.
          */
-        void get_one_individuum_tournament(MISConfig & config, individuum_mis & ind);
+        void get_one_individuum_tournament(M2SConfig & config, individuum_mis & ind);
 
         /**
          * Return two random individuals.
@@ -100,7 +100,7 @@ class population_mis {
          * @param first First random individuum.
          * @param second Second random individuum.
          */
-        void get_two_individuals_tournament(MISConfig & config, individuum_mis & first, individuum_mis & second);
+        void get_two_individuals_tournament(M2SConfig & config, individuum_mis & first, individuum_mis & second);
 
         /**
          * Returns the individuum with the best solution.
@@ -117,7 +117,7 @@ class population_mis {
          * @param G Graph representation.
          * @param ind Mutated individuum.
          */
-        void mutate_random(MISConfig & config, graph_access & G, individuum_mis & ind);
+        void mutate_random(M2SConfig & config, graph_access & G, individuum_mis & ind);
 
         /**
          * Mutate a given individuum.
@@ -127,7 +127,7 @@ class population_mis {
          * @param G Graph representation.
          * @param ind Mutated individuum.
          */
-        void mutate(MISConfig & config, graph_access & G, individuum_mis & ind);
+        void mutate(M2SConfig & config, graph_access & G, individuum_mis & ind);
         
         /**
          * Insert a individuum in the population.
@@ -140,7 +140,7 @@ class population_mis {
          * @param ind Individuum to insert.
          * @return True if the insertion was successful;
          */
-        bool insert(MISConfig & config, graph_access & G, individuum_mis & ind);
+        bool insert(M2SConfig & config, graph_access & G, individuum_mis & ind);
 
         /**
          * Get the most similar individuum to a given one.
@@ -152,7 +152,7 @@ class population_mis {
          * @param replacement The most similar individuum.
          * @return Whether or not the replacement is valid.
          */
-        bool get_most_similar_replacement(MISConfig & config, graph_access & G, individuum_mis & ind, individuum_mis & replacement);
+        bool get_most_similar_replacement(M2SConfig & config, graph_access & G, individuum_mis & ind, individuum_mis & replacement);
 
         /**
          * Replace an individuum by another.
@@ -179,7 +179,7 @@ class population_mis {
          * @param ind Individuum whose solution should be applied.
          * @param secondary Whether or not the solution should be applied to the second partition index.
          */
-        void set_mis_for_individuum(MISConfig & config, graph_access & G, individuum_mis & ind, bool secondary = false);
+        void set_mis_for_individuum(M2SConfig & config, graph_access & G, individuum_mis & ind, bool secondary = false);
 
         /**
          * Resets the population by removing all individuals.
@@ -190,7 +190,7 @@ class population_mis {
          * Prints the current state of the population.
          * Prints all individuals and their solution size.
          */
-        void print(MISConfig & config);
+        void print(M2SConfig & config);
 
         /**
          * Sets the maximum number of individuals.
@@ -221,7 +221,7 @@ class population_mis {
          * @param G Graph representation.
          * @param ind Individuum to be checked.
          */
-        bool is_mis(MISConfig & config, graph_access & G, individuum_mis & ind);
+        bool is_mis(M2SConfig & config, graph_access & G, individuum_mis & ind);
 
         /**
          * Check if the individuum is a valid vertex cover.
@@ -230,7 +230,7 @@ class population_mis {
          * @param G Graph representation.
          * @param ind Individuum to be checked.
          */
-        bool is_vertex_cover(MISConfig & config, graph_access & G, individuum_mis & ind);
+        bool is_vertex_cover(M2SConfig & config, graph_access & G, individuum_mis & ind);
 
         /**
          * Get a fraction of the independent set nodes from the best individual.
@@ -240,7 +240,7 @@ class population_mis {
          * @param G Graph representation.
          * @param nodes Resulting set of nodes.
          */
-        void get_best_individual_nodes(MISConfig & config, graph_access & G, std::vector<NodeID> & nodes);
+        void get_best_individual_nodes(M2SConfig & config, graph_access & G, std::vector<NodeID> & nodes);
 
         /**
          * Set the fraction of nodes that will be picked from the best individual.
@@ -255,7 +255,7 @@ class population_mis {
          * @param config Config used for the population.
          * @param G Graph representation.
          */
-        void reset(MISConfig & config, graph_access & G);
+        void reset(M2SConfig & config, graph_access & G);
 
     private:
         // Vector containing the individuals.

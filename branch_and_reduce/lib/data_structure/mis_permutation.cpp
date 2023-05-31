@@ -356,4 +356,3 @@ bool mis_permutation::check_consistency(graph_access & G) {
     } endfor
     return true;
 }
-

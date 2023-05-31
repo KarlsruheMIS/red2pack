@@ -11,6 +11,7 @@
 #include "macros_assertions.h"
 #include "random_functions.h"
 
+
 candidate_list::candidate_list() {
         count = 0;
 }
