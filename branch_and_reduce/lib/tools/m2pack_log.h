@@ -74,7 +74,7 @@ class m2pack_log {
          * @param extracted_nodes Number of removed nodes.
          * @param kernel_size Number of remaining nodes.
          */
-        void print_reduction(unsigned int extracted_nodes, unsigned int kernel_size, double reduction_time);
+        void print_reduction(unsigned int extracted_nodes,unsigned int kernel_size, unsigned int kernel_size_m, double reduction_time);
         void print_condensed_graph(unsigned int n, unsigned int m, double time);
 
         /**

@@ -110,7 +110,7 @@ int main(int argn, char **argv) {
 		}
 	}	
 
-    m2pack_log::instance()->print_reduction(sol_counter, n_new, reduction_time);
+    m2pack_log::instance()->print_reduction(sol_counter, n_new,m_new, reduction_time);
 
     if (n_new == 0) {
         m2pack_log::instance()->set_best_size(m2s_config, sol_counter);
@@ -176,12 +176,17 @@ int main(int argn, char **argv) {
 
 	
 	// print new graph_access to use branch and reduce algorithm afterwards
-    std::cout << mis_config.time_limit << std::endl;
+    stop = std::chrono::system_clock::now();
+    std::chrono::duration<double> spendt_time = stop - start_point;
+    mis_config.time_limit -= spendt_time.count();
     if (mis_config.time_limit > 0 ) {
-        /* cout_handler::disable_cout(); */
+        std::cout << "\t\tMIS Solver" << std::endl;
+        std::cout << "==========================================" << std::endl;
+        std::cout << "Remaining time: " << mis_config.time_limit << std::endl;
+        cout_handler::disable_cout();
         branch_and_reduce_algorithm mis_reducer(G_cond, mis_config);
         mis_reducer.run_branch_reduce();
-        /* cout_handler::enable_cout(); */
+        cout_handler::enable_cout();
         mis_reducer.apply_branch_reduce_solution(G_cond);
     } else { std::cout << "\%timeout" << std::endl;}
 

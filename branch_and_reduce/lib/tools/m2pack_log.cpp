@@ -121,21 +121,22 @@ void m2pack_log::print_config() {
 void m2pack_log::print_condensed_graph( unsigned int n, unsigned int m,  double time) {
     filebuffer_string << "\t\tTransformation" << std::endl;
     filebuffer_string << "=========================================="                           << std::endl;
-    filebuffer_string << "|-Transformed G Nodes:\t" << n <<  std::endl;
-    filebuffer_string << "|-Transformed G Edges:\t" << m <<  std::endl;
+    filebuffer_string << "|-Transformed G Nodes:\t\t" << n <<  std::endl;
+    filebuffer_string << "|-Transformed G Edges:\t\t" << m <<  std::endl;
     filebuffer_string << "|-Transformation time:\t\t" << time << "\n" << std::endl;
         std::cout << "\t\tTransformation" << std::endl;
         std::cout << "=========================================="                           << std::endl;
-        std::cout << "|-Transformed G Nodes:\t\t\t" << n <<  std::endl;
-        std::cout << "|-Transformed G Edges:\t\t\t" << m <<  std::endl;
+        std::cout << "|-Transformed G Nodes:\t\t" << n <<  std::endl;
+        std::cout << "|-Transformed G Edges:\t\t" << m <<  std::endl;
         std::cout << "|-Transformation time:\t\t" << time << "\n" << std::endl;
 }
 
-void m2pack_log::print_reduction(unsigned int extracted_nodes, unsigned int kernel_size, double reduction_time) {
+void m2pack_log::print_reduction(unsigned int extracted_nodes, unsigned int kernel_size, unsigned int kernel_size_m, double reduction_time) {
     filebuffer_string << "\t\tReduction" << std::endl;
     filebuffer_string << "=========================================="                           << std::endl;
     filebuffer_string << "|-Offset:\t\t\t" << extracted_nodes << std::endl;
     filebuffer_string << "|-Kernel Nodes:\t\t\t" << kernel_size <<  std::endl;
+    filebuffer_string << "|-Kernel Edges:\t\t\t" << kernel_size_m <<  std::endl;
     filebuffer_string << "|-Reduction time:\t\t" << reduction_time << "\n" << std::endl;
         std::cout << "\t\tReduction" << std::endl;
         std::cout << "=========================================="                           << std::endl;
