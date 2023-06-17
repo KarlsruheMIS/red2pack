@@ -5,8 +5,9 @@
  * Christian Schulz <christian.schulz.phone@gmail.com>
  *****************************************************************************/
 
-#ifndef GRAPH_ACCESS_EFRXO4X2
-#define GRAPH_ACCESS_EFRXO4X2
+#ifndef GRAPH_ACCESS_EFRXO4X3
+#define GRAPH_ACCESS_EFRXO4X3
+
 
 #include <bitset>
 #include <cassert>
@@ -14,7 +15,7 @@
 #include <vector>
 
 #include "definitions.h"
-
+namespace MWIS_GRAPH {
 struct Node {
     EdgeID firstEdge;
     NodeWeight weight;
@@ -501,5 +502,5 @@ inline void graph_access::copy(graph_access & G_bar) {
 
         G_bar.finish_construction();
 }
-
-#endif /* end of include guard: GRAPH_ACCESS_EFRXO4X2 */
+}
+#endif /* end of include guard: GRAPH_ACCESS_EFRXO4X3 */
