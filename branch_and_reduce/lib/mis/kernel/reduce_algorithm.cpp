@@ -157,7 +157,7 @@ void reduce_algorithm::reduce_graph_internal() {
 			active_reduction_index++; 
 		}
 	} while(progress && config.time_limit > t.elapsed()); 
-
+    if (config.time_limit > t.elapsed()) std::cout << "\%timeout" << std::endl;
 }
 
 void reduce_algorithm::run_reductions() {
