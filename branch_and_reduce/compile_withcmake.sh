@@ -14,17 +14,11 @@ rm -rf deploy
 rm -rf build
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Debug ../
+cmake ../ -DCMAKE_C_COMPILER=/usr/local/bin/gcc-13 -DCMAKE_CXX_COMPILER=/usr/local/bin/g++-13 -DCMAKE_BUILD_TYPE=Release
 make -j $NCORES
 cd ..
 
 mkdir deploy
-cp ./build/prepare_graph deploy/
-# cp ./build/graphchecker deploy/
-# cp ./build/sort_adjacencies deploy/
-# cp ./build/online_mis deploy/
-# cp ./build/wmis/branch_reduce  deploy/weighted_branch_reduce
-#cp ./build/wmis/merge_graph_weights deploy/
-# cp ./build/wmis/weighted_ls deploy/weighted_local_search
+cp ./build/m2s_branch_and_reduce deploy/
 
 rm -rf build

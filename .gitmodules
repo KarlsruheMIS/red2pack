@@ -1,0 +1,3 @@
+[submodule "branch_and_reduce/extern/KaMIS"]
+	path = branch_and_reduce/extern/KaMIS
+	url = git@github.com:KarlsruheMIS/KaMIS.git
