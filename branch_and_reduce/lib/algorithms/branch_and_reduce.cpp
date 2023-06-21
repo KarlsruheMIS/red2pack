@@ -12,7 +12,7 @@
 #include "tools/m2s_log.h"
 
 namespace two_packing_set {
-branch_and_reduce::branch_and_reduce(two_packing_set::m2s_graph_access G, M2SConfig m2s_cfg, MISConfig mis_cfg)
+branch_and_reduce::branch_and_reduce(two_packing_set::m2s_graph_access& G, M2SConfig m2s_cfg, MISConfig mis_cfg)
     : m2s_cfg(std::move(m2s_cfg)),
       mis_cfg(std::move(mis_cfg)),
       solution_status(G.number_of_nodes(), false),
@@ -60,11 +60,9 @@ bool branch_and_reduce::run() {
 }
 
 graph_access branch_and_reduce::perform_initial_reductions() {
-        std::cout << "Helllo World" << std::endl;
         auto start_t = std::chrono::system_clock::now();
         // transformed graph
         graph.construct_2neighborhood();
-        std::cout << "Helllo World" << std::endl;
         // run first reductions
         reduce_algorithm reducer(graph, m2s_cfg);
         reducer.run_reductions();
@@ -86,7 +84,6 @@ graph_access branch_and_reduce::perform_initial_reductions() {
         reduced_node_id.resize(n);
 
         NodeID kernel_nodes = 0;
-        std::cout << "Helllo World" << std::endl;
 
         // Implemented optimization: we don't need to sort adjacency arrays to run KaMIS/wmis
 
@@ -98,7 +95,6 @@ graph_access branch_and_reduce::perform_initial_reductions() {
                         kernel_nodes++;
                 }
         }
-        std::cout << "Helllo World" << std::endl;
 
         m2s_log::instance()->print_reduction(solution_size, kernel_nodes, 0,
                                              reduction_time);

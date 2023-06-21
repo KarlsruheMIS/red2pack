@@ -20,7 +20,7 @@ public:
    * @param m2s_cfg
    * @param mis_cfg
    */
-  branch_and_reduce(m2s_graph_access G, M2SConfig m2s_cfg, MISConfig mis_cfg);
+  branch_and_reduce(m2s_graph_access& G, M2SConfig m2s_cfg, MISConfig mis_cfg);
 
   /**
    * Find maximum 2-packing-set for graph
