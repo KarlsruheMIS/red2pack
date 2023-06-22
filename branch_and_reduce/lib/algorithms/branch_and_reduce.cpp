@@ -61,18 +61,18 @@ bool branch_and_reduce::run() {
 
 graph_access branch_and_reduce::perform_initial_reductions() {
         auto start_t = std::chrono::system_clock::now();
-        // transformed graph
+        // construct 2neighborhood
         graph.construct_2neighborhood();
         // run first reductions
         reduce_algorithm reducer(graph, m2s_cfg);
-        reducer.run_reductions();
+        //reducer.run_reductions();
         auto stop_t = std::chrono::system_clock::now();
         std::chrono::duration<double> time = stop_t - start_t;
         double reduction_time = time.count();
         // TODO print reduction time
 
         // set solution status
-        reducer.get_solution(solution_status);
+        //reducer.get_solution(solution_status);
         solution_size = 0;
         for (auto && status_of_node : solution_status) {
                 if (status_of_node) solution_size++;
@@ -106,7 +106,9 @@ graph_access branch_and_reduce::perform_initial_reductions() {
                 kernel.finish_construction();
         }else {
                 auto start_construction = std::chrono::system_clock::now();
-                kernel.start_construction(kernel_nodes, std::min(kernel_nodes*kernel_nodes, graph.number_of_edges()));
+                // TODO better bound for edges of kernel?
+                //  Cannot use graph.number_of_edges because this counter does not count 2neighborhood edges
+                kernel.start_construction(kernel_nodes, kernel_nodes*(kernel_nodes-1));
 
                 for (size_t i = 0; i < status.graph.size(); i++) {
                         if (status.node_status[i] == reduce_algorithm::pack_status::not_set) {
