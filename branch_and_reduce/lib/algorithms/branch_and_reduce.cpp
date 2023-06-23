@@ -65,14 +65,13 @@ graph_access branch_and_reduce::perform_initial_reductions() {
         graph.construct_2neighborhood();
         // run first reductions
         reduce_algorithm reducer(graph, m2s_cfg);
-        //reducer.run_reductions();
+        reducer.run_reductions();
         auto stop_t = std::chrono::system_clock::now();
         std::chrono::duration<double> time = stop_t - start_t;
         double reduction_time = time.count();
-        // TODO print reduction time
 
         // set solution status
-        //reducer.get_solution(solution_status);
+        reducer.get_solution(solution_status);
         solution_size = 0;
         for (auto && status_of_node : solution_status) {
                 if (status_of_node) solution_size++;
