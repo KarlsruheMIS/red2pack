@@ -1,7 +1,17 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.16)
 project(2-packing-set C CXX)
 
 include(CheckCXXCompilerFlag)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+find_program(CCACHE_PROGRAM ccache)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+if(CCACHE_PROGRAM)
+    message(STATUS "Using compiler cache")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "${CCACHE_PROGRAM}")
+endif()
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
@@ -13,9 +23,9 @@ if(CMAKE_BUILD_TYPE EQUAL "Release")
     add_compile_options(-O3)
 endif()
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+if(CMAKE_BUILD_TYPE EQUAL "Debug")
+    add_compile_options(-g)
+endif()
 
 CHECK_CXX_COMPILER_FLAG(-fno-omit-frame-pointer COMPILER_SUPPORTS_OMIT_FRAME_POINTER)
 if(COMPILER_SUPPORTS_OMIT_FRAME_POINTER)
@@ -46,6 +56,10 @@ CHECK_CXX_COMPILER_FLAG(-funroll-loops COMPILER_SUPPORTS_FUNROLL_LOOPS)
 if(COMPILER_SUPPORTS_FUNROLL_LOOPS)
     add_compile_options(-funroll-loops)
 endif()
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # M2S CPP Files
 set(M2S_BIN "app/m2s_branch_and_reduce.cpp")
