@@ -99,12 +99,17 @@ int main(int argc, char **argv) {
         two_packing_set::branch_and_reduce solver(graph, m2s_config, mis_config);
 
         // solve graph
-        solver.run();
+        bool found = solver.run();
         // COMPUTATION END
         m2s_log::instance()->set_best_size(m2s_config, solver.get_solution_size());
         /*===============================BENCHMARK END===============================*/
 
         // VERIFY
+        if (!found) {
+                std::cerr << "Timeout" << std::endl;
+                return 1;
+        }
+
         graph.construct_2neigh();
         auto valid = is_maximal_2ps(graph, solver.get_solution(), solver.get_solution_size());
         if (!valid) {
