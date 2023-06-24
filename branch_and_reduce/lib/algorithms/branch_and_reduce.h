@@ -32,6 +32,10 @@ public:
           return solution_size;
   }
 
+  const std::vector<bool>& get_solution() {
+          return solution_status;
+  }
+
 private:
   m2s_graph_access graph;
   M2SConfig m2s_cfg;

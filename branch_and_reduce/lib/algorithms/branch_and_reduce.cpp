@@ -112,6 +112,7 @@ graph_access branch_and_reduce::perform_initial_reductions() {
                 for (size_t i = 0; i < status.graph.size(); i++) {
                         if (status.node_status[i] == reduce_algorithm::pack_status::not_set) {
                                 kernel.new_node();
+                                kernel.setNodeWeight(reduced_node_id[i], 1);
                                 for (size_t j = 0; j < status.graph[i].size(); j++) {
                                         if (status.node_status[status.graph[i][j]] == reduce_algorithm::pack_status::not_set) {
                                                 kernel.new_edge(reduced_node_id[i], reduced_node_id[status.graph[i][j]]);

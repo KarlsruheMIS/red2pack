@@ -9,6 +9,65 @@
 #include "tools/graph_io.h"
 #include "tools/m2s_log.h"
 
+bool is_maximal_2ps(two_packing_set::m2s_graph_access& graph, const std::vector<bool>& sol, const NodeID sol_size) {
+
+        NodeID check_sol_size = 0;
+
+        for (NodeID node = 0; node < graph.number_of_nodes(); node ++){
+                if (sol[node]) {
+                        check_sol_size++;
+
+                        forall_out_edges (graph, e, node) {
+                                if (sol[graph.getEdgeTarget(e)]) {
+                                        std::cerr << "Direct Neighbors are part of the solution." << std::endl;
+                                        return false;
+                                }
+                        }
+                        endfor
+
+                        forall_out_edges2(graph, e, node) {
+                                if (sol[graph.getEdgeTarget2(e)]) {
+                                        std::cerr << "Two vertices with a common neighbor are part of the solution." << std::endl;
+                                        return false;
+                                }
+                        }
+                        endfor
+                }else {
+                        // maximal ?
+
+                        bool maximal = false;
+                        forall_out_edges (graph, e, node) {
+                                if (sol[graph.getEdgeTarget(e)]) {
+                                        maximal = true;
+                                }
+                        }
+                        endfor
+
+                        if (!maximal) {
+                                forall_out_edges2(graph, e, node) {
+                                        if (sol[graph.getEdgeTarget2(e)]) {
+                                                maximal = true;
+                                        }
+                                }
+                                endfor
+                        }
+
+                        if (!maximal) {
+                                std::cerr << "Solution is not maximal" << std::endl;
+                                return false;
+                        }
+
+                }
+        }
+
+        if (check_sol_size != sol_size) {
+                std::cerr << "Solution Size is wrong. It should be " << check_sol_size << " and not " << sol_size << "!" << std::endl;
+                return false;
+        }
+
+        return true;
+}
+
 int main(int argc, char **argv) {
         using namespace two_packing_set;
         // SETUP
@@ -44,6 +103,13 @@ int main(int argc, char **argv) {
         // COMPUTATION END
         m2s_log::instance()->set_best_size(m2s_config, solver.get_solution_size());
         /*===============================BENCHMARK END===============================*/
+
+        // VERIFY
+        graph.construct_2neigh();
+        auto valid = is_maximal_2ps(graph, solver.get_solution(), solver.get_solution_size());
+        if (!valid) {
+                return 1;
+        }
 
         // PRINT RESULTS
         m2s_log::instance()->print_results();
