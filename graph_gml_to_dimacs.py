@@ -31,11 +31,11 @@ def gml_to_dimacs(gml_filename, out_dir):
             if line[0] == "#":
                 line = "%" + line[1:]
                 out_lines.append(line)
-            elif "graph [" in line and len(read_status) == 0:
+            elif "graph" in line and len(read_status) == 0:
                 read_status.append(ReadStatus.GRAPH)
-            elif "node [" in line and read_status[-1] == ReadStatus.GRAPH:
+            elif "node" in line and read_status[-1] == ReadStatus.GRAPH:
                 read_status.append(ReadStatus.NODE)
-            elif "edge [" in line and read_status[-1] == ReadStatus.GRAPH:
+            elif "edge" in line and read_status[-1] == ReadStatus.GRAPH:
                 read_status.append(ReadStatus.EDGE)
             elif "]" in line:
                 if read_status[-1] == ReadStatus.NODE:
@@ -49,11 +49,11 @@ def gml_to_dimacs(gml_filename, out_dir):
                 node = 0
                 source = 0
                 target = 0
-            elif "id" in line and read_status[-1] == ReadStatus.NODE:
+            elif "id " in line and read_status[-1] == ReadStatus.NODE:
                 node = int(line.strip().split(" ")[1].rstrip())
-            elif "source" in line and read_status[-1] == ReadStatus.EDGE:
+            elif "source " in line and read_status[-1] == ReadStatus.EDGE:
                 source = int(line.strip().split(" ")[1].rstrip())
-            elif "target" in line and read_status[-1] == ReadStatus.EDGE:
+            elif "target " in line and read_status[-1] == ReadStatus.EDGE:
                 target = int(line.strip().split(" ")[1].rstrip())
 
     if len(nodes) - 1 != int(sorted(nodes)[-1]):
