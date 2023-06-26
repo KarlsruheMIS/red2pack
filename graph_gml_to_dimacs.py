@@ -38,8 +38,6 @@ def gml_to_dimacs(gml_filename, out_dir):
             elif "edge [" in line and read_status[-1] == ReadStatus.GRAPH:
                 read_status.append(ReadStatus.EDGE)
             elif "]" in line:
-                print(read_status)
-                print(read_status[-1])
                 if read_status[-1] == ReadStatus.NODE:
                     nodes.append(int(node))
                 elif read_status[-1] == ReadStatus.EDGE:
@@ -58,7 +56,6 @@ def gml_to_dimacs(gml_filename, out_dir):
             elif "target" in line and read_status[-1] == ReadStatus.EDGE:
                 target = int(line.strip().split(" ")[1].rstrip())
 
-    print(sorted(nodes))
     if len(nodes) - 1 != int(sorted(nodes)[-1]):
         print("Nodes have not continuous ids")
         return
