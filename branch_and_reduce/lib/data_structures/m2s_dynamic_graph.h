@@ -105,11 +105,12 @@ class m2s_dynamic_graph {
 
                 for (size_t i = 0; i < G.number_of_nodes(); i++) {
                         slotB = &graph2[i];
-                        slotB->resize(G.two_neighbors[i].size());
+                        slotB->resize(G.get2Degree(i));
 
-                        for (size_t j = 0; j < G.two_neighbors[i].size(); j++) {
-                                slotB->two_neighbors[slotB->counter++] = G.two_neighbors[i][j];
+                        forall_out_edges2(G, e, i) {
+                                slotB->two_neighbors[slotB->counter++] = G.getEdgeTarget2(e);
                         }
+                        endfor
                 }
         }
 

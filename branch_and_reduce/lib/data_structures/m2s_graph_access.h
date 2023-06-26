@@ -10,11 +10,13 @@
 
 #include <bitset>
 #include <cassert>
+#include <chrono>
 #include <iostream>
 #include <queue>
 #include <vector>
 
 #include "definitions.h"
+#include "fast_set.h"
 #include "graph_access.h"
 
 namespace two_packing_set {
@@ -136,12 +138,9 @@ class basicGraph {
         EdgeID e;     // current edge that is constructed
 };
 
-
 #define forall_out_edges2(G, e, n) \
         {                          \
                 for (EdgeID e = G.get_first_edge2(n), end = G.get_first_invalid_edge2(n); e < end; ++e) {
-
-
 class complete_boundary;
 
 class m2s_graph_access {
@@ -169,7 +168,6 @@ class m2s_graph_access {
         NodeID number_of_nodes();
         EdgeID number_of_edges();
 
-        std::vector<bool> touched;
         void init_touched(int n);
 
         EdgeID get_first_edge(NodeID node);
@@ -234,9 +232,9 @@ class m2s_graph_access {
         // Count get_node_queue_index(NodeID node);
 
         void copy(m2s_graph_access& Gcopy);
-        std::vector<Edge> get2neighbors(NodeID node);
-        void construct_2neigh();
-        std::vector<std::vector<int>> two_neighbors;
+        // std::vector<Edge> get2neighbors(NodeID node);
+        // void construct_2neigh();
+        // std::vector<std::vector<int>> two_neighbors;
 
        private:
         basicGraph* graphref;
@@ -252,8 +250,6 @@ inline void m2s_graph_access::start_construction(NodeID nodes, EdgeID edges) {
 }
 
 inline NodeID m2s_graph_access::new_node() { return graphref->new_node(); }
-
-inline void m2s_graph_access::init_touched(int a) { touched.resize(a); }
 
 inline EdgeID m2s_graph_access::new_edge(NodeID source, NodeID target) { return graphref->new_edge(source, target); }
 
@@ -541,7 +537,7 @@ inline void m2s_graph_access::copy(m2s_graph_access& G_bar) {
 
 // ==============================================================================
 // Get the 2-neighbors that have distance two.
-inline std::vector<Edge> m2s_graph_access::get2neighbors(NodeID node) {
+/*inline std::vector<Edge> m2s_graph_access::get2neighbors(NodeID node) {
         std::vector<Edge> deg2_nodes;
         std::queue<NodeID> bfsqueue;
         NodeID nodes_left = graphref->number_of_nodes();
@@ -587,70 +583,43 @@ inline std::vector<Edge> m2s_graph_access::get2neighbors(NodeID node) {
         }
 
         return deg2_nodes;
-}
+}*/
 // ====================================================================================
 
 // ====================================================================================
 // We want to build the neighbors of degree two for every node.
-// Implementation is still naive.
-inline void m2s_graph_access::construct_2neigh() {
-        graphref->m2_nodes.resize(graphref->number_of_nodes() + 1);
-        int counter = 0;
-        basicGraph& ref = *graphref;
-        init_touched(graphref->number_of_nodes());
-        forall_nodes (ref, node) {
-                graphref->m2_nodes[node].firstEdge = counter;
-                int internal_counter = 0;
-                std::vector<Edge> neighs(get2neighbors(node));
-                // std::cout << node << std::endl;
-                for (long unsigned int j = 0; j < neighs.size(); j++) {
-                        graphref->m2_edges.push_back(neighs[j]);
-                        internal_counter++;
-                }
-                graphref->m2_nodes[node + 1].firstEdge = counter + internal_counter;
-
-                counter = counter + internal_counter;
-        }
-        endfor
-}
-
 inline void m2s_graph_access::construct_2neighborhood() {
-        two_neighbors.resize(number_of_nodes());
-        NodeID n = number_of_nodes();
-        for (int v_idx = 0; v_idx < n; v_idx++) {
-                std::vector<bool> touched(n, false);
-                std::queue<int> bfsqueue;
-                int nodes_left = n;
-                int startNode = v_idx;
-
-                touched[startNode] = true;
-
-                nodes_left--;
+        EdgeID count_2_edges = 0;
+        std::queue<NodeID> bfsqueue;
+        fast_set touched(number_of_nodes());
+        graphref->m2_nodes.resize(graphref->number_of_nodes() + 1);
+        graphref->m2_edges.reserve(number_of_edges()*2); // guess for number of edges
+        for (NodeID v_idx = 0; v_idx < number_of_nodes(); v_idx++) {
+                graphref->m2_nodes[v_idx].firstEdge = count_2_edges;
+                touched.add(v_idx);
 
                 for (int j = graphref->m_nodes[v_idx].firstEdge; j < graphref->m_nodes[v_idx + 1].firstEdge; j++) {
-                        int target = graphref->m_edges[j].target;
-                        if (!touched[target]) {
-                                // two_neighbors[v_idx].push_back(target);
-                                touched[target] = true;
-                                bfsqueue.push(target);
-                        }
+                        touched.add(graphref->m_edges[j].target);
+                        bfsqueue.push(graphref->m_edges[j].target);
                 }
 
                 while (!bfsqueue.empty()) {
-                        int source = bfsqueue.front();
+                        NodeID source = bfsqueue.front();
                         bfsqueue.pop();
-                        nodes_left--;
 
-                        for (int j = graphref->m_nodes[source].firstEdge; j < graphref->m_nodes[source + 1].firstEdge;
-                             j++) {
-                                int target = graphref->m_edges[j].target;
-                                if (!touched[target]) {
-                                        two_neighbors[v_idx].push_back(target);
-                                        touched[target] = true;
+                        for (NodeID j = graphref->m_nodes[source].firstEdge;
+                             j < graphref->m_nodes[source + 1].firstEdge; j++) {
+                                NodeID target = graphref->m_edges[j].target;
+                                if (!touched.get(target)) {
+                                        graphref->m2_edges.push_back({target, 1});
+                                        touched.add(target);
+                                        count_2_edges++;
                                 }
                         }
                 }
+                touched.clear();
         }
+        graphref->m2_nodes[number_of_nodes()].firstEdge = count_2_edges;
 }
 // ======================================================================================
 

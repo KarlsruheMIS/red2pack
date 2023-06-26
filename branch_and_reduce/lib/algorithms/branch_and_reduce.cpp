@@ -44,11 +44,9 @@ bool branch_and_reduce::run() {
                 mis_reducer.apply_branch_reduce_solution(kernel);
 
                 // apply results to solution status
-                for(std::size_t node = 0; node < graph.number_of_nodes(); node++) {
-                        auto red_node = reduced_node_id[node];
-                        if (red_node == -1) continue; // TODO
-                        if (kernel.getPartitionIndex(red_node) == 1) {
-                                solution_status[node] = true;
+                for(std::size_t node = 0; node < kernel.number_of_nodes(); node++) {
+                        if (kernel.getPartitionIndex(node) == 1) {
+                                solution_status[former_node_id[node]] = true;
                                 solution_size++;
                         }
                 }
