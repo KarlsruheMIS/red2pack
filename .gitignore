@@ -1,4 +1,6 @@
 branch_and_reduce/deploy
 branch_and_reduce/cmake*
 branch_and_reduce/build
+graphs/erdos_graphs
+graphs/erdos_graphs_gml
 venv

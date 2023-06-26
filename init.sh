@@ -5,8 +5,7 @@ mkdir -p graphs/erdos_graphs
 mkdir -p graphs/erdos_graphs_gml
 
 # initialize and update submodules
-git submodule init
-git submodule update
+git submodule update --init --recursive
 
 # download and translate Erdos instances
 cd graphs/Gene2Pack || exit
