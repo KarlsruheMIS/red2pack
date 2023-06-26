@@ -33,13 +33,6 @@ class reduce_algorithm {
 
        private:
         friend general_reduction_2pack;
-        friend deg_one_2reduction;
-        friend cycle2_reduction;
-        friend twin2_reduction;
-        friend fast_domination2_reduction;
-        friend neighborhood2_reduction;
-        friend domination2_reduction;
-        friend clique2_reduction;
         friend deg_one_2reduction_e;
         friend cycle2_reduction_e;
         friend twin2_reduction_e;
@@ -94,7 +87,6 @@ class reduce_algorithm {
         // graph_status global_status;
         std::vector<size_t> reduction_map;
 
-        graph_status status;
         M2SConfig config;
         timer t;
         // Lets see whether we need all of them or not...
@@ -109,12 +101,8 @@ class reduce_algorithm {
         size_t deg(NodeID node) const;
         size_t two_deg(NodeID node);
 
-        void add_next_level_node(NodeID node);
-        void add_next_level_neighborhood(NodeID node);
-        void add_next_level_neighborhood(const std::vector<NodeID>& nodes);
         void init_reduction_step();
         void reduce_graph_internal();
-        void initial_reduce();
 
        public:
         reduce_algorithm(m2s_graph_access& G, const M2SConfig& mis_config);  //, bool called_from_fold);

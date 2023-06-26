@@ -8,31 +8,10 @@ namespace two_packing_set {
 
 typedef reduce_algorithm::pack_status pack_status;
 
-bool deg_one_2reduction::reduce(reduce_algorithm* algo) {
-        auto config = algo->config;
-        if (config.disable_deg_one) return false;
-        auto& status = algo->status;
-        size_t oldn = status.remaining_nodes;
-
-        /* 	for(size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) { */
-        /* 		NodeID v = marker.current_vertex(v_idx); */
-
-        /* 		if(status.node_status[v] == pack_status::not_set) { */
-        /* 			if(algo->deg(v) == 1) { */
-        /* 				algo->set_imprecise(v, pack_status::included); */
-        /* 				continue; */
-        /* 			} */
-        /* 		} */
-        /* 	} */
-
-        /* std::cout << "degree_one_reduction:" << oldn-status.remaining_nodes << std::endl; */
-        return oldn != status.remaining_nodes;
-}
-
 bool deg_one_2reduction_e::reduce(reduce_algorithm* algo) {
         auto config = algo->config;
         if (config.disable_deg_one) return false;
-        auto& status = algo->status;
+        auto& status = algo->global_status;
         size_t oldn = status.remaining_nodes;
 
         for (size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
@@ -59,52 +38,10 @@ bool deg_one_2reduction_e::reduce(reduce_algorithm* algo) {
         return oldn != status.remaining_nodes;
 }
 
-bool cycle2_reduction::reduce(reduce_algorithm* algo) {
-        auto config = algo->config;
-        if (config.disable_cycle) return false;
-        auto& status = algo->status;
-        size_t oldn = status.remaining_nodes;
-
-        /* 	for(size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) { */
-        /* 		NodeID v = marker.current_vertex(v_idx); */
-        /* 		 */
-        /* 		if(status.node_status[v] == pack_status::not_set) { */
-        /* 			if(algo->deg(v) == 2 && algo->two_deg(v) == 1) { */
-        /* 				bool unsafe = false; */
-        /* 				for(NodeID neighbor : status.graph[v]) { */
-        /* 					if(status.node_status[neighbor] == pack_status::unsafe) { */
-        /* 						unsafe == true; */
-        /* 					} */
-        /* 				} */
-
-        /* NodeID neighbor = status.graph.get2neighbor_list(v)[0]; */
-        /* 				if(status.node_status[neighbor] == pack_status::unsafe) { */
-        /* 					unsafe = true; */
-        /* 				} */
-
-        /* 				if(unsafe == true) { */
-        /* 					unsafe = false; */
-        /* 					continue; */
-        /* 				} */
-
-        /* NodeID neighbor1 = status.graph[v][0]; */
-        /* NodeID neighbor2 = status.graph[v][1]; */
-        /* if(algo->deg(neighbor1 == 2 && algo->deg(neighbor2 == 2))) { */
-        /* algo->set_imprecise(v, pack_status::included); */
-        /* continue; */
-        /* }  */
-        /* } */
-        /* } */
-        /* 	} */
-
-        /* std::cout << "cycle_reduction:" << oldn-status.remaining_nodes << std::endl; */
-        return oldn != status.remaining_nodes;
-}
-
 bool cycle2_reduction_e::reduce(reduce_algorithm* algo) {
         auto config = algo->config;
         if (config.disable_cycle) return false;
-        auto& status = algo->status;
+        auto& status = algo->global_status;
         size_t oldn = status.remaining_nodes;
 
         for (size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
@@ -156,9 +93,9 @@ bool cycle2_reduction_e::reduce(reduce_algorithm* algo) {
 bool twin2_reduction_e::reduce(reduce_algorithm* algo) {
         auto config = algo->config;
         if (config.disable_twin) return false;
-        auto& status = algo->status;
+        auto& status = algo->global_status;
         size_t oldn = status.remaining_nodes;
-        fast_set set_1(algo->status.n);
+        fast_set set_1(algo->global_status.n);
 
         for (size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
                 NodeID v = marker.current_vertex(v_idx);
@@ -202,9 +139,9 @@ bool twin2_reduction_e::reduce(reduce_algorithm* algo) {
 bool twin2_reduction::reduce(reduce_algorithm* algo) {
         auto config = algo->config;
         if (config.disable_twin) return false;
-        auto& status = algo->status;
+        auto& status = algo->global_status;
         size_t oldn = status.remaining_nodes;
-        fast_set set_1(algo->status.n);
+        fast_set set_1(algo->global_status.n);
 
         for (size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
                 NodeID v = marker.current_vertex(v_idx);
@@ -245,85 +182,11 @@ bool twin2_reduction::reduce(reduce_algorithm* algo) {
         return oldn != status.remaining_nodes;
 }
 
-/* bool neighborhood2_reduction_e::reduce(reduce_algorithm* algo) { //only for weighted */
-/*     auto config = algo->config; */
-/*     if (config.disable_neighborhood) return false; */
-/* 	auto& status = algo->status;  */
-/* 	size_t oldn = status.remaining_nodes;  */
-
-/* 	for(size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) { */
-/* 		NodeID v = marker.current_vertex(v_idx);  */
-
-/* 		if(status.node_status[v] == pack_status::not_set) { */
-/* 			NodeWeight neighbor_weights = 0;  */
-/* 			 */
-/* 			// sum the weights of the neighbors of degree one. */
-/* 			for(NodeID u: status.graph[v]) { */
-/* 				if(status.node_status[u] == pack_status::not_set) { */
-/* 					neighbor_weights += status.weights[u]; */
-/* 				} */
-/* 			}  */
-/* 			 */
-/* 			// sum the the weights of the neighbors of degree two.  */
-/* 			for(NodeID w: status.graph.get2neighbor_list(v)) { */
-/* 				if(status.node_status[w] == pack_status::not_set) {	 */
-/* 					neighbor_weights += status.weights[w];  */
-/* 				} */
-/* 			} */
-/* 			 */
-/* 			if(status.weights[v] >= neighbor_weights) { */
-/* 				algo->set_imprecise(v, pack_status::included);  */
-/* 			} */
-/* 		} */
-/* 	} */
-
-/* std::cout << "neighborhood_reduction_e:" << oldn-status.remaining_nodes << std::endl; */
-/* 	return oldn != status.remaining_nodes; */
-/*        	 */
-/* } */
-
-/* bool neighborhood2_reduction::reduce(reduce_algorithm* algo) { */
-/*     auto config = algo->config; */
-/*     if (config.disable_neighborhood) return false; */
-/* 	auto& status = algo->status;  */
-/* 	size_t oldn = status.remaining_nodes;  */
-
-/* 	for(size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) { */
-/* 		NodeID v = marker.current_vertex(v_idx);  */
-
-/* 		if(status.node_status[v] == pack_status::not_set) { */
-/* 			NodeWeight neighbor_weights = 0;  */
-/* 			 */
-/* 			// sum the weights of the neighbors of degree one. */
-/* 			for(NodeID u: status.graph[v]) { */
-/* 				if(status.node_status[u] != pack_status::unsafe) { */
-/* 					neighbor_weights += status.weights[u]; */
-/* 				} */
-/* 			}  */
-/* 			 */
-/* 			// sum the the weights of the neighbors of degree two.  */
-/* 			for(NodeID w: status.graph.get2neighbor_list(v)) { */
-/* 				if(status.node_status[w] != pack_status::unsafe) {	 */
-/* 					neighbor_weights += status.weights[w];  */
-/* 				} */
-/* 			} */
-/* 			 */
-/* 			if(status.weights[v] >= neighbor_weights) { */
-/* 				algo->set_imprecise(v, pack_status::included);  */
-/* 			} */
-/* 		} */
-/* 	} */
-
-/*     std::cout << "neighborhood_reduction:" << oldn-status.remaining_nodes << std::endl; */
-/* 	return oldn != status.remaining_nodes; */
-/*        	 */
-/* } */
-
 bool domination2_reduction::reduce(reduce_algorithm* algo) {
         auto config = algo->config;
         if (config.disable_domination) return false;
-        auto& status = algo->status;
-        fast_set set_1(algo->status.n);
+        auto& status = algo->global_status;
+        fast_set set_1(algo->global_status.n);
         auto& neighbors = set_1;
         size_t oldn = status.remaining_nodes;
 
@@ -398,9 +261,9 @@ bool clique2_reduction::reduce(reduce_algorithm* algo) {
         auto config = algo->config;
         if (config.disable_clique) return false;
 
-        auto& status = algo->status;
-        fast_set set_1(algo->status.n);
-        sized_vector<sized_vector<NodeID>> buffers(2, sized_vector<NodeID>(algo->status.n));
+        auto& status = algo->global_status;
+        fast_set set_1(algo->global_status.n);
+        sized_vector<sized_vector<NodeID>> buffers(2, sized_vector<NodeID>(algo->global_status.n));
         auto& neighbors = buffers[0];
         auto& isolated = buffers[1];
         std::vector<NodeID> non_isolated;
@@ -522,8 +385,8 @@ bool clique2_reduction::reduce(reduce_algorithm* algo) {
 bool domination2_reduction_e::reduce(reduce_algorithm* algo) {
         auto config = algo->config;
         if (config.disable_domination) return false;
-        auto& status = algo->status;
-        fast_set set_1(algo->status.n);
+        auto& status = algo->global_status;
+        fast_set set_1(algo->global_status.n);
         auto& neighbors = set_1;
         size_t oldn = status.remaining_nodes;
 
@@ -599,9 +462,9 @@ bool clique2_reduction_e::reduce(reduce_algorithm* algo) {
         auto config = algo->config;
         if (config.disable_clique) return false;
 
-        auto& status = algo->status;
-        fast_set neighbors_set(algo->status.n);
-        sized_vector<sized_vector<NodeID>> buffers(2, sized_vector<NodeID>(algo->status.n));
+        auto& status = algo->global_status;
+        fast_set neighbors_set(algo->global_status.n);
+        sized_vector<sized_vector<NodeID>> buffers(2, sized_vector<NodeID>(algo->global_status.n));
         auto& neighbors = buffers[0];
 
         size_t oldn = status.remaining_nodes;
