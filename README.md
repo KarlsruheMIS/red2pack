@@ -2,8 +2,8 @@
 
 ## Description
 This project provides a branch-and–reduce solver for the maximum 2-packing set problem.
-The branch-and-reduce solvers applies exhaustively novel 2-packing set reductions and transforms the kernel to solve it 
-as a equivalent MIS instance.
+The branch-and-reduce solver applies exhaustively novel 2-packing set reductions and transforms the kernel to solve it 
+as an equivalent MIS instance.
 This MIS instance is solved using the weighted branch-and-reduce solver from [KaMIS](https://github.com/KarlsruheMIS/KaMIS).
 
 ## Dependencies
