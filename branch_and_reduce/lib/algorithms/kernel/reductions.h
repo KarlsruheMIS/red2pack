@@ -27,7 +27,7 @@ enum m2ps_reduction_type {
         domination_e,
         deg_one_e,
         twin_e,
-        cycle_e,
+        deg_two_e,
         fast_domination_e,
         neighborhood_e
 };
@@ -180,11 +180,11 @@ struct deg_one_2reduction_e : public general_reduction_2pack {
         virtual bool reduce(reduce_algorithm* algo) final;
 };
 
-struct cycle2_reduction_e : public general_reduction_2pack {
-        cycle2_reduction_e(size_t n) : general_reduction_2pack(n) {}
-        ~cycle2_reduction_e() {}
-        virtual cycle2_reduction_e* clone() const final { return new cycle2_reduction_e(*this); }
-        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::cycle_e; }
+struct deg_two_2reduction_e : public general_reduction_2pack {
+        deg_two_2reduction_e(size_t n) : general_reduction_2pack(n) {}
+        ~deg_two_2reduction_e() {}
+        virtual deg_two_2reduction_e* clone() const final { return new deg_two_2reduction_e(*this); }
+        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::deg_two_e; }
         virtual bool reduce(reduce_algorithm* algo) final;
 };
 

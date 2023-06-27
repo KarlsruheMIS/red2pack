@@ -122,7 +122,7 @@ inline void m2s_configuration_m2s::standard(two_packing_set::M2SConfig &m2s_conf
         /* m2s_config.disable_twin_e = false; */
         m2s_config.disable_neighborhood = false;
         /* m2s_config.disable_neighborhood_e = false; */
-        m2s_config.disable_cycle = false;
+        m2s_config.disable_deg_two = false;
         /* m2s_config.disable_cycle_e = false; */
         m2s_config.disable_domination = false;
         /* m2s_config.disable_domination_e = false; */

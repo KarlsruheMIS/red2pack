@@ -62,55 +62,62 @@ bool deg_one_2reduction_e::reduce(reduce_algorithm* algo) {
         return oldn != status.remaining_nodes;
 }
 
-bool cycle2_reduction_e::reduce(reduce_algorithm* algo) {
+bool deg_two_2reduction_e::reduce(reduce_algorithm* algo) {
         auto config = algo->config;
-        if (config.disable_cycle) return false;
+        if (config.disable_deg_two) return false;
         auto& status = algo->global_status;
         size_t oldn = status.remaining_nodes;
+
+        // checks if v is completely isolated (no edges and 2-edges incident to v)
+        auto is_isolated = [&algo = algo](NodeID& v) { return algo->deg(v) == 0 && algo->two_deg(v) == 0; };
+        // check if v has degree 1 and N2[v] == N[neighbor_of_v]
+        auto is_deg1_2isolated = [&algo = algo](NodeID& v) {
+                return algo->deg(v) == 1 && algo->two_deg(v) + 1 == algo->deg(algo->global_status.graph[v][0]);
+        };
+
+        auto is_within_triangle = [&status = status, &algo = algo](NodeID& v) {
+                // special case of clique reductions
+                return algo->two_deg(v) == 0 && algo->deg(status.graph[v][0]) == 2 && algo->deg(status.graph[v][1]) == 2;
+        };
+
+        auto is_within_4_cycle = [&status = status, &algo = algo](NodeID& v) {
+                // a 4-cycle check
+                // 2-neighborhood of v consists only of some vertex x which is the 2nd neighbor of v's neighbors
+                return algo->two_deg(v) == 1 && algo->deg(status.graph[v][0]) == 2 && algo->deg(status.graph[v][1]) == 2;
+        };
+
+        auto is_within_V_shape = [&status = status, &algo = algo](NodeID& v) {
+                return algo->two_deg(v) == 2 && algo->deg(status.graph[v][0]) == 2 && algo->deg(status.graph[v][1]) == 2;
+        };
 
         for (size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
                 NodeID v = marker.current_vertex(v_idx);
 
                 if (status.node_status[v] == pack_status::not_set) {
-                        /* if(algo->deg(v) == 0 && algo->two_deg(v) == 2) { */
-                        /*             bool reduce = true; */
-                        /* for(NodeID neighbor : status.graph[v]) { */
-                        /*                 if (!algo->deg(neighbor)==0) { */
-                        /*                     reduce = false; */
-                        /*         break; */
-                        /*     } */
-                        /* } */
-                        /* } */
-                        if (algo->deg(v) == 2 && algo->two_deg(v) == 1) {
-                                bool unsafe = false;
-                                for (NodeID neighbor : status.graph[v]) {
-                                        if (status.node_status[neighbor] == pack_status::unsafe) {
-                                                unsafe == true;
-                                                break;
-                                        }
-                                }
-
-                                NodeID neighbor = status.graph.get2neighbor_list(v)[0];
-                                if (status.node_status[neighbor] == pack_status::unsafe) {
-                                        unsafe = true;
-                                }
-
-                                if (unsafe == true) {
-                                        unsafe = false;
-                                        continue;
-                                }
-
-                                NodeID neighbor1 = status.graph[v][0];
-                                NodeID neighbor2 = status.graph[v][1];
-                                if (algo->deg(neighbor1) == 2 && algo->deg(neighbor2) == 2) {
+                        if (is_isolated(v) || is_deg1_2isolated(v)) {
+                                // this removes N2[v] of G and only leaves 2-edges due to a common neighbor in N2(v),
+                                //  and adds v to the solution
+                                algo->set(v, pack_status::included);
+                        }
+                        if(algo->deg(v) == 2) {
+                                if(is_within_triangle(v)){
                                         algo->set(v, pack_status::included);
-                                        continue;
+                                        std::cout <<"applied triangle reduction" << std::endl;
+                                }
+                                else if(is_within_4_cycle(v)) {
+                                        // 4-cycle
+                                        algo->set(v, pack_status::included);
+                                        std::cout <<"applied v-cycle reduction" << std::endl;
+                                }
+                                else if(is_within_V_shape(v)) {
+                                        algo->set(v, pack_status::included);
+                                        std::cout <<"applied V-shape reduction" << std::endl;
                                 }
                         }
                 }
         }
 
-        /* std::cout << "cycle_reduction_e:" << oldn-status.remaining_nodes << std::endl; */
+        std::cout << "deg_two_2reduction_e:" << oldn-status.remaining_nodes << std::endl;
         return oldn != status.remaining_nodes;
 }
 

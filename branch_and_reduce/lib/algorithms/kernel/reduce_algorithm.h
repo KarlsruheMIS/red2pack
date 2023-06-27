@@ -34,7 +34,7 @@ class reduce_algorithm {
        private:
         friend general_reduction_2pack;
         friend deg_one_2reduction_e;
-        friend cycle2_reduction_e;
+        friend deg_two_2reduction_e;
         friend twin2_reduction_e;
         friend fast_domination2_reduction_e;
         friend neighborhood2_reduction_e;

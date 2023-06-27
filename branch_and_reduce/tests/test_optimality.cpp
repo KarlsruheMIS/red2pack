@@ -108,6 +108,16 @@ TEST_CASE("Test Optimality", "[single-file]") {
         std::vector<std::pair<std::string, NodeID>> instances; // graph file and optimal solution
         instances.emplace_back("aGraphErdos20-0.graph", 7);
         instances.emplace_back("aGraphErdos40-0.graph", 10);
+        instances.emplace_back("aGraphErdos40-1.graph", 7);
+        instances.emplace_back("aGraphErdos40-2.graph", 9);
+        instances.emplace_back("aGraphErdos40-3.graph", 8);
+        instances.emplace_back("aGraphErdos40-4.graph", 9);
+        instances.emplace_back("aGraphErdos40-5.graph", 8);
+        instances.emplace_back("aGraphErdos40-6.graph", 8);
+        instances.emplace_back("aGraphErdos40-7.graph", 11);
+        instances.emplace_back("aGraphErdos40-8.graph", 8);
+        instances.emplace_back("aGraphErdos40-9.graph", 7);
+        instances.emplace_back("aGraphErdos40-10.graph", 10);
         instances.emplace_back("aGraphErdos21-26.graph", 6);
         instances.emplace_back("aGraphErdos22-22.graph", 7);
         instances.emplace_back("aGraphErdos23-23.graph", 6);
@@ -127,7 +137,7 @@ TEST_CASE("Test Optimality", "[single-file]") {
                 m2s_config.time_limit = 1000000;
                 m2s_config.disable_deg_one = true;
                 m2s_config.disable_clique = true;
-                m2s_config.disable_cycle = true;
+                m2s_config.disable_deg_two = true;
                 m2s_config.disable_domination = true;
                 m2s_config.disable_twin = true;
 
@@ -158,7 +168,7 @@ TEST_CASE("Test Optimality", "[single-file]") {
                 m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
                 m2s_config.time_limit = 1000000;
                 m2s_config.disable_clique = true;
-                m2s_config.disable_cycle = true;
+                m2s_config.disable_deg_two = true;
                 m2s_config.disable_domination = true;
                 m2s_config.disable_twin = true;
 
@@ -174,7 +184,7 @@ TEST_CASE("Test Optimality", "[single-file]") {
                 m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
                 m2s_config.time_limit = 1000000;
                 m2s_config.disable_deg_one = true;
-                m2s_config.disable_cycle = true;
+                m2s_config.disable_deg_two = true;
                 m2s_config.disable_domination = true;
                 m2s_config.disable_twin = true;
 
@@ -190,7 +200,23 @@ TEST_CASE("Test Optimality", "[single-file]") {
                 m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
                 m2s_config.time_limit = 1000000;
                 m2s_config.disable_clique = true;
-                m2s_config.disable_cycle = true;
+                m2s_config.disable_deg_two = true;
+                m2s_config.disable_deg_one = true;
+                m2s_config.disable_twin = true;
+
+                for(const auto& [inst, opt_sol_size] : instances) {
+                        INFO("Testing " + inst);
+                        m2s_config.graph_filename = inst;
+                        NodeID sol_size = m2s_bnr("../../../graphs/erdos_graphs/" + inst, mis_config, m2s_config);
+                        REQUIRE(sol_size == opt_sol_size);
+                }
+        }
+
+        SECTION("Only 2-deg reduction") {
+                m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
+                m2s_config.time_limit = 1000000;
+                m2s_config.disable_clique = true;
+                m2s_config.disable_domination = true;
                 m2s_config.disable_deg_one = true;
                 m2s_config.disable_twin = true;
 

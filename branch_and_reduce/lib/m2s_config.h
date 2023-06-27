@@ -109,7 +109,7 @@ struct M2SConfig {
         /* bool disable_deg_one_e; */
         bool disable_clique;
         /* bool disable_clique_e; */
-        bool disable_cycle;
+        bool disable_deg_two;
         /* bool disable_cycle_e; */
         bool disable_neighborhood;
         /* bool disable_neighborhood_e; */

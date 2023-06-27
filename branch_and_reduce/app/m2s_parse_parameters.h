@@ -230,7 +230,7 @@ int parse_parameters(int argn, char **argv, two_packing_set::M2SConfig &m2s_conf
         /* if (disable_deg_one_e->count > 0)  m2s_config.disable_deg_one_e= true; */
         if (disable_clique->count > 0) m2s_config.disable_clique = true;
         /* if (disable_clique_e->count > 0)  m2s_config.disable_clique_e = true; */
-        if (disable_cycle->count > 0) m2s_config.disable_cycle = true;
+        if (disable_cycle->count > 0) m2s_config.disable_deg_two = true;
         /* if (disable_cycle_e->count > 0)  m2s_config.disable_cycle_e = true; */
         if (disable_twin->count > 0) m2s_config.disable_twin = true;
         /* if (disable_twin_e->count > 0)  m2s_config.disable_twin_e = true; */
