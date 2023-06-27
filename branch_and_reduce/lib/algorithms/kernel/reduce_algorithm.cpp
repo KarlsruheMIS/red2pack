@@ -24,7 +24,7 @@ reduce_algorithm::reduce_algorithm(m2s_graph_access& G, M2SConfig mis_config)  /
       double_set(G.number_of_nodes() * 2),
       buffers(2, sized_vector<NodeID>(G.number_of_nodes())) {
         if (config.reduction_style2 == M2SConfig::Reduction_Style2::extended) {
-                global_status.reductions2 = make_2reduction_vector<deg_one_2reduction_e, deg_two_2reduction_e, domination2_reduction_e, clique2_reduction_e>(global_status.n);
+                global_status.reductions2 = make_2reduction_vector<deg_one_2reduction_e, deg_two_2reduction_e, twin2_reduction_e, domination2_reduction_e, clique2_reduction_e>(global_status.n);
                 // global_status.reductions2 =
                 //     make_2reduction_vector<deg_one_2reduction_e, cycle2_reduction_e, twin2_reduction_e,
                 //                            domination2_reduction_e, clique2_reduction_e>(global_status.n);
