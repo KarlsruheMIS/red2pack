@@ -186,4 +186,20 @@ TEST_CASE("Test Optimality", "[single-file]") {
                 }
         }
 
+        SECTION("Only Domination reduction") {
+                m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
+                m2s_config.time_limit = 1000000;
+                m2s_config.disable_clique = true;
+                m2s_config.disable_cycle = true;
+                m2s_config.disable_deg_one = true;
+                m2s_config.disable_twin = true;
+
+                for(const auto& [inst, opt_sol_size] : instances) {
+                        INFO("Testing " + inst);
+                        m2s_config.graph_filename = inst;
+                        NodeID sol_size = m2s_bnr("../../../graphs/erdos_graphs/" + inst, mis_config, m2s_config);
+                        REQUIRE(sol_size == opt_sol_size);
+                }
+        }
+
 }

@@ -24,7 +24,7 @@ reduce_algorithm::reduce_algorithm(m2s_graph_access& G, M2SConfig mis_config)  /
       double_set(G.number_of_nodes() * 2),
       buffers(2, sized_vector<NodeID>(G.number_of_nodes())) {
         if (config.reduction_style2 == M2SConfig::Reduction_Style2::extended) {
-                global_status.reductions2 = make_2reduction_vector<deg_one_2reduction_e, clique2_reduction_e>(global_status.n);
+                global_status.reductions2 = make_2reduction_vector<deg_one_2reduction_e, domination2_reduction_e, clique2_reduction_e>(global_status.n);
                 // global_status.reductions2 =
                 //     make_2reduction_vector<deg_one_2reduction_e, cycle2_reduction_e, twin2_reduction_e,
                 //                            domination2_reduction_e, clique2_reduction_e>(global_status.n);
@@ -73,20 +73,16 @@ void reduce_algorithm::set(NodeID node, pack_status mpack_status) {
                         set(neighbor, excluded);
                 }
                 for (auto neighbor : global_status.graph.get2neighbor_list(node)) {
-                        //set(neighbor, excluded);
-                        global_status.node_status[neighbor] = pack_status::excluded;
+                        set(neighbor, excluded);
+                        /*global_status.node_status[neighbor] = pack_status::excluded;
                         global_status.remaining_nodes--;
                         for (auto neighbor2 : global_status.graph[neighbor]) {
                                 global_status.graph.hide_edge(neighbor2, neighbor);
                         }
                         for (auto two_neighbor : global_status.graph.get2neighbor_list(neighbor)) {
                                 global_status.graph.hide_path(two_neighbor, neighbor);
-                        }
+                        }*/
                 }
-                /*for (auto neighbor : global_status.graph.get2neighbor_list(node)) {
-                        global_status.node_status[neighbor] = pack_status::unsafe;
-                        /* global_status.remaining_nodes--;
-                }*/
 
         } else {  // exclude
                 global_status.node_status[node] = mpack_status;
