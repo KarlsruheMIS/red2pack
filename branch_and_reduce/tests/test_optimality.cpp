@@ -96,10 +96,10 @@ NodeID m2s_bnr(const std::string& graph_filepath, MISConfig& mis_config, two_pac
 
         graph.construct_2neighborhood();
 
-        check_is_maximal_2ps(graph, solver.get_solution(), solver.get_solution_size());
-
         // PRINT RESULTS
         m2s_log::instance()->print_results();
+
+        check_is_maximal_2ps(graph, solver.get_solution(), solver.get_solution_size());
         return solver.get_solution_size();
 }
 
@@ -125,6 +125,7 @@ TEST_CASE("Test Optimality", "[single-file]") {
         mis_configurator.standard(mis_config);
 
         for(const auto& [inst, opt_sol_size] : instances) {
+                INFO("Testing " + inst);
                 m2s_config.graph_filename = inst;
                 NodeID sol_size = m2s_bnr("../../../graphs/erdos_graphs/" + inst, mis_config, m2s_config);
                 REQUIRE(sol_size == opt_sol_size);

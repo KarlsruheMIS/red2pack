@@ -96,7 +96,7 @@ class reduce_algorithm {
         sized_vector<sized_vector<NodeID>> buffers;
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        void set_imprecise(NodeID node, pack_status mpack_status);
+        //void set_imprecise(NodeID node, pack_status mpack_status);
         void set(NodeID node, pack_status mpack_status);
         size_t deg(NodeID node) const;
         size_t two_deg(NodeID node);
@@ -105,7 +105,7 @@ class reduce_algorithm {
         void reduce_graph_internal();
 
        public:
-        reduce_algorithm(m2s_graph_access& G, const M2SConfig& mis_config);  //, bool called_from_fold);
+        reduce_algorithm(m2s_graph_access& G, M2SConfig  mis_config);  //, bool called_from_fold);
         void get_solution(std::vector<bool>& solution_vec);
         void run_reductions();
         /* 	std::vector<NodeID> get_status();  */

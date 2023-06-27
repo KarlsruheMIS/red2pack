@@ -14,27 +14,48 @@ bool deg_one_2reduction_e::reduce(reduce_algorithm* algo) {
         auto& status = algo->global_status;
         size_t oldn = status.remaining_nodes;
 
+        // checks if v is completely isolated (no edges and 2-edges incident to v)
+        auto is_isolated = [&algo = algo](NodeID& v){ return algo->deg(v) == 0 && algo->two_deg(v) == 0; };
+        // check if v has degree 1 and N2[v] == N[neighbor_of_v]
+        auto is_deg1_2isolated = [&algo = algo](NodeID& v){ return algo->deg(v) == 1 && algo->two_deg(v) + 1 == algo->deg(algo->global_status.graph[v][0]); };
+
         for (size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
                 NodeID v = marker.current_vertex(v_idx);
 
-                if (status.node_status[v] == pack_status::unsafe) {
+                /*if (status.node_status[v] == pack_status::unsafe) {
                         if (algo->deg(v) <= 1) {
-                                algo->set_imprecise(v, pack_status::excluded);
+                                algo->set(v, pack_status::excluded);
                         }
                 }
 
                 if (status.node_status[v] == pack_status::not_set) {
                         if (algo->deg(v) == 0 && algo->two_deg(v) <= 1) {
-                                algo->set_imprecise(v, pack_status::included);
+                                // TODO: can this case exist
+                                std::cout << "special case deg 1" << std::endl;
+                                algo->set(v, pack_status::included);
                                 continue;
+
                         } else if (algo->deg(v) == 1 && algo->two_deg(v) == 0) {
-                                algo->set_imprecise(v, pack_status::included);
+                                // TODO: v has deg 1 and empty 2-neighborhood
+                                //   why does the 2-neighborhood must be empty?
+                                algo->set(v, pack_status::included);
                                 continue;
+                        }
+                }*/
+
+                // Jannick: new variant impl of deg-1 reduction
+                // Paper: deg-1 is sufficient -- but this is not sufficient after 2-neighborhood information for N3[v] are left
+                //      we need that N2[v]==N[neighbor_of_v] if v has deg 1
+                if (status.node_status[v] == pack_status::not_set) {
+                        if (is_isolated(v) || is_deg1_2isolated(v)) {
+                                // this removes N2[v] of G and only leaves 2-edges due to a common neighbor in N2(v),
+                                //  and adds v to the solution
+                                algo->set(v, pack_status::included);
                         }
                 }
         }
 
-        /* std::cout << "degree_one_reduction_e:" << oldn-status.remaining_nodes << std::endl; */
+        std::cout << "degree_one_reduction_e:" << oldn - status.remaining_nodes << std::endl;
         return oldn != status.remaining_nodes;
 }
 
@@ -79,7 +100,7 @@ bool cycle2_reduction_e::reduce(reduce_algorithm* algo) {
                                 NodeID neighbor1 = status.graph[v][0];
                                 NodeID neighbor2 = status.graph[v][1];
                                 if (algo->deg(neighbor1) == 2 && algo->deg(neighbor2) == 2) {
-                                        algo->set_imprecise(v, pack_status::included);
+                                        algo->set(v, pack_status::included);
                                         continue;
                                 }
                         }
@@ -121,7 +142,7 @@ bool twin2_reduction_e::reduce(reduce_algorithm* algo) {
                                                 }
 
                                                 if (!set_false) {
-                                                        algo->set_imprecise(v, pack_status::included);
+                                                        algo->set(v, pack_status::included);
                                                         continue;
                                                 }
                                         }
@@ -133,252 +154,6 @@ bool twin2_reduction_e::reduce(reduce_algorithm* algo) {
         }
 
         /* std::cout << "twin_reduction_e:" << oldn-status.remaining_nodes << std::endl; */
-        return oldn != status.remaining_nodes;
-}
-
-bool twin2_reduction::reduce(reduce_algorithm* algo) {
-        auto config = algo->config;
-        if (config.disable_twin) return false;
-        auto& status = algo->global_status;
-        size_t oldn = status.remaining_nodes;
-        fast_set set_1(algo->global_status.n);
-
-        for (size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
-                NodeID v = marker.current_vertex(v_idx);
-
-                if (status.node_status[v] == pack_status::not_set) {
-                        if (algo->deg(v) == 2) {
-                                NodeID neighbor1 = status.graph[v][0];
-                                NodeID neighbor2 = status.graph[v][1];
-
-                                if (status.node_status[neighbor1] != pack_status::unsafe &&
-                                    status.node_status[neighbor2] != pack_status::unsafe) {
-                                        if (algo->deg(neighbor1) == 3 && algo->deg(neighbor2) == 3) {
-                                                for (NodeID neighbor : status.graph[neighbor1]) {
-                                                        set_1.add(neighbor);
-                                                }
-
-                                                bool set_false = false;
-
-                                                for (NodeID neighbor : status.graph[neighbor2]) {
-                                                        if (!set_1.get(neighbor)) {
-                                                                set_false = true;
-                                                        }
-                                                }
-
-                                                if (!set_false) {
-                                                        algo->set_imprecise(v, pack_status::included);
-                                                        continue;
-                                                }
-                                        }
-                                } else {
-                                        continue;
-                                }
-                        }
-                }
-        }
-
-        /* std::cout << "twin_reduction:" << oldn-status.remaining_nodes << std::endl; */
-        return oldn != status.remaining_nodes;
-}
-
-bool domination2_reduction::reduce(reduce_algorithm* algo) {
-        auto config = algo->config;
-        if (config.disable_domination) return false;
-        auto& status = algo->global_status;
-        fast_set set_1(algo->global_status.n);
-        auto& neighbors = set_1;
-        size_t oldn = status.remaining_nodes;
-
-        for (size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
-                NodeID v = marker.current_vertex(v_idx);
-
-                if (status.node_status[v] == pack_status::not_set) {
-                        size_t neighbors_count = 0;
-                        neighbors.clear();
-
-                        for (NodeID neighbor : status.graph[v]) {
-                                if (status.node_status[neighbor] == pack_status::not_set) {
-                                        neighbors.add(neighbor);
-                                        neighbors_count++;
-                                }
-                        }
-
-                        for (NodeID neighbor : status.graph.get2neighbor_list(v)) {
-                                if (status.node_status[neighbor] == pack_status::not_set) {
-                                        neighbors.add(neighbor);
-                                        neighbors_count++;
-                                }
-                        }
-
-                        if (neighbors_count <= 1) {
-                                algo->set_imprecise(v, pack_status::included);
-                                continue;
-                        }
-
-                        neighbors.add(v);
-                        bool is_subset;
-
-                        for (NodeID u : status.graph[v]) {
-                                if (algo->deg(u) + algo->two_deg(u) > neighbors_count ||
-                                    status.node_status[u] != pack_status::not_set) {
-                                        continue;
-                                }
-
-                                is_subset = true;
-
-                                for (NodeID neighbor : status.graph[u]) {
-                                        if (status.node_status[neighbor] == pack_status::not_set) {
-                                                if (!neighbors.get(neighbor)) {
-                                                        is_subset = false;
-                                                        break;
-                                                }
-                                        }
-                                }
-                                if (is_subset) {
-                                        for (NodeID neighbor : status.graph.get2neighbor_list(u)) {
-                                                if (status.node_status[neighbor] == pack_status::not_set) {
-                                                        if (!neighbors.get(neighbor)) {
-                                                                is_subset = false;
-                                                                break;
-                                                        }
-                                                }
-                                        }
-                                }
-
-                                if (is_subset) {
-                                        algo->set_imprecise(v, pack_status::excluded);
-                                        break;
-                                }
-                        }
-                }
-        }
-        /* std::cout << "domination_reduction:" << oldn-status.remaining_nodes << std::endl; */
-        return oldn != status.remaining_nodes;
-}
-
-bool clique2_reduction::reduce(reduce_algorithm* algo) {
-        auto config = algo->config;
-        if (config.disable_clique) return false;
-
-        auto& status = algo->global_status;
-        fast_set set_1(algo->global_status.n);
-        sized_vector<sized_vector<NodeID>> buffers(2, sized_vector<NodeID>(algo->global_status.n));
-        auto& neighbors = buffers[0];
-        auto& isolated = buffers[1];
-        std::vector<NodeID> non_isolated;
-
-        size_t oldn = status.remaining_nodes;
-
-        for (size_t node_idx = 0; node_idx < marker.current_size(); node_idx++) {
-                NodeID node = marker.current_vertex(node_idx);
-
-                if (status.node_status[node] == pack_status::not_set) {
-                        neighbors.clear();
-                        set_1.clear();
-                        set_1.add(node);
-
-                        // find potential 2-clique
-                        for (NodeID neighbor : status.graph[node]) {  // add neighbors with distance one.
-                                if (status.node_status[node] == pack_status::not_set) {
-                                        neighbors.push_back(neighbor);
-                                        set_1.add(neighbor);
-                                }
-                        }
-
-                        for (NodeID neighbor2 :
-                             status.graph.get2neighbor_list(node)) {  // add neighbors with distance two.
-                                if (status.node_status[node] == pack_status::not_set) {
-                                        neighbors.push_back(neighbor2);
-                                        set_1.add(neighbor2);
-                                }
-                        }
-
-                        // check if 2-clique
-                        isolated.clear();
-                        isolated.push_back(node);
-                        non_isolated.clear();
-
-                        size_t max_isolated_idx = 0;
-                        weighted_node max_isolated{node, status.weights[node]};
-                        weighted_node max_non_isolated{0, 0};
-
-                        bool is_clique = false;
-
-                        for (auto neighbor : neighbors) {
-                                if (status.node_status[neighbor] == pack_status::not_set) {
-                                        size_t count = 0;
-                                        bool is_isolated = true;
-
-                                        for (NodeID neighbor_2nd : status.graph[neighbor]) {
-                                                if (status.node_status[neighbor] == pack_status::not_set) {
-                                                        if (set_1.get(neighbor_2nd))
-                                                                count++;
-                                                        else
-                                                                is_isolated = false;
-                                                }
-                                        }
-
-                                        // same for the neighbors with distance two
-                                        for (NodeID neighbor_2nd : status.graph.get2neighbor_list(neighbor)) {
-                                                if (status.node_status[neighbor] == pack_status::not_set) {
-                                                        if (set_1.get(neighbor_2nd))
-                                                                count++;
-                                                        else
-                                                                is_isolated = false;
-                                                }
-                                        }
-
-                                        if (is_isolated) {  // dieses if und das nächste else sind zwar technisch klar
-                                                            // aber ich sehe noch nicht ganz warum das gemacht wird...
-                                                isolated.push_back(neighbor);
-                                                if (status.weights[neighbor] > max_isolated.weight) {
-                                                        max_isolated = {neighbor, status.weights[neighbor]};
-                                                        max_isolated_idx = isolated.size() - 1;
-                                                }
-                                        } else {
-                                                non_isolated.push_back(neighbor);
-                                                if (status.weights[neighbor] > max_non_isolated.weight) {
-                                                        max_non_isolated = {neighbor, status.weights[neighbor]};
-                                                }
-                                        }
-
-                                        is_clique = count == neighbors.size();
-                                        if (!is_clique) break;
-                                }
-                        }
-
-                        if (!is_clique) continue;
-
-                        // one of "isolated" members has highest weight of 2-clique: Add to 2-Packing Set.
-                        if (max_isolated.weight >= max_non_isolated.weight) {
-                                algo->set_imprecise(max_isolated.node, pack_status::included);
-                                continue;
-                        }
-                        /* // Das wird im ungewichteten Fall irrelevant.
-                        // remove all nodes from the 2-clique which have a smaller or equal weight than "max_isolated"
-                        -> we can always pick "max_isolated" over them. isolated[max_isolated_idx] = isolated.back();
-                        isolated.pop_back();
-
-                        for(auto neighbor : isolated) {
-                                algo->new_set(neighbor, pack_status::excluded);
-                        }
-
-                        for(size_t i = 0; i < non_isolated.size(); i++) {
-                                NodeID neighbor = non_isolated[i];
-                                if(status.weights[neighbor] <= max_isolated.weight) {
-                                        algo->new_set(neighbor, pack_status::excluded);
-                                        non_isolated[i] = non_isolated.back();
-                                        non_isolated.pop_back();
-                                        i--;
-                                }
-                        }
-                        fold(algo, std::move(max_isolated), std::move(non_isolated));
-                        */
-                }
-        }
-
-        /* std::cout << "clique_reduction:" << oldn-status.remaining_nodes << std::endl; */
         return oldn != status.remaining_nodes;
 }
 
@@ -412,7 +187,7 @@ bool domination2_reduction_e::reduce(reduce_algorithm* algo) {
                         }
 
                         if (neighbors_count <= 1) {
-                                algo->set_imprecise(v, pack_status::included);
+                                algo->set(v, pack_status::included);
                                 continue;
                         }
 
@@ -463,9 +238,8 @@ bool clique2_reduction_e::reduce(reduce_algorithm* algo) {
         if (config.disable_clique) return false;
 
         auto& status = algo->global_status;
-        fast_set neighbors_set(algo->global_status.n);
-        sized_vector<sized_vector<NodeID>> buffers(2, sized_vector<NodeID>(algo->global_status.n));
-        auto& neighbors = buffers[0];
+        auto& neighbors_set = algo->set_1;
+        auto& neighbors = algo->buffers[0];
 
         size_t oldn = status.remaining_nodes;
 
@@ -476,58 +250,56 @@ bool clique2_reduction_e::reduce(reduce_algorithm* algo) {
                         neighbors.clear();
                         neighbors_set.clear();
                         neighbors_set.add(node);
+                        NodeID c = 0;
 
-                        // find potential 2-clique
-                        for (NodeID neighbor : status.graph[node]) {  // add neighbors with distance one.
-                                if (status.node_status[node] == pack_status::not_set) {
-                                        neighbors.push_back(neighbor);
-                                        neighbors_set.add(neighbor);
-                                }
+                        // gather all nodes of N2[node] (potential 2-clique)
+                        for (NodeID neighbor : status.graph[node]) {
+                                // add neighbors with distance one.
+                                neighbors.push_back(neighbor);
+                                neighbors_set.add(neighbor);
                         }
 
-                        for (NodeID neighbor2 :
-                             status.graph.get2neighbor_list(node)) {  // add neighbors with distance two.
-                                if (status.node_status[node] == pack_status::not_set) {
-                                        neighbors.push_back(neighbor2);
-                                        neighbors_set.add(neighbor2);
-                                }
+                        for (NodeID neighbor2 : status.graph.get2neighbor_list(node)) {
+                                // add neighbors with distance two.
+                                neighbors.push_back(neighbor2);
+                                neighbors_set.add(neighbor2);
                         }
 
                         // check if 2-clique
 
-                        bool is_clique = false;
+                        bool is_clique = true;
 
+                        // TODO: is this correct?
+                        //  Checks whether N2[node] is 2-clique (here every two different nodes of N2[node]
+                        //   are connected over at *most* 2 vertices)
                         for (auto neighbor : neighbors) {
                                 if (status.node_status[neighbor] == pack_status::not_set) {
                                         size_t count = 0;
 
                                         for (NodeID neighbor_2nd : status.graph[neighbor]) {
-                                                if (status.node_status[neighbor] == pack_status::not_set) {
-                                                        if (neighbors_set.get(neighbor_2nd)) count++;
-                                                }
+                                                if (neighbors_set.get(neighbor_2nd)) count++;
                                         }
 
                                         // same for the neighbors with distance two
                                         for (NodeID neighbor_2nd : status.graph.get2neighbor_list(neighbor)) {
-                                                if (status.node_status[neighbor] == pack_status::not_set) {
-                                                        if (neighbors_set.get(neighbor_2nd)) count++;
-                                                }
+                                                if (neighbors_set.get(neighbor_2nd)) count++;
                                         }
 
                                         is_clique = count == neighbors.size();
-                                        if (!is_clique) break;
+                                        if (count != neighbors.size()) {
+                                                is_clique = false;
+                                                break;
+                                        }
                                 }
                         }
-                        if (!is_clique) continue;
-
                         if (is_clique) {
-                                algo->set_imprecise(node, pack_status::included);
-                                continue;
+                                algo->set(node, pack_status::included);
                         }
+                        continue;
                 }
         }
 
-        /* std::cout << "clique_reduction_e:" << oldn-status.remaining_nodes << std::endl; */
+        std::cout << "clique_reduction_e:" << oldn - status.remaining_nodes << std::endl;
         return oldn != status.remaining_nodes;
 }
 
