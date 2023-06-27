@@ -99,7 +99,7 @@ bool deg_two_2reduction_e::reduce(reduce_algorithm* algo) {
                                 //  and adds v to the solution
                                 algo->set(v, pack_status::included);
                         }
-                        if(algo->deg(v) == 2) {
+                        else if(algo->deg(v) == 2) {
                                 if(is_within_triangle(v)){
                                         algo->set(v, pack_status::included);
                                         std::cout <<"applied triangle reduction" << std::endl;
