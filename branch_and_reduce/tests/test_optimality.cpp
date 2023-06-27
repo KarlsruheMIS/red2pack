@@ -106,43 +106,14 @@ NodeID m2s_bnr(const std::string& graph_filepath, MISConfig& mis_config, two_pac
 
 TEST_CASE("Test Optimality", "[single-file]") {
         std::vector<std::pair<std::string, NodeID>> instances; // graph file and optimal solution
-        /*instances.emplace_back("aGraphErdos20-0.graph", 7);
-        instances.emplace_back("aGraphErdos40-0.graph", 10);
-        instances.emplace_back("aGraphErdos40-1.graph", 7);
-        instances.emplace_back("aGraphErdos40-2.graph", 9);
-        instances.emplace_back("aGraphErdos40-3.graph", 8);
-        instances.emplace_back("aGraphErdos40-4.graph", 9);
-        instances.emplace_back("aGraphErdos40-5.graph", 8);
-        instances.emplace_back("aGraphErdos40-6.graph", 8);
-        instances.emplace_back("aGraphErdos40-7.graph", 11);
-        instances.emplace_back("aGraphErdos40-8.graph", 8);
-        instances.emplace_back("aGraphErdos40-9.graph", 7);
-        instances.emplace_back("aGraphErdos40-10.graph", 10);
-        instances.emplace_back("aGraphErdos40-11.graph", 9);
-        instances.emplace_back("aGraphErdos40-12.graph", 9);
-        instances.emplace_back("aGraphErdos40-13.graph", 9);
-        instances.emplace_back("aGraphErdos40-14.graph", 8);
-        instances.emplace_back("aGraphErdos40-15.graph", 9);
-        instances.emplace_back("aGraphErdos40-16.graph", 7);
-        instances.emplace_back("aGraphErdos40-17.graph", 8);
-        instances.emplace_back("aGraphErdos40-18.graph", 8);
-        instances.emplace_back("aGraphErdos40-19.graph", 9);
-        instances.emplace_back("aGraphErdos40-20.graph", 9);
-        instances.emplace_back("aGraphErdos21-26.graph", 6);
-        instances.emplace_back("aGraphErdos22-22.graph", 7);
-        instances.emplace_back("aGraphErdos23-23.graph", 6);
-        instances.emplace_back("aGraphErdos24-24.graph", 9);*/
 
-        // instances are read in using the following code https://www.geeksforgeeks.org/csv-file-management-using-c/
         std::fstream f_erdos_graphs;
         f_erdos_graphs.open("../../tests/erdos_graphs.txt");
         std::vector<std::string> row;
-        std::string line, word, tmp;
+        std::string word, tmp;
 
         while(f_erdos_graphs >> tmp) {
                 row.clear();
-                //getline(f_erdos_graphs, line);
-                std::cout << tmp << std::endl;
                 std::stringstream s(tmp);
                 while(getline(s, word, ',')) {
                         row.push_back(word);
