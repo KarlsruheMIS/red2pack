@@ -1,6 +1,7 @@
 branch_and_reduce/deploy
 branch_and_reduce/cmake*
 branch_and_reduce/build
+branch_and_reduce/tests/erdos_graphs.txt
 graphs/erdos_graphs
 graphs/erdos_graphs_gml
 graphs/cactus_graphs

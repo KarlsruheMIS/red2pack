@@ -93,17 +93,16 @@ bool deg_two_2reduction_e::reduce(reduce_algorithm* algo) {
                 //  as algo->two_deg(v) == 2 && algo->deg(status.graph[v][0]) == 2 &&
                 //                    algo->deg(status.graph[v][1]) == 2
                 //  does not imply that that the neighbors of v have only v in common.
-                if (algo->two_deg(v) == 2 && algo->deg(status.graph[v][0]) == 2 &&
-                    algo->deg(status.graph[v][1]) == 2) {
-                        NodeID x=status.remaining_nodes, y=status.remaining_nodes;
+                if (algo->two_deg(v) == 2 && algo->deg(status.graph[v][0]) == 2 && algo->deg(status.graph[v][1]) == 2) {
+                        NodeID x = status.remaining_nodes, y = status.remaining_nodes;
                         for (auto target : status.graph[status.graph[v][0]]) {
-                                if(target != v && target != status.graph[v][1]) {
+                                if (target != v && target != status.graph[v][1]) {
                                         x = target;
                                         break;
                                 }
                         }
                         for (auto target : status.graph[status.graph[v][1]]) {
-                                if(target != v && target != status.graph[v][0]) {
+                                if (target != v && target != status.graph[v][0]) {
                                         y = target;
                                         break;
                                 }
@@ -111,8 +110,8 @@ bool deg_two_2reduction_e::reduce(reduce_algorithm* algo) {
                         return x != y;
                 }
                 return false;
-                //return algo->two_deg(v) == 2 && algo->deg(status.graph[v][0]) == 2 &&
-                //       algo->deg(status.graph[v][1]) == 2;
+                // return algo->two_deg(v) == 2 && algo->deg(status.graph[v][0]) == 2 &&
+                //        algo->deg(status.graph[v][1]) == 2;
         };
 
         for (size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
@@ -172,9 +171,16 @@ bool twin2_reduction_e::reduce(reduce_algorithm* algo) {
 
                                 // Jannick: before: algo->deg(neighbor1) == 3 && algo->deg(neighbor2) == 3
                                 //  too strong? now covering V-Shape
-                                if (algo->deg(neighbor1) == algo->deg(neighbor2) && algo->two_deg(v) == algo->deg(neighbor1) + algo->deg(neighbor2)) {
+                                if (algo->deg(neighbor1) == algo->deg(neighbor2) &&
+                                    algo->two_deg(v) == algo->deg(neighbor2) - 1) {
+                                        std::cout << "v " << v << " neighbor1 " << neighbor1 << " neighbor2 " << neighbor2 << std::endl;
                                         for (NodeID neighbor : status.graph[neighbor1]) {
                                                 neighbors_set.add(neighbor);
+                                        }
+
+                                        // ensure that neighbor1 and neighbor2 are not adjacent
+                                        if (neighbors_set.get(neighbor2)) {
+                                                continue;
                                         }
 
                                         bool equal = true;
@@ -189,14 +195,13 @@ bool twin2_reduction_e::reduce(reduce_algorithm* algo) {
                                         if (equal) {
                                                 algo->set(v, pack_status::included);
                                                 std::cout << "found twins" << std::endl;
-                                                continue;
                                         }
                                 }
                         }
                 }
         }
 
-        std::cout << "twin_reduction_e:" << oldn-status.remaining_nodes << std::endl;
+        std::cout << "twin_reduction_e:" << oldn - status.remaining_nodes << std::endl;
         return oldn != status.remaining_nodes;
 }
 

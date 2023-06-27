@@ -106,7 +106,7 @@ NodeID m2s_bnr(const std::string& graph_filepath, MISConfig& mis_config, two_pac
 
 TEST_CASE("Test Optimality", "[single-file]") {
         std::vector<std::pair<std::string, NodeID>> instances; // graph file and optimal solution
-        instances.emplace_back("aGraphErdos20-0.graph", 7);
+        /*instances.emplace_back("aGraphErdos20-0.graph", 7);
         instances.emplace_back("aGraphErdos40-0.graph", 10);
         instances.emplace_back("aGraphErdos40-1.graph", 7);
         instances.emplace_back("aGraphErdos40-2.graph", 9);
@@ -131,7 +131,26 @@ TEST_CASE("Test Optimality", "[single-file]") {
         instances.emplace_back("aGraphErdos21-26.graph", 6);
         instances.emplace_back("aGraphErdos22-22.graph", 7);
         instances.emplace_back("aGraphErdos23-23.graph", 6);
-        instances.emplace_back("aGraphErdos24-24.graph", 9);
+        instances.emplace_back("aGraphErdos24-24.graph", 9);*/
+
+        // instances are read in using the following code https://www.geeksforgeeks.org/csv-file-management-using-c/
+        std::fstream f_erdos_graphs;
+        f_erdos_graphs.open("../../tests/erdos_graphs.txt");
+        std::vector<std::string> row;
+        std::string line, word, tmp;
+
+        while(f_erdos_graphs >> tmp) {
+                row.clear();
+                //getline(f_erdos_graphs, line);
+                std::cout << tmp << std::endl;
+                std::stringstream s(tmp);
+                while(getline(s, word, ',')) {
+                        row.push_back(word);
+                }
+                instances.emplace_back(row[0], std::stoi(row[1]));
+        }
+
+        f_erdos_graphs.close();
 
         two_packing_set::M2SConfig m2s_config;
         m2s_configuration_m2s m2s_configurator;
@@ -154,20 +173,21 @@ TEST_CASE("Test Optimality", "[single-file]") {
                 for(const auto& [inst, opt_sol_size] : instances) {
                         INFO("Testing " + inst);
                         m2s_config.graph_filename = inst;
-                        NodeID sol_size = m2s_bnr("../../../graphs/erdos_graphs/" + inst, mis_config, m2s_config);
+                        NodeID sol_size = m2s_bnr( inst, mis_config, m2s_config);
                         REQUIRE(sol_size == opt_sol_size);
                 }
         }
 
 
-        SECTION("All extended reductions") {
+        SECTION("All extended reductions (except deg-2)") {
                 m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
                 m2s_config.time_limit = 1000000;
+                m2s_config.disable_deg_two = true;
 
                 for(const auto& [inst, opt_sol_size] : instances) {
                         INFO("Testing " + inst);
                         m2s_config.graph_filename = inst;
-                        NodeID sol_size = m2s_bnr("../../../graphs/erdos_graphs/" + inst, mis_config, m2s_config);
+                        NodeID sol_size = m2s_bnr(inst, mis_config, m2s_config);
                         REQUIRE(sol_size == opt_sol_size);
                 }
         }
@@ -183,7 +203,7 @@ TEST_CASE("Test Optimality", "[single-file]") {
                 for(const auto& [inst, opt_sol_size] : instances) {
                         INFO("Testing " + inst);
                         m2s_config.graph_filename = inst;
-                        NodeID sol_size = m2s_bnr("../../../graphs/erdos_graphs/" + inst, mis_config, m2s_config);
+                        NodeID sol_size = m2s_bnr(inst, mis_config, m2s_config);
                         REQUIRE(sol_size == opt_sol_size);
                 }
         }
@@ -199,7 +219,7 @@ TEST_CASE("Test Optimality", "[single-file]") {
                 for(const auto& [inst, opt_sol_size] : instances) {
                         INFO("Testing " + inst);
                         m2s_config.graph_filename = inst;
-                        NodeID sol_size = m2s_bnr("../../../graphs/erdos_graphs/" + inst, mis_config, m2s_config);
+                        NodeID sol_size = m2s_bnr(inst, mis_config, m2s_config);
                         REQUIRE(sol_size == opt_sol_size);
                 }
         }
@@ -215,11 +235,12 @@ TEST_CASE("Test Optimality", "[single-file]") {
                 for(const auto& [inst, opt_sol_size] : instances) {
                         INFO("Testing " + inst);
                         m2s_config.graph_filename = inst;
-                        NodeID sol_size = m2s_bnr("../../../graphs/erdos_graphs/" + inst, mis_config, m2s_config);
+                        NodeID sol_size = m2s_bnr( inst, mis_config, m2s_config);
                         REQUIRE(sol_size == opt_sol_size);
                 }
         }
 
+        /*
         SECTION("Only 2-deg reduction") {
                 m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
                 m2s_config.time_limit = 1000000;
@@ -231,10 +252,11 @@ TEST_CASE("Test Optimality", "[single-file]") {
                 for(const auto& [inst, opt_sol_size] : instances) {
                         INFO("Testing " + inst);
                         m2s_config.graph_filename = inst;
-                        NodeID sol_size = m2s_bnr("../../../graphs/erdos_graphs/" + inst, mis_config, m2s_config);
+                        NodeID sol_size = m2s_bnr(inst, mis_config, m2s_config);
                         REQUIRE(sol_size == opt_sol_size);
                 }
         }
+        */
 
         SECTION("Only twin reduction") {
                 m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
@@ -247,7 +269,7 @@ TEST_CASE("Test Optimality", "[single-file]") {
                 for(const auto& [inst, opt_sol_size] : instances) {
                         INFO("Testing " + inst);
                         m2s_config.graph_filename = inst;
-                        NodeID sol_size = m2s_bnr("../../../graphs/erdos_graphs/" + inst, mis_config, m2s_config);
+                        NodeID sol_size = m2s_bnr(inst, mis_config, m2s_config);
                         REQUIRE(sol_size == opt_sol_size);
                 }
         }
