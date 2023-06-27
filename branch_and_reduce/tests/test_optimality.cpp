@@ -116,18 +116,74 @@ TEST_CASE("Test Optimality", "[single-file]") {
         two_packing_set::M2SConfig m2s_config;
         m2s_configuration_m2s m2s_configurator;
         m2s_configurator.standard(m2s_config);
-        m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
-        m2s_config.time_limit = 1000000;
-
 
         MISConfig mis_config;
         m2s_configuration_mis mis_configurator;
         mis_configurator.standard(mis_config);
 
-        for(const auto& [inst, opt_sol_size] : instances) {
-                INFO("Testing " + inst);
-                m2s_config.graph_filename = inst;
-                NodeID sol_size = m2s_bnr("../../../graphs/erdos_graphs/" + inst, mis_config, m2s_config);
-                REQUIRE(sol_size == opt_sol_size);
+        SECTION("No reductions") {
+
+                m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
+                m2s_config.time_limit = 1000000;
+                m2s_config.disable_deg_one = true;
+                m2s_config.disable_clique = true;
+                m2s_config.disable_cycle = true;
+                m2s_config.disable_domination = true;
+                m2s_config.disable_twin = true;
+
+                for(const auto& [inst, opt_sol_size] : instances) {
+                        INFO("Testing " + inst);
+                        m2s_config.graph_filename = inst;
+                        NodeID sol_size = m2s_bnr("../../../graphs/erdos_graphs/" + inst, mis_config, m2s_config);
+                        REQUIRE(sol_size == opt_sol_size);
+                }
         }
+
+
+        SECTION("All extended reductions") {
+                m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
+                m2s_config.time_limit = 1000000;
+
+
+
+                for(const auto& [inst, opt_sol_size] : instances) {
+                        INFO("Testing " + inst);
+                        m2s_config.graph_filename = inst;
+                        NodeID sol_size = m2s_bnr("../../../graphs/erdos_graphs/" + inst, mis_config, m2s_config);
+                        REQUIRE(sol_size == opt_sol_size);
+                }
+        }
+
+        SECTION("Only Deg-1 reduction") {
+                m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
+                m2s_config.time_limit = 1000000;
+                m2s_config.disable_clique = true;
+                m2s_config.disable_cycle = true;
+                m2s_config.disable_domination = true;
+                m2s_config.disable_twin = true;
+
+                for(const auto& [inst, opt_sol_size] : instances) {
+                        INFO("Testing " + inst);
+                        m2s_config.graph_filename = inst;
+                        NodeID sol_size = m2s_bnr("../../../graphs/erdos_graphs/" + inst, mis_config, m2s_config);
+                        REQUIRE(sol_size == opt_sol_size);
+                }
+        }
+
+        SECTION("Only Clique reduction") {
+                m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
+                m2s_config.time_limit = 1000000;
+                m2s_config.disable_deg_one = true;
+                m2s_config.disable_cycle = true;
+                m2s_config.disable_domination = true;
+                m2s_config.disable_twin = true;
+
+                for(const auto& [inst, opt_sol_size] : instances) {
+                        INFO("Testing " + inst);
+                        m2s_config.graph_filename = inst;
+                        NodeID sol_size = m2s_bnr("../../../graphs/erdos_graphs/" + inst, mis_config, m2s_config);
+                        REQUIRE(sol_size == opt_sol_size);
+                }
+        }
+
 }
