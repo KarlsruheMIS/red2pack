@@ -300,23 +300,21 @@ bool clique2_reduction_e::reduce(reduce_algorithm* algo) {
                         //  Checks whether N2[node] is 2-clique (here every two different nodes of N2[node]
                         //   are connected over at *most* 2 vertices)
                         for (auto neighbor : neighbors) {
-                                if (status.node_status[neighbor] == pack_status::not_set) {
-                                        size_t count = 0;
+                                size_t count = 0;
 
-                                        for (NodeID neighbor_2nd : status.graph[neighbor]) {
-                                                if (neighbors_set.get(neighbor_2nd)) count++;
-                                        }
+                                for (NodeID neighbor_2nd : status.graph[neighbor]) {
+                                        if (neighbors_set.get(neighbor_2nd)) count++;
+                                }
 
-                                        // same for the neighbors with distance two
-                                        for (NodeID neighbor_2nd : status.graph.get2neighbor_list(neighbor)) {
-                                                if (neighbors_set.get(neighbor_2nd)) count++;
-                                        }
+                                // same for the neighbors with distance two
+                                for (NodeID neighbor_2nd : status.graph.get2neighbor_list(neighbor)) {
+                                        if (neighbors_set.get(neighbor_2nd)) count++;
+                                }
 
-                                        is_clique = count == neighbors.size();
-                                        if (count != neighbors.size()) {
-                                                is_clique = false;
-                                                break;
-                                        }
+                                is_clique = count == neighbors.size();
+                                if (count != neighbors.size()) {
+                                        is_clique = false;
+                                        break;
                                 }
                         }
                         if (is_clique) {
