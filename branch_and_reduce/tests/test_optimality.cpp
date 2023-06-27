@@ -118,6 +118,16 @@ TEST_CASE("Test Optimality", "[single-file]") {
         instances.emplace_back("aGraphErdos40-8.graph", 8);
         instances.emplace_back("aGraphErdos40-9.graph", 7);
         instances.emplace_back("aGraphErdos40-10.graph", 10);
+        instances.emplace_back("aGraphErdos40-11.graph", 9);
+        instances.emplace_back("aGraphErdos40-12.graph", 9);
+        instances.emplace_back("aGraphErdos40-13.graph", 9);
+        instances.emplace_back("aGraphErdos40-14.graph", 8);
+        instances.emplace_back("aGraphErdos40-15.graph", 9);
+        instances.emplace_back("aGraphErdos40-16.graph", 7);
+        instances.emplace_back("aGraphErdos40-17.graph", 8);
+        instances.emplace_back("aGraphErdos40-18.graph", 8);
+        instances.emplace_back("aGraphErdos40-19.graph", 9);
+        instances.emplace_back("aGraphErdos40-20.graph", 9);
         instances.emplace_back("aGraphErdos21-26.graph", 6);
         instances.emplace_back("aGraphErdos22-22.graph", 7);
         instances.emplace_back("aGraphErdos23-23.graph", 6);
@@ -153,8 +163,6 @@ TEST_CASE("Test Optimality", "[single-file]") {
         SECTION("All extended reductions") {
                 m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
                 m2s_config.time_limit = 1000000;
-
-
 
                 for(const auto& [inst, opt_sol_size] : instances) {
                         INFO("Testing " + inst);

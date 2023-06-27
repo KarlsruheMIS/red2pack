@@ -89,8 +89,30 @@ bool deg_two_2reduction_e::reduce(reduce_algorithm* algo) {
         };
 
         auto is_within_V_shape = [&status = status, &algo = algo](NodeID& v) {
-                return algo->two_deg(v) == 2 && algo->deg(status.graph[v][0]) == 2 &&
-                       algo->deg(status.graph[v][1]) == 2;
+                // V-shape check is more complicated
+                //  as algo->two_deg(v) == 2 && algo->deg(status.graph[v][0]) == 2 &&
+                //                    algo->deg(status.graph[v][1]) == 2
+                //  does not imply that that the neighbors of v have only v in common.
+                if (algo->two_deg(v) == 2 && algo->deg(status.graph[v][0]) == 2 &&
+                    algo->deg(status.graph[v][1]) == 2) {
+                        NodeID x=status.remaining_nodes, y=status.remaining_nodes;
+                        for (auto target : status.graph[status.graph[v][0]]) {
+                                if(target != v && target != status.graph[v][1]) {
+                                        x = target;
+                                        break;
+                                }
+                        }
+                        for (auto target : status.graph[status.graph[v][1]]) {
+                                if(target != v && target != status.graph[v][0]) {
+                                        y = target;
+                                        break;
+                                }
+                        }
+                        return x != y;
+                }
+                return false;
+                //return algo->two_deg(v) == 2 && algo->deg(status.graph[v][0]) == 2 &&
+                //       algo->deg(status.graph[v][1]) == 2;
         };
 
         for (size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
