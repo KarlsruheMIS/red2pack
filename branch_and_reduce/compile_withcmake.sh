@@ -14,7 +14,7 @@ rm -rf deploy
 rm -rf build
 mkdir build
 cd build
-cmake ../ -DCMAKE_C_COMPILER=/usr/local/bin/gcc-13 -DCMAKE_CXX_COMPILER=/usr/local/bin/g++-13 -DCMAKE_BUILD_TYPE=Release
+cmake ../ -DCMAKE_C_COMPILER=/usr/local/bin/gcc-13 -DCMAKE_CXX_COMPILER=/usr/local/bin/g++-13 -DCMAKE_BUILD_TYPE=Release -DCMAKE_BUILD_TYPE=True
 make -j $NCORES
 cd ..
 

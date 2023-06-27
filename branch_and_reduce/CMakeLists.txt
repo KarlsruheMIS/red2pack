@@ -13,6 +13,10 @@ if(CCACHE_PROGRAM)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "${CCACHE_PROGRAM}")
 endif()
 
+if (NOT CMAKE_ENABLE_TESTING)
+    set(CMAKE_BUILD_TYPE False)
+endif (NOT CMAKE_ENABLE_TESTING)
+
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif (NOT CMAKE_BUILD_TYPE)
@@ -113,7 +117,10 @@ set(M2S_LIB two_packing_set_lib)
 add_library(two_packing_set_lib OBJECT ${M2S_LIB_SOURCES})
 
 # TESTS
-add_subdirectory(tests)
+if (CMAKE_ENABLE_TESTING)
+    add_subdirectory(tests)
+    enable_testing()
+endif (CMAKE_ENABLE_TESTING)
 
 # Executables
 # Benchmark for Branch and Reduce algorithm
