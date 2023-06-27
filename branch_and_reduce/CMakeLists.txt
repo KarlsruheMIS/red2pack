@@ -57,7 +57,7 @@ if(COMPILER_SUPPORTS_FUNROLL_LOOPS)
     add_compile_options(-funroll-loops)
 endif()
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -111,6 +111,9 @@ include_directories(app)
 # Maximum 2-Packing Set library
 set(M2S_LIB two_packing_set_lib)
 add_library(two_packing_set_lib OBJECT ${M2S_LIB_SOURCES})
+
+# TESTS
+add_subdirectory(tests)
 
 # Executables
 # Benchmark for Branch and Reduce algorithm
