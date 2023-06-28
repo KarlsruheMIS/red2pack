@@ -103,10 +103,24 @@ graph_access branch_and_reduce::perform_initial_reductions() {
                 kernel.finish_construction();
         }else {
                 auto start_construction = std::chrono::system_clock::now();
-                // TODO better bound for edges of kernel?
-                //  Cannot use graph.number_of_edges because this counter does not count 2neighborhood edges
-                kernel.start_construction(kernel_nodes, kernel_nodes*(kernel_nodes-1));
+                EdgeID count_edges = 0;
+                for (size_t i = 0; i < status.graph.size(); i++) {
+                        if (status.node_status[i] == reduce_algorithm::pack_status::not_set) {
+                                for (size_t j = 0; j < status.graph[i].size(); j++) {
+                                        if (status.node_status[status.graph[i][j]] == reduce_algorithm::pack_status::not_set) {
+                                                count_edges++;
+                                        }
+                                }
+                                for (size_t j = 0; j < status.graph.get2neighbor_list(i).size(); j++) {
+                                        if (status.node_status[status.graph.get2neighbor_list(i)[j]] ==
+                                            reduce_algorithm::pack_status::not_set) {
+                                                count_edges++;
+                                        }
+                                }
 
+                        }
+                }
+                kernel.start_construction(kernel_nodes, count_edges);
                 for (size_t i = 0; i < status.graph.size(); i++) {
                         if (status.node_status[i] == reduce_algorithm::pack_status::not_set) {
                                 kernel.new_node();

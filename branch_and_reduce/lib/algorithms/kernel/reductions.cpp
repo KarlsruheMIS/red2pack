@@ -173,7 +173,6 @@ bool twin2_reduction_e::reduce(reduce_algorithm* algo) {
                                 //  too strong? now covering V-Shape
                                 if (algo->deg(neighbor1) == algo->deg(neighbor2) &&
                                     algo->two_deg(v) == algo->deg(neighbor2) - 1) {
-                                        std::cout << "v " << v << " neighbor1 " << neighbor1 << " neighbor2 " << neighbor2 << std::endl;
                                         for (NodeID neighbor : status.graph[neighbor1]) {
                                                 neighbors_set.add(neighbor);
                                         }
