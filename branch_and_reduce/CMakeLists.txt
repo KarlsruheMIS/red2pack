@@ -31,6 +31,11 @@ if(CMAKE_BUILD_TYPE EQUAL "Debug")
     add_compile_options(-g)
 endif()
 
+CHECK_CXX_COMPILER_FLAG(-fpermissive COMPILER_SUPPORTS_PERMISSIVE)
+if(COMPILER_SUPPORTS_PERMISSIVE)
+    add_compile_options(-fpermissive)
+endif()
+
 CHECK_CXX_COMPILER_FLAG(-fno-omit-frame-pointer COMPILER_SUPPORTS_OMIT_FRAME_POINTER)
 if(COMPILER_SUPPORTS_OMIT_FRAME_POINTER)
     add_compile_options(-fno-omit-frame-pointer)
