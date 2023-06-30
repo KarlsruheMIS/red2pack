@@ -590,23 +590,19 @@ inline void m2s_graph_access::copy(m2s_graph_access& G_bar) {
 // We want to build the neighbors of degree two for every node.
 inline void m2s_graph_access::construct_2neighborhood() {
         EdgeID count_2_edges = 0;
-        std::queue<NodeID> bfsqueue;
         fast_set touched(number_of_nodes());
         graphref->m2_nodes.resize(graphref->number_of_nodes() + 1);
-        graphref->m2_edges.reserve(number_of_edges()*2); // guess for number of edges
+        graphref->m2_edges.reserve(graphref->number_of_edges()*4); // guess for number of edges
         for (NodeID v_idx = 0; v_idx < number_of_nodes(); v_idx++) {
                 graphref->m2_nodes[v_idx].firstEdge = count_2_edges;
                 touched.add(v_idx);
 
                 for (int j = graphref->m_nodes[v_idx].firstEdge; j < graphref->m_nodes[v_idx + 1].firstEdge; j++) {
                         touched.add(graphref->m_edges[j].target);
-                        bfsqueue.push(graphref->m_edges[j].target);
                 }
 
-                while (!bfsqueue.empty()) {
-                        NodeID source = bfsqueue.front();
-                        bfsqueue.pop();
-
+                for (int k = graphref->m_nodes[v_idx].firstEdge; k < graphref->m_nodes[v_idx + 1].firstEdge; k++) {
+                        auto source = graphref->m_edges[k].target;
                         for (NodeID j = graphref->m_nodes[source].firstEdge;
                              j < graphref->m_nodes[source + 1].firstEdge; j++) {
                                 NodeID target = graphref->m_edges[j].target;

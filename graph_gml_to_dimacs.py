@@ -69,7 +69,7 @@ def gml_to_dimacs(gml_filename, out_dir):
     out_lines.append("%s %s\n" % (len(nodes), len(edges)))
 
     for adj in adjs:
-        out_lines.append(" ".join([str(t) for t in adj]) + "\n")
+        out_lines.append(" ".join([str(t) for t in sorted(adj)]) + "\n")
 
     with open(os.path.join(out_dir, os.path.basename(gml_filename).split(".")[0] + ".graph"), "w") as graph_file:
         graph_file.writelines(out_lines)

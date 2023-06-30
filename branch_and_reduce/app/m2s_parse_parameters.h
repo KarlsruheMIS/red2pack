@@ -52,7 +52,7 @@ int parse_parameters(int argn, char **argv, two_packing_set::M2SConfig &m2s_conf
         struct arg_lit *disable_clique = arg_lit0(NULL, "disable_clique", "disable reduction clique");
         /* struct arg_lit *disable_clique_e             = arg_lit0(NULL, "disable_clique_e", "disable reduction
          * clique_e"); */
-        struct arg_lit *disable_cycle = arg_lit0(NULL, "disable_cycle", "disable reduction cycle");
+        struct arg_lit *disable_cycle = arg_lit0(NULL, "disable_deg_two", "disable reduction deg_two");
         /* struct arg_lit *disable_cycle_e              = arg_lit0(NULL, "disable_cycle_e", "disable reduction
          * cycle_e"); */
         struct arg_lit *disable_neighborhood = arg_lit0(NULL, "disable_neighborhood", "disable reduction neighborhood");

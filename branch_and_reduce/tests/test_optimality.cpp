@@ -153,7 +153,7 @@ TEST_CASE("Test Optimality", "[single-file]") {
         SECTION("All extended reductions (except deg-2)") {
                 m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
                 m2s_config.time_limit = 1000000;
-                m2s_config.disable_deg_two = true;
+                //m2s_config.disable_deg_two = true;
 
                 for(const auto& [inst, opt_sol_size] : instances) {
                         INFO("Testing " + inst);
@@ -211,7 +211,6 @@ TEST_CASE("Test Optimality", "[single-file]") {
                 }
         }
 
-        /*
         SECTION("Only 2-deg reduction") {
                 m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
                 m2s_config.time_limit = 1000000;
@@ -227,7 +226,6 @@ TEST_CASE("Test Optimality", "[single-file]") {
                         REQUIRE(sol_size == opt_sol_size);
                 }
         }
-        */
 
         SECTION("Only twin reduction") {
                 m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
