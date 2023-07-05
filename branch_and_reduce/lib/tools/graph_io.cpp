@@ -99,16 +99,6 @@ int graph_io::readGraphWeighted(m2s_graph_access &G, std::string filename) {
     NodeID target;
     NodeID prev_target = 0;
     while (ss >> target) {
-      // check sortedness
-      if (target < prev_target) {
-        std::cerr
-            << "The graph file contains unsorted edges. This is not supported. "
-               "Please use the following command to sort the edges:"
-            << std::endl;
-        std::cerr << "python misc/conversion/sort_metis.py " << filename
-                  << std::endl;
-        exit(0);
-      }
 
       // check for self-loops
       if (target - 1 == node) {
