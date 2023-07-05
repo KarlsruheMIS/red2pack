@@ -101,6 +101,12 @@ class reduce_algorithm {
         size_t deg(NodeID node) const;
         size_t two_deg(NodeID node);
 
+        bool is_adj(NodeID first, NodeID second);
+        bool is_two_adj(NodeID first, NodeID second);
+
+        bool reduce_deg_leq_one(NodeID node);
+
+
         void init_reduction_step();
         void reduce_graph_internal();
 

@@ -9,3 +9,5 @@ graphs/cactus_graphs_gml
 tests/build
 venv
 .idea
+jobs.txt
+out/

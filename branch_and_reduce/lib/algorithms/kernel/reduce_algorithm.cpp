@@ -24,10 +24,11 @@ reduce_algorithm::reduce_algorithm(m2s_graph_access& G, M2SConfig mis_config)  /
       double_set(G.number_of_nodes() * 2),
       buffers(2, sized_vector<NodeID>(G.number_of_nodes())) {
         if (config.reduction_style2 == M2SConfig::Reduction_Style2::extended) {
-                global_status.reductions2 = make_2reduction_vector<deg_one_2reduction_e, deg_two_2reduction_e, twin2_reduction_e, domination2_reduction_e, clique2_reduction_e>(global_status.n);
-                // global_status.reductions2 =
-                //     make_2reduction_vector<deg_one_2reduction_e, cycle2_reduction_e, twin2_reduction_e,
-                //                            domination2_reduction_e, clique2_reduction_e>(global_status.n);
+                global_status.reductions2 =
+                    make_2reduction_vector<deg_one_2reduction_e, deg_two_2reduction_e, twin2_reduction_e,
+                                           fast_domination2_reduction_e, domination2_reduction_e, clique2_reduction_e>(
+                        global_status.n);
+
         } else if (config.reduction_style2 == M2SConfig::Reduction_Style2::compact) {
                 global_status.reductions2 =
                     make_2reduction_vector<clique2_reduction_e, domination2_reduction_e>(global_status.n);
@@ -138,6 +139,46 @@ void reduce_algorithm::get_solution(std::vector<bool>& solution_vec) {
                         solution_vec[i] = true;
                 }
         }
+}
+
+bool reduce_algorithm::is_adj(NodeID first, NodeID second) {
+        for (auto& target : global_status.graph[second]) {
+                if (target == first) {
+                        return true;
+                }
+        }
+        return false;
+}
+
+bool reduce_algorithm::is_two_adj(NodeID first, NodeID second) {
+        for (auto& target : global_status.graph.get2neighbor_list(second)) {
+                if (target == first) {
+                        return true;
+                }
+        }
+        return false;
+}
+
+bool reduce_algorithm::reduce_deg_leq_one(NodeID node) {
+        if (deg(node) == 0) {
+                if (two_deg(node) <= 1) {
+                        // Degree Zero Reduction
+                        set(node, pack_status::included);
+                } else if (two_deg(node) == 2) {
+                        auto& neighbor1 = global_status.graph.get2neighbor_list(node)[0];
+                        auto& neighbor2 = global_status.graph.get2neighbor_list(node)[1];
+                        if (is_adj(neighbor1, neighbor2) || is_two_adj(neighbor1, neighbor2)) {
+                                // Degree Zero Triangle Reduction
+                                return true;
+                        }
+                }
+        } else if (deg(node) == 1) {
+                if (two_deg(node) < deg(global_status.graph[node][0])) {
+                        // Degree 1 Reduction
+                        return true;
+                }
+        }
+        return false;
 }
 
 }  // namespace two_packing_set

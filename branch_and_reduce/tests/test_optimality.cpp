@@ -131,26 +131,8 @@ TEST_CASE("Test Optimality", "[single-file]") {
         m2s_configuration_mis mis_configurator;
         mis_configurator.standard(mis_config);
 
-        SECTION("No reductions") {
 
-                m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
-                m2s_config.time_limit = 1000000;
-                m2s_config.disable_deg_one = true;
-                m2s_config.disable_clique = true;
-                m2s_config.disable_deg_two = true;
-                m2s_config.disable_domination = true;
-                m2s_config.disable_twin = true;
-
-                for(const auto& [inst, opt_sol_size] : instances) {
-                        INFO("Testing " + inst);
-                        m2s_config.graph_filename = inst;
-                        NodeID sol_size = m2s_bnr( inst, mis_config, m2s_config);
-                        REQUIRE(sol_size == opt_sol_size);
-                }
-        }
-
-
-        SECTION("All extended reductions (except deg-2)") {
+        SECTION("All extended reductions") {
                 m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
                 m2s_config.time_limit = 1000000;
                 //m2s_config.disable_deg_two = true;
@@ -170,6 +152,7 @@ TEST_CASE("Test Optimality", "[single-file]") {
                 m2s_config.disable_deg_two = true;
                 m2s_config.disable_domination = true;
                 m2s_config.disable_twin = true;
+                m2s_config.disable_fast_domination = true;
 
                 for(const auto& [inst, opt_sol_size] : instances) {
                         INFO("Testing " + inst);
@@ -186,6 +169,7 @@ TEST_CASE("Test Optimality", "[single-file]") {
                 m2s_config.disable_deg_two = true;
                 m2s_config.disable_domination = true;
                 m2s_config.disable_twin = true;
+                m2s_config.disable_fast_domination = true;
 
                 for(const auto& [inst, opt_sol_size] : instances) {
                         INFO("Testing " + inst);
@@ -202,6 +186,24 @@ TEST_CASE("Test Optimality", "[single-file]") {
                 m2s_config.disable_deg_two = true;
                 m2s_config.disable_deg_one = true;
                 m2s_config.disable_twin = true;
+                m2s_config.disable_fast_domination = true;
+
+                for(const auto& [inst, opt_sol_size] : instances) {
+                        INFO("Testing " + inst);
+                        m2s_config.graph_filename = inst;
+                        NodeID sol_size = m2s_bnr( inst, mis_config, m2s_config);
+                        REQUIRE(sol_size == opt_sol_size);
+                }
+        }
+
+        SECTION("Only Fast-Domination reduction") {
+                m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
+                m2s_config.time_limit = 1000000;
+                m2s_config.disable_clique = true;
+                m2s_config.disable_deg_two = true;
+                m2s_config.disable_deg_one = true;
+                m2s_config.disable_twin = true;
+                m2s_config.disable_domination = true;
 
                 for(const auto& [inst, opt_sol_size] : instances) {
                         INFO("Testing " + inst);
@@ -218,6 +220,7 @@ TEST_CASE("Test Optimality", "[single-file]") {
                 m2s_config.disable_domination = true;
                 m2s_config.disable_deg_one = true;
                 m2s_config.disable_twin = true;
+                m2s_config.disable_fast_domination = true;
 
                 for(const auto& [inst, opt_sol_size] : instances) {
                         INFO("Testing " + inst);
@@ -234,11 +237,30 @@ TEST_CASE("Test Optimality", "[single-file]") {
                 m2s_config.disable_domination = true;
                 m2s_config.disable_deg_one = true;
                 m2s_config.disable_deg_two = true;
+                m2s_config.disable_fast_domination = true;
 
                 for(const auto& [inst, opt_sol_size] : instances) {
                         INFO("Testing " + inst);
                         m2s_config.graph_filename = inst;
                         NodeID sol_size = m2s_bnr(inst, mis_config, m2s_config);
+                        REQUIRE(sol_size == opt_sol_size);
+                }
+        }
+
+        SECTION("No reductions") {
+                m2s_config.reduction_style2 = two_packing_set::M2SConfig::Reduction_Style2::extended;
+                m2s_config.time_limit = 1000000;
+                m2s_config.disable_deg_one = true;
+                m2s_config.disable_clique = true;
+                m2s_config.disable_deg_two = true;
+                m2s_config.disable_domination = true;
+                m2s_config.disable_twin = true;
+                m2s_config.disable_fast_domination = true;
+
+                for(const auto& [inst, opt_sol_size] : instances) {
+                        INFO("Testing " + inst);
+                        m2s_config.graph_filename = inst;
+                        NodeID sol_size = m2s_bnr( inst, mis_config, m2s_config);
                         REQUIRE(sol_size == opt_sol_size);
                 }
         }

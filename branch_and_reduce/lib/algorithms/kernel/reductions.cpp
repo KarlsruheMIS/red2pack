@@ -14,20 +14,12 @@ bool deg_one_2reduction_e::reduce(reduce_algorithm* algo) {
         auto& status = algo->global_status;
         size_t oldn = status.remaining_nodes;
 
-        // checks if v is completely isolated (no edges and 2-edges incident to v)
-        auto is_isolated = [&algo = algo](NodeID& v) { return algo->deg(v) == 0 && algo->two_deg(v) == 0; };
-        // check if v has degree 1 and N2[v] == N[neighbor_of_v]
-        auto is_deg1_2isolated = [&algo = algo](NodeID& v) {
-                return algo->deg(v) == 1 && algo->two_deg(v) < algo->deg(algo->global_status.graph[v][0]);
-        };
-
         for (size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
                 NodeID v = marker.current_vertex(v_idx);
 
                 if (status.node_status[v] == pack_status::not_set) {
-                        if (is_isolated(v) || is_deg1_2isolated(v)) {
-                                // this removes N2[v] of G and only leaves 2-edges due to a common neighbor in N2(v),
-                                //  and adds v to the solution
+                        // check and apply reductions with degree <= 1
+                        if (algo->reduce_deg_leq_one(v)) {
                                 algo->set(v, pack_status::included);
                         }
                 }
@@ -43,13 +35,6 @@ bool deg_two_2reduction_e::reduce(reduce_algorithm* algo) {
         auto& status = algo->global_status;
         size_t oldn = status.remaining_nodes;
 
-        // checks if v is completely isolated (no edges and 2-edges incident to v)
-        auto is_isolated = [&algo = algo](NodeID& v) { return algo->deg(v) == 0 && algo->two_deg(v) == 0; };
-        // check if v has degree 1 and N2[v] == N[neighbor_of_v]
-        auto is_deg1_2isolated = [&algo = algo](NodeID& v) {
-                return algo->deg(v) == 1 && algo->two_deg(v) < algo->deg(algo->global_status.graph[v][0]);
-        };
-
         auto is_within_triangle = [&status = status, &algo = algo](NodeID& v) {
                 // special case of clique reductions
                 return algo->two_deg(v) == 0 && algo->deg(status.graph[v][0]) == 2 &&
@@ -59,15 +44,8 @@ bool deg_two_2reduction_e::reduce(reduce_algorithm* algo) {
         auto is_within_4_cycle = [&status = status, &algo = algo](NodeID& v) {
                 // a 4-cycle check
                 // 2-neighborhood of v consists only of some vertex x which is the 2nd neighbor of v's neighbors
-                if(algo->two_deg(v) == 1 && algo->deg(status.graph[v][0]) == 2 &&
-                       algo->deg(status.graph[v][1]) == 2) {
-                        auto& neighbor1 = status.graph[v][0];
-                        auto& neighbor2 = status.graph[v][1];
-                        for ( auto target : status.graph[neighbor1]) {
-                                if (target == neighbor2) {
-                                        return false;
-                                }
-                        }
+                if (algo->two_deg(v) == 1 && algo->deg(status.graph[v][0]) == 2 && algo->deg(status.graph[v][1]) == 2 &&
+                    !algo->is_adj(status.graph[v][0], status.graph[v][1])) {
                         return true;
                 }
                 return false;
@@ -77,45 +55,28 @@ bool deg_two_2reduction_e::reduce(reduce_algorithm* algo) {
                 NodeID v = marker.current_vertex(v_idx);
 
                 if (status.node_status[v] == pack_status::not_set) {
-                        if (is_isolated(v) || is_deg1_2isolated(v)) {
-                                // this removes N2[v] of G and only leaves 2-edges due to a common neighbor in N2(v),
-                                //  and adds v to the solution
+                        if (algo->reduce_deg_leq_one(v)) {
                                 algo->set(v, pack_status::included);
-                        } else if (algo->deg(v) == 0 && algo->two_deg(v) == 2) {
-                                auto& neighbor1 = status.graph.get2neighbor_list(v)[0];
-                                auto& neighbor2 = status.graph.get2neighbor_list(v)[1];
-
-                                if (algo->two_deg(neighbor1) == 2 && algo->two_deg(neighbor2) == 2) {
-                                        for ( auto target : status.graph.get2neighbor_list(neighbor1)) {
-                                                if (target == neighbor2) {
-                                                        // found triangle of 2-edges
-                                                        algo->set(v, pack_status::included);
-                                                        break;
-                                                }
-                                        }
-                                }
-
                         } else if (algo->deg(v) == 2) {
-                                if (is_within_triangle(v)) {
-                                        algo->set(v, pack_status::included);
-                                } else if (is_within_4_cycle(v)) {
-                                        // 4-cycle
+                                if (is_within_triangle(v) || is_within_4_cycle(v)) {
+                                        // triangle or 4-cycle
                                         algo->set(v, pack_status::included);
                                 } else if (algo->two_deg(v) == 0) {
                                         // test for v_shape variant
                                         auto& neighbor1 = status.graph[v][0];
                                         auto& neighbor2 = status.graph[v][1];
-                                        if (algo->deg(neighbor1) == 1 && algo->deg(neighbor2) == 1) {
-                                                // check if deg-1 reduction applies either for neighbor 1 or 2
-                                                // otherwise it is v-shape and we can include v
-                                                if (algo->two_deg(neighbor1) == 1) {
-                                                        algo->set(neighbor1, pack_status::included);
-                                                }else if (algo->two_deg(neighbor2) == 1) {
-                                                        algo->set(neighbor2, pack_status::included);
-                                                }else {
-                                                        algo->set(v, pack_status::included);
-                                                }
+                                        // check if deg-1 reduction applies either for neighbor 1 or 2
+                                        // otherwise it is v-shape and we can include v
+                                        if (algo->deg(neighbor1) == 1 && algo->two_deg(neighbor1) == 1) {
+                                                algo->set(neighbor1, pack_status::included);
+                                                continue;
                                         }
+                                        if (algo->deg(neighbor2) == 1 && algo->two_deg(neighbor2) == 1) {
+                                                algo->set(neighbor2, pack_status::included);
+                                                continue;
+                                        }
+                                        // both neighbors have two_deg > 1
+                                        algo->set(v, pack_status::included);
                                 }
                         }
                 }
@@ -132,20 +93,11 @@ bool twin2_reduction_e::reduce(reduce_algorithm* algo) {
         size_t oldn = status.remaining_nodes;
         auto& neighbors_set = algo->set_1;
 
-        // checks if v is completely isolated (no edges and 2-edges incident to v)
-        auto is_isolated = [&algo = algo](NodeID& v) { return algo->deg(v) == 0 && algo->two_deg(v) == 0; };
-        // check if v has degree 1 and N2[v] == N[neighbor_of_v]
-        auto is_deg1_2isolated = [&algo = algo](NodeID& v) {
-                return algo->deg(v) == 1 && algo->two_deg(v) < algo->deg(algo->global_status.graph[v][0]);
-        };
-
         for (size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
                 NodeID v = marker.current_vertex(v_idx);
 
                 if (status.node_status[v] == pack_status::not_set) {
-                        if (is_isolated(v) || is_deg1_2isolated(v)) {
-                                // this removes N2[v] of G and only leaves 2-edges due to a common neighbor in N2(v),
-                                //  and adds v to the solution
+                        if (algo->reduce_deg_leq_one(v)) {
                                 algo->set(v, pack_status::included);
                         } else if (algo->deg(v) == 2) {
                                 neighbors_set.clear();
@@ -186,6 +138,60 @@ bool twin2_reduction_e::reduce(reduce_algorithm* algo) {
         return oldn != status.remaining_nodes;
 }
 
+bool fast_domination2_reduction_e::reduce(reduce_algorithm* algo) {
+        auto config = algo->config;
+        if (config.disable_fast_domination) return false;
+        auto& status = algo->global_status;
+        auto& neighbors = algo->set_1;
+        size_t oldn = status.remaining_nodes;
+
+        for (size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
+                NodeID v = marker.current_vertex(v_idx);
+
+                if (status.node_status[v] == pack_status::not_set) {
+                        if(algo->reduce_deg_leq_one(v)) {
+                                algo->set(v, pack_status::included);
+                                continue;
+                        }
+
+
+                        size_t neighbors_count = 0;
+                        neighbors.clear();
+
+                        for (NodeID neighbor : status.graph[v]) {
+                                neighbors.add(neighbor);
+                                neighbors_count++;
+                        }
+
+                        neighbors.add(v);
+                        bool is_subset;
+
+                        for (NodeID u : status.graph[v]) {
+                                if (algo->deg(u) + algo->two_deg(u) > neighbors_count) {
+                                        continue;
+                                }
+
+                                is_subset = true;
+
+                                for (NodeID neighbor : status.graph[u]) {
+                                        if (!neighbors.get(neighbor)) {
+                                                is_subset = false;
+                                                break;
+                                        }
+                                }
+
+                                if (is_subset) {
+                                        algo->set(v, pack_status::excluded);
+                                        break;
+                                }
+                        }
+                }
+        }
+
+        std::cout << "fast_domination_reduction_e:" << oldn - status.remaining_nodes << std::endl;
+        return oldn != status.remaining_nodes;
+}
+
 bool domination2_reduction_e::reduce(reduce_algorithm* algo) {
         auto config = algo->config;
         if (config.disable_domination) return false;
@@ -193,21 +199,11 @@ bool domination2_reduction_e::reduce(reduce_algorithm* algo) {
         auto& neighbors = algo->set_1;
         size_t oldn = status.remaining_nodes;
 
-        // checks if v is completely isolated (no edges and 2-edges incident to v)
-        auto is_isolated = [&algo = algo](NodeID& v) { return algo->deg(v) == 0 && algo->two_deg(v) == 0; };
-        // check if v has degree 1 and N2[v] == N[neighbor_of_v]
-        auto is_deg1_2isolated = [&algo = algo](NodeID& v) {
-                return algo->deg(v) == 1 && algo->two_deg(v) < algo->deg(algo->global_status.graph[v][0]);
-        };
-
         for (size_t v_idx = 0; v_idx < marker.current_size(); v_idx++) {
                 NodeID v = marker.current_vertex(v_idx);
 
                 if (status.node_status[v] == pack_status::not_set) {
-                        // TODO: deg-1 reduction is now checked here
-                        if (is_isolated(v) || is_deg1_2isolated(v)) {
-                                // this removes N2[v] of G and only leaves 2-edges due to a common neighbor in N2(v),
-                                //  and adds v to the solution
+                        if(algo->reduce_deg_leq_one(v)) {
                                 algo->set(v, pack_status::included);
                                 continue;
                         }
@@ -224,12 +220,6 @@ bool domination2_reduction_e::reduce(reduce_algorithm* algo) {
                                 neighbors.add(neighbor);
                                 neighbors_count++;
                         }
-
-                        // TODO: check deg-1 reduction
-                        /*if (neighbors_count <= 1) {
-                                algo->set(v, pack_status::included);
-                                continue;
-                        }*/
 
                         neighbors.add(v);
                         bool is_subset;
