@@ -44,7 +44,7 @@ int graph_io::readGraphWeighted(m2s_graph_access &G, std::string filename) {
 #else
   if (2 * nmbEdges > std::numeric_limits<int>::max() ||
       nmbNodes > std::numeric_limits<int>::max()) {
-    std::cerr << "The graph is too large. Currently only 32bit supported!"
+    std::cerr << "The graph " << filename << " is too large. Currently only 32bit supported!"
               << std::endl;
     exit(0);
   }
