@@ -68,10 +68,19 @@ void reduce_algorithm::set(NodeID node, pack_status mpack_status) {
                 global_status.node_status[node] = mpack_status;
                 global_status.remaining_nodes--;
                 global_status.pack_weight += global_status.weights[node];
-                global_status.graph.hide_node_imprecise(node);
+                global_status.graph.hided_nodes[node] = true;
+                //global_status.graph.hide_node_imprecise(node);
 
                 for (auto neighbor : global_status.graph[node]) {
                         set(neighbor, excluded);
+                        /*global_status.node_status[node] = pack_status::excluded;
+                        global_status.remaining_nodes--;
+                        global_status.graph.hided_nodes[node] = true;
+                        for (auto two_neighbor : global_status.graph.get2neighbor_list(neighbor)) {
+                                if(!global_status.graph.hided_nodes[two_neighbor]) {
+                                        global_status.graph.hide_path(two_neighbor, neighbor);
+                                }
+                        }*/
                 }
                 for (auto neighbor : global_status.graph.get2neighbor_list(node)) {
                         set(neighbor, excluded);

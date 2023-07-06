@@ -589,7 +589,6 @@ inline void m2s_graph_access::copy(m2s_graph_access& G_bar) {
 // ====================================================================================
 // We want to build the neighbors of degree two for every node.
 inline void m2s_graph_access::construct_2neighborhood() {
-        auto start_t = std::chrono::system_clock::now();
         EdgeID count_2_edges = 0;
         fast_set touched(number_of_nodes());
         graphref->m2_nodes.resize(graphref->number_of_nodes() + 1);
@@ -617,9 +616,6 @@ inline void m2s_graph_access::construct_2neighborhood() {
                 touched.clear();
         }
         graphref->m2_nodes[number_of_nodes()].firstEdge = count_2_edges;
-        auto stop_t = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_time_construction = stop_t - start_t;
-        std::cout << "time 2-neighborhood: " << elapsed_time_construction.count() << std::endl;
 }
 // ======================================================================================
 

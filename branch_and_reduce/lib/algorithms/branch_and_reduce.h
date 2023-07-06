@@ -53,8 +53,8 @@ private:
   /**
    * Perform initial reductions
    */
-  graph_access perform_initial_reductions();
-  graph_access construct_condensed_graph();
+  void perform_initial_reductions(graph_access& condensed_graph);
+  void construct_condensed_graph(graph_access& condensed_graph);
 };
 } // namespace two_packing_set
 

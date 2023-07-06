@@ -118,10 +118,14 @@ class m2s_dynamic_graph {
                 // We have to hide the node in the one neighborhoods as well as in the
                 // two_neighborhoods.
                 for (auto neighbor : graph1[node]) {
-                        hide_edge(neighbor, node);
+                        if(!hided_nodes[neighbor]) {
+                                hide_edge(neighbor, node);
+                        }
                 }
                 for (auto two_neighbor : graph2[node]) {
-                        hide_path(two_neighbor, node);
+                        if(!hided_nodes[two_neighbor]) {
+                                hide_path(two_neighbor, node);
+                        }
                 }
         }
 

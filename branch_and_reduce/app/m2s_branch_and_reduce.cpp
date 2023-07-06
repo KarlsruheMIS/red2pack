@@ -107,16 +107,15 @@ int main(int argc, char **argv) {
         // VERIFY
         if (!found) {
                 std::cerr << "Timeout" << std::endl;
-                return 1;
         }
+
+        // PRINT RESULTS
+        m2s_log::instance()->print_results();
 
         graph.construct_2neighborhood();
         auto valid = is_maximal_2ps(graph, solver.get_solution(), solver.get_solution_size());
         if (!valid) {
                 return 1;
         }
-
-        // PRINT RESULTS
-        m2s_log::instance()->print_results();
         return 0;
 }
