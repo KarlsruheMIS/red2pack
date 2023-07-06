@@ -163,7 +163,7 @@ bool reduce_algorithm::reduce_deg_leq_one(NodeID node) {
         if (deg(node) == 0) {
                 if (two_deg(node) <= 1) {
                         // Degree Zero Reduction
-                        set(node, pack_status::included);
+                        return true;
                 } else if (two_deg(node) == 2) {
                         auto& neighbor1 = global_status.graph.get2neighbor_list(node)[0];
                         auto& neighbor2 = global_status.graph.get2neighbor_list(node)[1];

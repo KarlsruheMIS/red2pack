@@ -54,6 +54,7 @@ private:
    * Perform initial reductions
    */
   graph_access perform_initial_reductions();
+  graph_access construct_condensed_graph();
 };
 } // namespace two_packing_set
 
