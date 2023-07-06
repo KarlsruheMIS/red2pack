@@ -66,6 +66,9 @@ int parse_parameters(int argn, char **argv, two_packing_set::M2SConfig &m2s_conf
          * domination_e"); */
         struct arg_lit *disable_fast_domination =
             arg_lit0(NULL, "disable_fast_domination", "disable reduction fast_domination");
+
+        struct arg_lit *on_demand_two_neighborhood =
+            arg_lit0(NULL, "on_demand_two_neighborhood", "on demand two neighborhood");
         /* struct arg_lit *disable_fast_domination_e    = arg_lit0(NULL, "disable_fast_domination_e", "disable reduction
          * fast_domination_e"); */
 
@@ -108,6 +111,7 @@ int parse_parameters(int argn, char **argv, two_packing_set::M2SConfig &m2s_conf
                             disable_domination,
                             /* disable_domination_e, */
                             disable_fast_domination,
+                            on_demand_two_neighborhood,
                             /* disable_fast_domination_e, */
                             // use_hopcroft,
                             // use_multiway_ns,
@@ -240,6 +244,7 @@ int parse_parameters(int argn, char **argv, two_packing_set::M2SConfig &m2s_conf
         /* if (disable_fast_domination_e->count > 0)  m2s_config.disable_fast_domination_e  = true; */
         if (disable_neighborhood->count > 0) m2s_config.disable_neighborhood = true;
         /* if (disable_neighborhood_e->count > 0)  m2s_config.disable_neighborhood_e = true; */
+        if (on_demand_two_neighborhood->count > 0) m2s_config.on_demand_two_neighborhood = true;
 
         if (output->count > 0) {
                 m2s_config.output_filename = output->sval[0];

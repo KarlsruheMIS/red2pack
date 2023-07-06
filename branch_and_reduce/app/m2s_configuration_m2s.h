@@ -132,6 +132,7 @@ inline void m2s_configuration_m2s::standard(two_packing_set::M2SConfig &m2s_conf
         /* m2s_config.disable_deg_one_e = false; */
         m2s_config.disable_clique = false;
         /* m2s_config.disable_clique_e = false; */
+        m2s_config.on_demand_two_neighborhood = false;
 }
 
 inline void m2s_configuration_m2s::social(two_packing_set::M2SConfig &m2s_config) {

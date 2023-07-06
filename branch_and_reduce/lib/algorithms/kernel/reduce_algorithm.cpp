@@ -16,9 +16,9 @@ struct deg_node {
         bool operator<(const deg_node& rhs) const { return deg < rhs.deg; }
 };
 /* reduce_algorithm::reduce_algorithm(graph_access& G, bool called_from_fold)  */
-reduce_algorithm::reduce_algorithm(m2s_graph_access& G, M2SConfig mis_config)  //, bool called_from_fold)
-    : config(std::move(mis_config)),
-      global_status(G),
+reduce_algorithm::reduce_algorithm(m2s_graph_access& G, const M2SConfig &m2s_config)  //, bool called_from_fold)
+    : config(m2s_config),
+      global_status(G, !m2s_config.on_demand_two_neighborhood),
       set_1(G.number_of_nodes()),
       set_2(G.number_of_nodes()),
       double_set(G.number_of_nodes() * 2),

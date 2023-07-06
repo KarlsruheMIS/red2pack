@@ -80,13 +80,17 @@ class m2s_dynamic_graph {
                 size_t counter = 0;
         };
 
-        m2s_dynamic_graph(size_t nodes = 0) : graph1(nodes), graph2(nodes) {
+        m2s_dynamic_graph(size_t nodes = 0) : graph1(nodes), graph2(nodes), init_two_neighbors(nodes, false), set(nodes) {
                 graph1.reserve(nodes);
                 graph2.reserve(nodes);
         }
 
-        m2s_dynamic_graph(m2s_graph_access &G)
-            : graph1(G.number_of_nodes()), graph2(G.number_of_nodes()), hided_nodes(G.number_of_nodes(), false) {
+        m2s_dynamic_graph(m2s_graph_access &G, bool two_neighbors_initialized)
+            : graph1(G.number_of_nodes()),
+              graph2(G.number_of_nodes()),
+              hided_nodes(G.number_of_nodes(), false),
+              init_two_neighbors(G.number_of_nodes(), two_neighbors_initialized),
+              set(G.number_of_nodes()) {
                 neighbor_list *slotA;
 
                 forall_nodes (G, node) {
@@ -101,14 +105,16 @@ class m2s_dynamic_graph {
                 endfor
 
                 // 2-list.
-                two_neighbor_list *slotB;
+                if(two_neighbors_initialized) {
+                        two_neighbor_list *slotB;
 
-                for (size_t i = 0; i < G.number_of_nodes(); i++) {
-                        slotB = &graph2[i];
-                        slotB->resize(G.get2Degree(i));
+                        for (size_t i = 0; i < G.number_of_nodes(); i++) {
+                                slotB = &graph2[i];
+                                slotB->resize(G.get2Degree(i));
 
-                        forall_out_edges2(G, e, i) { slotB->two_neighbors[slotB->counter++] = G.getEdgeTarget2(e); }
-                        endfor
+                                forall_out_edges2(G, e, i) { slotB->two_neighbors[slotB->counter++] = G.getEdgeTarget2(e); }
+                                endfor
+                        }
                 }
         }
 
@@ -118,12 +124,12 @@ class m2s_dynamic_graph {
                 // We have to hide the node in the one neighborhoods as well as in the
                 // two_neighborhoods.
                 for (auto neighbor : graph1[node]) {
-                        if(!hided_nodes[neighbor]) {
+                        if (!hided_nodes[neighbor]) {
                                 hide_edge(neighbor, node);
                         }
                 }
                 for (auto two_neighbor : graph2[node]) {
-                        if(!hided_nodes[two_neighbor]) {
+                        if (!hided_nodes[two_neighbor] && init_two_neighbors[two_neighbor]) {
                                 hide_path(two_neighbor, node);
                         }
                 }
@@ -165,7 +171,32 @@ class m2s_dynamic_graph {
 
         neighbor_list &operator[](NodeID node) { return graph1[node]; }
 
-        two_neighbor_list &get2neighbor_list(NodeID node) { return graph2[node]; }
+        two_neighbor_list &get2neighbor_list(NodeID node) {
+                if (!init_two_neighbors[node]) {
+                        set.clear();
+                        for (size_t k = 0; k < graph1[node].neighbors.size(); k++) {
+                                set.add(graph1[node][k]);
+                        }
+                        set.add(node);
+                        for (size_t k = 0; k < graph1[node].neighbors.size(); k++) {
+                                auto target1 = graph1[node][k];
+                                for (size_t l = 0; l < graph1[target1].neighbors.size(); l++) {
+                                        auto target2 = graph1[target1][l];
+                                        if (!set.get(target2) && !hided_nodes[target2]) {
+                                                queue.push(target2);
+                                                set.add(target2);
+                                        }
+                                }
+                        }
+                        graph2[node].resize(queue.size());
+                        while (!queue.empty()) {
+                                graph2[node][graph2[node].counter++] = queue.front();
+                                queue.pop();
+                        }
+                        init_two_neighbors[node] = true;
+                }
+                return graph2[node];
+        }
 
         const neighbor_list &operator[](NodeID node) const { return graph1[node]; }
 
@@ -176,6 +207,9 @@ class m2s_dynamic_graph {
        private:
         std::vector<neighbor_list> graph1;
         std::vector<two_neighbor_list> graph2;
+        std::vector<bool> init_two_neighbors;
+        fast_set set;
+        std::queue<NodeID> queue;
 };
 }  // namespace two_packing_set
 

@@ -102,7 +102,9 @@ void branch_and_reduce::construct_condensed_graph(graph_access& condensed_graph)
 void branch_and_reduce::perform_initial_reductions(graph_access& condensed_graph) {
         auto start_t = std::chrono::system_clock::now();
         // construct 2neighborhood
-        graph.construct_2neighborhood();
+        if (!m2s_cfg.on_demand_two_neighborhood) {
+                graph.construct_2neighborhood();
+        }
         // run first reductions
         reduce_algorithm reducer(graph, m2s_cfg);
         reducer.run_reductions();

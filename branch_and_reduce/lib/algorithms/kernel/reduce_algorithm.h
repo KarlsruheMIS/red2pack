@@ -65,10 +65,10 @@ class reduce_algorithm {
                 std::vector<m2ps_reduction_type> folded_queue;
                 std::vector<NodeID> modified_queue;
 
-                graph_status(m2s_graph_access& G)
+                graph_status(m2s_graph_access& G, bool two_neighborhood_initialized)
                     : n(G.number_of_nodes()),
                       remaining_nodes(n),
-                      graph(G),
+                      graph(G, two_neighborhood_initialized),
                       weights(n, 0),
                       node_status(n, pack_status::not_set),
                       folded_queue(n) {
@@ -111,7 +111,7 @@ class reduce_algorithm {
         void reduce_graph_internal();
 
        public:
-        reduce_algorithm(m2s_graph_access& G, M2SConfig  mis_config);  //, bool called_from_fold);
+        reduce_algorithm(m2s_graph_access& G, const M2SConfig &m2s_config);
         void get_solution(std::vector<bool>& solution_vec);
         void run_reductions();
         /* 	std::vector<NodeID> get_status();  */

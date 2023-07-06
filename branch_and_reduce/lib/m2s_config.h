@@ -115,6 +115,7 @@ struct M2SConfig {
         /* bool disable_neighborhood_e; */
         bool disable_twin;
         /* bool disable_twin_e; */
+        bool on_demand_two_neighborhood;
 
         Reduction_Style2 reduction_style2;
 
