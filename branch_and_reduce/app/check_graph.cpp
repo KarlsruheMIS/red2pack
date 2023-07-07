@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
                 exit(1);
         }
         std::string graph_filepath(argv[0]);
+        std::cout << "Checking: " << graph_filepath << std::endl;
 
         // read graph
         two_packing_set::m2s_graph_access graph;
