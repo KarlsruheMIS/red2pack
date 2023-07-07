@@ -29,6 +29,7 @@ endif()
 
 if(CMAKE_BUILD_TYPE EQUAL "Debug")
     add_compile_options(-g)
+    add_compile_options(-fsanitize=address)
 endif()
 
 CHECK_CXX_COMPILER_FLAG(-fpermissive COMPILER_SUPPORTS_PERMISSIVE)
@@ -71,6 +72,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # M2S CPP Files
+set(CHECK_GRAPH_BIN "app/check_graph.cpp")
 set(M2S_BIN "app/m2s_branch_and_reduce.cpp")
 set(M2S_LIB_SOURCES
         lib/algorithms/branch_and_reduce.cpp
@@ -131,3 +133,5 @@ endif (CMAKE_ENABLE_TESTING)
 # Benchmark for Branch and Reduce algorithm
 set(M2S_EXE m2s_branch_and_reduce)
 add_executable(${M2S_EXE} ${M2S_BIN} $<TARGET_OBJECTS:libkaffpa2> $<TARGET_OBJECTS:libsources> $<TARGET_OBJECTS:${M2S_LIB}>)
+set(CHECK_GRAPH_EXE check_graph)
+add_executable(${CHECK_GRAPH_EXE} ${M2S_BIN} $<TARGET_OBJECTS:libkaffpa2> $<TARGET_OBJECTS:libsources> $<TARGET_OBJECTS:${M2S_LIB}>)
