@@ -31,19 +31,37 @@ int main(int argc, char **argv) {
         std::cout << "Nodes: " << graph.number_of_nodes() << std::endl;
         std::cout << "Edges: " << graph.number_of_edges()/2 << std::endl;
 
-        graph.construct_2neighborhood();
-
         // check transform amount 2-edges
         EdgeID edges_count = 0;
 
         for (size_t i = 0; i < graph.number_of_nodes(); i++) {
-                EdgeID edges = graph.getNodeDegree(i) + graph.get2Degree(i);
+                EdgeID edges = graph.getNodeDegree(i);
                 if (edges_count+edges < edges_count) {
                         std::cout << "Graph can not be transformed to graph_access because close 2-Neighborhood is too large. Only 32-bit unsigned integers are supported."
                                   << std::endl;
                         exit(1);
                 }
                 edges_count += edges;
+        }
+        fast_set touched(graph.number_of_nodes());
+        for (size_t i = 0; i < graph.number_of_nodes(); i++) {
+                for (int k = graph.get_first_edge(i); k < graph.get_first_invalid_edge(i); k++) {
+                        auto source = graph.getEdgeTarget(k);
+                        for (EdgeID j = graph.get_first_edge(source);
+                             j < graph.get_first_invalid_edge(source); j++) {
+                                NodeID target = graph.getEdgeTarget(j);
+                                if (!touched.get(target)) {
+                                        touched.add(target);
+                                        if(edges_count + 1 < edges_count) {
+                                                std::cout << "Graph can not be transformed to graph_access because close 2-Neighborhood is too large. Only 32-bit unsigned integers are supported."
+                                                          << std::endl;
+                                                exit(1);
+                                        }
+                                        edges_count++;
+                                }
+                        }
+                }
+                touched.clear();
         }
         std::cout << "Transformed Edges: " << edges_count/2 << std::endl;
 
