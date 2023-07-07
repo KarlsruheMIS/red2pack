@@ -22,12 +22,14 @@ int main(int argc, char **argv) {
                 std::cout << "Usage: ./check_graph <graph>";
                 exit(1);
         }
-        std::string graph_filepath(argv[0]);
+        std::string graph_filepath(argv[1]);
         std::cout << "Checking: " << graph_filepath << std::endl;
 
         // read graph
         two_packing_set::m2s_graph_access graph;
         two_packing_set::graph_io::readGraphWeighted(graph, graph_filepath);
+        std::cout << "Nodes: " << graph.number_of_nodes() << std::endl;
+        std::cout << "Edges: " << graph.number_of_edges()/2 << std::endl;
 
         graph.construct_2neighborhood();
 
@@ -36,13 +38,14 @@ int main(int argc, char **argv) {
 
         for (size_t i = 0; i < graph.number_of_nodes(); i++) {
                 EdgeID edges = graph.getNodeDegree(i) + graph.get2Degree(i);
-                if (edges + edges_count < edges_count) {
+                if (edges_count+edges < edges_count) {
                         std::cout << "Graph can not be transformed to graph_access because close 2-Neighborhood is too large. Only 32-bit unsigned integers are supported."
                                   << std::endl;
                         exit(1);
                 }
                 edges_count += edges;
         }
+        std::cout << "Transformed Edges: " << edges_count/2 << std::endl;
 
         return 0;
 }
