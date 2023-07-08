@@ -80,7 +80,7 @@ class m2s_dynamic_graph {
                 size_t counter = 0;
         };
 
-        m2s_dynamic_graph(size_t nodes = 0) : graph1(nodes), graph2(nodes), init_two_neighbors(nodes, false), set(nodes) {
+        m2s_dynamic_graph(size_t nodes = 0) : graph1(nodes), graph2(nodes), hided_nodes(nodes, false), init_two_neighbors(nodes, false), set(nodes) {
                 graph1.reserve(nodes);
                 graph2.reserve(nodes);
         }
@@ -128,9 +128,28 @@ class m2s_dynamic_graph {
                                 hide_edge(neighbor, node);
                         }
                 }
-                for (auto two_neighbor : graph2[node]) {
-                        if (!hided_nodes[two_neighbor] && init_two_neighbors[two_neighbor]) {
-                                hide_path(two_neighbor, node);
+                if (!init_two_neighbors[node]) {
+                        set.clear();
+                        for (size_t k = 0; k < graph1[node].neighbors.size(); k++) {
+                                set.add(graph1[node][k]);
+                        }
+                        set.add(node);
+                        for (size_t k = 0; k < graph1[node].neighbors.size(); k++) {
+                                auto target1 = graph1[node][k];
+                                for (size_t l = 0; l < graph1[target1].counter; l++) {
+                                        auto target2 = graph1[target1][l];
+                                        if (!set.get(target2) && !hided_nodes[target2] && init_two_neighbors[target2]) {
+                                                hide_path(target2, node);
+                                                set.add(target2);
+                                        }
+                                }
+                        }
+                }
+                else {
+                        for (auto two_neighbor : graph2[node]) {
+                                if (!hided_nodes[two_neighbor] && init_two_neighbors[two_neighbor]) {
+                                        hide_path(two_neighbor, node);
+                                }
                         }
                 }
         }
@@ -180,7 +199,7 @@ class m2s_dynamic_graph {
                         set.add(node);
                         for (size_t k = 0; k < graph1[node].neighbors.size(); k++) {
                                 auto target1 = graph1[node][k];
-                                for (size_t l = 0; l < graph1[target1].neighbors.size(); l++) {
+                                for (size_t l = 0; l < graph1[target1].counter; l++) {
                                         auto target2 = graph1[target1][l];
                                         if (!set.get(target2) && !hided_nodes[target2]) {
                                                 queue.push(target2);
@@ -203,11 +222,11 @@ class m2s_dynamic_graph {
         size_t size() const noexcept { return graph1.size(); }
 
         std::vector<bool> hided_nodes;
+        std::vector<bool> init_two_neighbors;
 
        private:
         std::vector<neighbor_list> graph1;
         std::vector<two_neighbor_list> graph2;
-        std::vector<bool> init_two_neighbors;
         fast_set set;
         std::queue<NodeID> queue;
 };
