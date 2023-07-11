@@ -1,9 +1,12 @@
 import os.path
+from collections import OrderedDict
 from dataclasses import dataclass
 from statistics import geometric_mean, mean
 from typing import List, Callable, Dict
 import matplotlib.pyplot as plt
 import numpy as np
+
+from data_table import DataTable, ColGroup, ColHeader, RowGroup, RowHeader
 
 
 @dataclass
@@ -28,9 +31,18 @@ class AlgoResults:
     def load(self):
         for file in self.files:
             result = self.get_data(file)
-            if result.instance_name not in self.data.keys():
-                self.data[result.instance_name] = []
-            self.data[result.instance_name].append(result)
+            if result is not None:
+                if result.instance_name not in self.data.keys():
+                    self.data[result.instance_name] = []
+                self.data[result.instance_name].append(result)
+
+
+@dataclass
+class InstanceGroup:
+    key: str
+    name: str
+    instances: List[str]
+    print_agg_row: bool
 
 
 def get_data_m2s_bnr(file):
@@ -41,6 +53,10 @@ def get_data_m2s_bnr(file):
     time = 0.0
     kernel_nodes = 0
     nodes = 0
+
+    if not os.path.exists(file):
+        return None
+
     with open(file, "r") as result_f:
         for line in result_f:
             if "Kernel Nodes" in line:
@@ -93,6 +109,66 @@ def print_all():
             print("%s, %s, %s, %s, %s" % (
                 instance, results[0].size, geometric_mean([r.time for r in results]), results[0].nodes,
                 mean([r.kernel_nodes for r in results])))
+
+
+def print_result_sol_time_kernel_table(algo_results: List[AlgoResults], instances_groups: List[InstanceGroup]):
+    """
+    "vr": {
+        "instances": ['CR-S-L-4'],
+        "name": "VR",
+        "key": "vr",
+        "print_agg_row": True
+    }
+
+    :param algo_results:
+    :param instances_groups:
+    :return:
+    """
+
+    for algo_result in algo_results:
+        algo_result.load()
+
+    cols = [ColGroup(algo_result.label, algo_result.label, [
+        ColHeader("$|S|$", "size", lambda sols: geometric_mean(sols) if len(sols) != 0 else 0,
+                  lambda data, filename: data.size, round),
+        ColHeader("$t$", "time", lambda times: geometric_mean(times) if len(times) != 0 else 0,
+                  lambda data, filename: data.time,
+                  lambda x: '{:.5f}'.format(round(x, 5)), True),
+        ColHeader("$|\mathcal{C}|$", "transformed", lambda nodes: mean(nodes) if len(nodes) != 0 else 0,
+                  lambda data, filename: data.kernel_nodes, round)
+    ]) for algo_result in algo_results]
+
+    rows = [RowGroup(group.name, group.key, [RowHeader(inst, inst) for inst in group.instances], group.print_agg_row) for group in
+            instances_groups]
+
+    table = DataTable(cols, rows)
+
+    inst_to_group = {inst: group.key for group in instances_groups for inst in group.instances}
+
+    for algo_result in algo_results:
+        for full_instance_name, result in algo_result.data.items():
+            inst = full_instance_name.split(".")[0]
+            if inst in inst_to_group.keys():
+                group = inst_to_group[inst]
+                for r in result:
+                    table.load_data_in_cell(r, "", group, inst, algo_result.label)
+
+    time_limit = 36000
+
+    def found_optimal_sol(cols_in_table, get_col_val):
+        for algo_result in algo_results:
+            size = get_col_val(algo_result.label, "size")
+            time = get_col_val(algo_result.label, "time")
+            #timeout = get_col_val(algo_result.label, "timeout")
+
+            if size > 0 and size is not None and time < time_limit: # and not timeout:
+                return True
+
+        return False
+
+    table.finish_loading(OrderedDict({"size": (DataTable.BestRowValue.MAX, []), "time": (DataTable.BestRowValue.MIN, ["size"])}), found_optimal_sol)
+
+    table.print("cactus.tex")
 
 
 def get_reduction_effect_distribution(filename):
@@ -165,7 +241,47 @@ def performance_all():
     plt.show()
 
 
-print_all()
-#performance_all()
-#print(get_reduction_effect_distribution("out/social_graphs/all_reductions/s0_coAuthorsDBLP.txt"))
-#print(get_reduction_effect_distribution("out/social_graphs/on_demand_all_reductions/s10_coAuthorsDBLP.txt"))
+# print_all()
+# performance_all()
+# print(get_reduction_effect_distribution("out/social_graphs/all_reductions/s0_coAuthorsDBLP.txt"))
+# print(get_reduction_effect_distribution("out/social_graphs/on_demand_all_reductions/s10_coAuthorsDBLP.txt"))
+
+print_result_sol_time_kernel_table([
+    AlgoResults(
+        label="red2pack full",
+        files=get_file_paths(["out/social_graphs/all_reductions"]),
+        get_data=get_data_m2s_bnr,
+        data={}
+    ),
+    AlgoResults(
+        label="baseline",
+        files=get_file_paths(["out/social_graphs/no_reductions"]),
+        get_data=get_data_m2s_bnr,
+        data={}
+    ),
+    AlgoResults(
+        label="red2pack o.d. full",
+        files=get_file_paths(["out/social_graphs/on_demand_all_reductions"]),
+        get_data=get_data_m2s_bnr,
+        data={}
+    ),
+    AlgoResults(
+        label="red2pack o.d. dom,clique",
+        files=get_file_paths(["out/social_graphs/on_demand_domination_clique"]),
+        get_data=get_data_m2s_bnr,
+        data={}
+    ),
+    AlgoResults(
+        label="red2pack dom,clique",
+        files=get_file_paths(["out/social_graphs/domination_clique"]),
+        get_data=get_data_m2s_bnr,
+        data={}
+    )
+], [
+    InstanceGroup(
+        name="social",
+        key="social",
+        instances=["coPapersDBLP"],
+        print_agg_row=True
+    )
+])
