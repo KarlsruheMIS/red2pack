@@ -71,7 +71,7 @@ def get_file_paths(dir_names: List[str]):
 def print_all():
     m2s_bnr_all_reductions = AlgoResults(
         label="red2pack full",
-        files=get_file_paths(["out/erdos_graphs/all_reductions"]),
+        files=get_file_paths(["out/social_graphs/all_reductions"]),
         get_data=get_data_m2s_bnr,
         data={}
     )
@@ -79,13 +79,24 @@ def print_all():
     m2s_bnr_all_reductions.load()
 
     for instance, results in m2s_bnr_all_reductions.data.items():
-        print("%s, %s, %s, %s, %s" % (
-            instance, results[0].size, geometric_mean([r.time for r in results]), results[0].nodes,
-            mean([r.kernel_nodes for r in results])))
+        check = True
+        for r in results:
+            if r.timeout:
+                print("%s timeout" % instance)
+                check = False
+                break
+            if r.size == 0:
+                print("%s sol not found" % instance)
+                check = False
+                break
+        if check:
+            print("%s, %s, %s, %s, %s" % (
+                instance, results[0].size, geometric_mean([r.time for r in results]), results[0].nodes,
+                mean([r.kernel_nodes for r in results])))
 
 
 def get_reduction_effect_distribution(filename):
-    vertices_reduced = {"degree_one": 0, "degree_two": 0, "twin": 0, "clique": 0, "domination": 0}
+    vertices_reduced = {"degree_one": 0, "degree_two": 0, "twin": 0, "clique": 0, "domination": 0, "fast_domination": 0}
 
     with open(filename, "r") as res:
         for line in res:
@@ -154,6 +165,7 @@ def performance_all():
     plt.show()
 
 
-# print_all()
+print_all()
 #performance_all()
-print(get_reduction_effect_distribution("out/dimacs/all_reductions/coPapersCiteseer.txt"))
+#print(get_reduction_effect_distribution("out/social_graphs/all_reductions/s0_coAuthorsDBLP.txt"))
+#print(get_reduction_effect_distribution("out/social_graphs/on_demand_all_reductions/s10_coAuthorsDBLP.txt"))
