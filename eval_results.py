@@ -111,7 +111,7 @@ def print_all():
                 mean([r.kernel_nodes for r in results])))
 
 
-def print_result_sol_time_kernel_table(algo_results: List[AlgoResults], instances_groups: List[InstanceGroup]):
+def print_result_sol_time_kernel_table(algo_results: List[AlgoResults], instances_groups: List[InstanceGroup], out_filename):
     """
     "vr": {
         "instances": ['CR-S-L-4'],
@@ -129,16 +129,18 @@ def print_result_sol_time_kernel_table(algo_results: List[AlgoResults], instance
         algo_result.load()
 
     cols = [ColGroup(algo_result.label, algo_result.label, [
-        ColHeader("$|S|$", "size", lambda sols: geometric_mean(sols) if len(sols) != 0 else 0,
+        ColHeader("$|S|$", "size", lambda sols: geometric_mean(sols) if len(sols) != 0 and 0 not in sols else 0,
                   lambda data, filename: data.size, round),
-        ColHeader("$t$", "time", lambda times: geometric_mean(times) if len(times) != 0 else 0,
+        ColHeader("$t$ [s]", "time", lambda times: geometric_mean(times) if len(times) != 0 and 0 not in times else 0,
                   lambda data, filename: data.time,
                   lambda x: '{:.5f}'.format(round(x, 5)), True),
         ColHeader("$|\mathcal{C}|$", "transformed", lambda nodes: mean(nodes) if len(nodes) != 0 else 0,
                   lambda data, filename: data.kernel_nodes, round)
     ]) for algo_result in algo_results]
 
-    rows = [RowGroup(group.name, group.key, [RowHeader(inst, inst) for inst in group.instances], group.print_agg_row) for group in
+    cols = sorted(cols, key=lambda x: x.name)
+
+    rows = [RowGroup(group.name, group.key, [RowHeader(inst.replace("_", "\textunderscore"), inst) for inst in group.instances], group.print_agg_row) for group in
             instances_groups]
 
     table = DataTable(cols, rows)
@@ -161,14 +163,14 @@ def print_result_sol_time_kernel_table(algo_results: List[AlgoResults], instance
             time = get_col_val(algo_result.label, "time")
             #timeout = get_col_val(algo_result.label, "timeout")
 
-            if size > 0 and size is not None and time < time_limit: # and not timeout:
+            if size is not None and size > 0 and time < time_limit: # and not timeout:
                 return True
 
         return False
 
-    table.finish_loading(OrderedDict({"size": (DataTable.BestRowValue.MAX, []), "time": (DataTable.BestRowValue.MIN, ["size"])}), found_optimal_sol)
+    table.finish_loading(OrderedDict({"size": (DataTable.BestRowValue.MAX, []), "time": (DataTable.BestRowValue.MIN, ["size"]), "transformed" : (DataTable.BestRowValue.MIN, [])}), found_optimal_sol)
 
-    table.print("cactus.tex")
+    table.print(out_filename)
 
 
 def get_reduction_effect_distribution(filename):
@@ -281,7 +283,30 @@ print_result_sol_time_kernel_table([
     InstanceGroup(
         name="social",
         key="social",
-        instances=["coPapersDBLP"],
+        instances=["as-22july06",
+            "citationCiteseer",
+            "coAuthorsCiteseer",
+            "coAuthorsDBLP",
+            "coPapersCiteseer",
+            "coPapersDBLP",
+            "email-EuAll",
+            "enron",
+            "loc-brightkite_edges",
+            "loc-gowalla_edges",
+            "PGPgiantcompo",
+            "web-Google",
+            "wordassociation-2011"],
         print_agg_row=True
+    ),
+    InstanceGroup(
+        name="social mem/timeout",
+        key="social_memout",
+        instances=["amazon-2008",
+            "cnr-2000",
+            "p2p-Gnutella04",
+            "soc-Slashdot0902"
+            ],
+        print_agg_row=False
     )
-])
+
+], "results_social.txt")
