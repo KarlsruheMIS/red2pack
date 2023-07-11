@@ -1,3 +1,4 @@
+import csv
 import os.path
 from collections import OrderedDict
 from dataclasses import dataclass
@@ -75,6 +76,27 @@ def get_data_m2s_bnr(file):
 
     return Result(name, time, timeout, size, seed, kernel_nodes, nodes)
 
+
+def get_data_genetic_algo(file):
+    results = []
+
+    if not os.path.exists(file) and "results_" in file:
+        return results
+
+    with open(file, "r") as result_f:
+        reader = csv.DictReader(result_f, delimiter=",")
+        for row in reader:
+            name = row["Graph"]
+            timeout = False
+            size = int(row["GA_withImp"])
+            seed = int(row["Seed"])
+            time = float(row["Init_Time"]) + float(row["Solve_Time"])
+            kernel_nodes = 0
+            nodes = 0
+
+            results.append(Result(name, time, timeout, size, seed, kernel_nodes, nodes))
+
+    return results
 
 def get_file_paths(dir_names: List[str]):
     file_paths = []
