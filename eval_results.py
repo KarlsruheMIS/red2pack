@@ -1,3 +1,4 @@
+import csv
 import os.path
 from collections import OrderedDict
 from dataclasses import dataclass
@@ -24,17 +25,18 @@ class Result:
 class AlgoResults:
     label: str
     files: List[str]
-    get_data: Callable[[str], Result]
+    get_data: Callable[[str], List[Result]]
 
     data: Dict[str, List[Result]]
 
     def load(self):
         for file in self.files:
-            result = self.get_data(file)
-            if result is not None:
-                if result.instance_name not in self.data.keys():
-                    self.data[result.instance_name] = []
-                self.data[result.instance_name].append(result)
+            results = self.get_data(file)
+            for result in results:
+                if result is not None:
+                    if result.instance_name not in self.data.keys():
+                        self.data[result.instance_name.split(".")[0]] = []
+                    self.data[result.instance_name.split(".")[0]].append(result)
 
 
 @dataclass
@@ -72,7 +74,29 @@ def get_data_m2s_bnr(file):
             elif "Timeout" in line:
                 timeout = True
 
-    return Result(name, time, timeout, size, seed, kernel_nodes, nodes)
+    return [Result(name, time, timeout, size, seed, kernel_nodes, nodes)]
+
+
+def get_data_genetic_algo(file):
+    results = []
+
+    if not os.path.exists(file) and "results_" in file:
+        return results
+
+    with open(file, "r") as result_f:
+        reader = csv.DictReader(result_f, delimiter=",")
+        for row in reader:
+            name = row["Graph"]
+            timeout = False
+            size = int(row["GA_withImp"])
+            seed = int(row["Seed"])
+            time = float(row["Init_Time"]) + float(row["Solve_Time"])
+            kernel_nodes = 0
+            nodes = 0
+
+            results.append(Result(name, time, timeout, size, seed, kernel_nodes, nodes))
+
+    return results
 
 
 def get_file_paths(dir_names: List[str]):
@@ -138,7 +162,8 @@ def print_result_sol_time_kernel_table(algo_results: List[AlgoResults], instance
                   lambda data, filename: data.kernel_nodes, round)
     ]) for algo_result in algo_results]
 
-    rows = [RowGroup(group.name, group.key, [RowHeader(inst, inst) for inst in group.instances], group.print_agg_row) for group in
+    rows = [RowGroup(group.name, group.key, [RowHeader(inst, inst) for inst in group.instances], group.print_agg_row)
+            for group in
             instances_groups]
 
     table = DataTable(cols, rows)
@@ -146,8 +171,7 @@ def print_result_sol_time_kernel_table(algo_results: List[AlgoResults], instance
     inst_to_group = {inst: group.key for group in instances_groups for inst in group.instances}
 
     for algo_result in algo_results:
-        for full_instance_name, result in algo_result.data.items():
-            inst = full_instance_name.split(".")[0]
+        for inst, result in algo_result.data.items():
             if inst in inst_to_group.keys():
                 group = inst_to_group[inst]
                 for r in result:
@@ -159,14 +183,16 @@ def print_result_sol_time_kernel_table(algo_results: List[AlgoResults], instance
         for algo_result in algo_results:
             size = get_col_val(algo_result.label, "size")
             time = get_col_val(algo_result.label, "time")
-            #timeout = get_col_val(algo_result.label, "timeout")
+            # timeout = get_col_val(algo_result.label, "timeout")
 
-            if size > 0 and size is not None and time < time_limit: # and not timeout:
+            if size > 0 and size is not None and time < time_limit:  # and not timeout:
                 return True
 
         return False
 
-    table.finish_loading(OrderedDict({"size": (DataTable.BestRowValue.MAX, []), "time": (DataTable.BestRowValue.MIN, ["size"])}), found_optimal_sol)
+    table.finish_loading(
+        OrderedDict({"size": (DataTable.BestRowValue.MAX, []), "time": (DataTable.BestRowValue.MIN, ["size"])}),
+        found_optimal_sol)
 
     table.print("cactus.tex")
 
@@ -183,22 +209,7 @@ def get_reduction_effect_distribution(filename):
     return vertices_reduced
 
 
-def performance_all():
-    algo_results = [
-        AlgoResults(
-            label="red2pack full",
-            files=get_file_paths(["out/erdos_graphs/all_reductions", "out/cactus_graphs/all_reductions"]),
-            get_data=get_data_m2s_bnr,
-            data={}
-        ),
-        AlgoResults(
-            label="baseline",
-            files=get_file_paths(["out/erdos_graphs/no_reductions", "out/cactus_graphs/no_reductions"]),
-            get_data=get_data_m2s_bnr,
-            data={}
-        )
-    ]
-
+def performance_time(algo_results, instance_group: InstanceGroup):
     for algo in algo_results:
         algo.load()
 
@@ -206,13 +217,12 @@ def performance_all():
     algos = {algo.label: algo for algo in algo_results}
     p = {algo.label: [0 for _ in tau] for algo in algo_results}
 
-    instances = os.listdir("graphs/erdos_graphs") + os.listdir("graphs/cactus_graphs")
-    n_instances = float(len(instances))
+    n_instances = float(len(instance_group.instances))
 
     best_results = {inst: min([geometric_mean([r.time for algo in algos.values() for r in algo.data[inst]])])
-                    for inst in instances}
+                    for inst in instance_group.instances}
 
-    for inst in instances:
+    for inst in instance_group.instances:
         for algo in algos.values():
             time = geometric_mean([r.time for r in algo.data[inst]])
             for i, t in enumerate(tau):
@@ -231,13 +241,13 @@ def performance_all():
         ax.plot(tau, p[algo_label], label=algo_label)
 
     ax.set(xlabel=r'$\tau$', ylabel=r'#instances [%]: $t(\mathcal{A}, \mathcal{I}) \leq \tau t_{best}(\mathcal{I})$',
-           title='Performance Time Erdos-Graphs + Cactus-Graphs')
+           title='Performance Time %s' % instance_group.name)
     ax.grid()
     ax.legend()
     # plt.gca().invert_xaxis()
     plt.ylim(0, 1)
 
-    fig.savefig("plots/performance_time_erdos_cactus_graphs.png")
+    fig.savefig("plots/performance_time_%s.png" % instance_group.name)
     plt.show()
 
 
@@ -246,6 +256,63 @@ def performance_all():
 # print(get_reduction_effect_distribution("out/social_graphs/all_reductions/s0_coAuthorsDBLP.txt"))
 # print(get_reduction_effect_distribution("out/social_graphs/on_demand_all_reductions/s10_coAuthorsDBLP.txt"))
 
+def get_instances_from_files(files):
+    instances = []
+    for file in files:
+        with open(file, "r") as fd:
+            for line in fd:
+                instances.append(line.rstrip().strip().split(".")[0])
+    return instances
+
+
+performance_time(
+    [
+        AlgoResults(
+            label="red2pack full",
+            files=get_file_paths(["out/erdos_graphs/all_reductions"]),
+            get_data=get_data_m2s_bnr,
+            data={}
+        ),
+        AlgoResults(
+            label="baseline",
+            files=get_file_paths(["out/erdos_graphs/no_reductions"]),
+            get_data=get_data_m2s_bnr,
+            data={}
+        ),
+        AlgoResults(
+            label="red2pack o.d. full",
+            files=get_file_paths(["out/erdos_graphs/on_demand_all_reductions"]),
+            get_data=get_data_m2s_bnr,
+            data={}
+        ),
+        AlgoResults(
+            label="red2pack o.d. dom,clique",
+            files=get_file_paths(["out/erdos_graphs/on_demand_domination_clique"]),
+            get_data=get_data_m2s_bnr,
+            data={}
+        ),
+        AlgoResults(
+            label="red2pack dom,clique",
+            files=get_file_paths(["out/erdos_graphs/domination_clique"]),
+            get_data=get_data_m2s_bnr,
+            data={}
+        ),
+        AlgoResults(
+            label="genetic algorithm",
+            files=get_file_paths(["../../2-packing-Set/out", "../../2-packing-Set/out_cactus"]),
+            get_data=get_data_genetic_algo,
+            data={}
+        )
+    ],
+    InstanceGroup(
+        name="Erdos+Cactus",
+        key="erdos_cactus",
+        instances=get_instances_from_files(["all_erdos_graphs.txt", "all_cactus_graphs.txt"]),
+        print_agg_row=False
+    )
+)
+
+'''
 print_result_sol_time_kernel_table([
     AlgoResults(
         label="red2pack full",
@@ -285,3 +352,4 @@ print_result_sol_time_kernel_table([
         print_agg_row=True
     )
 ])
+'''
