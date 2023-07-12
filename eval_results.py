@@ -18,6 +18,7 @@ class Result:
     size: int
     seed: int
     kernel_nodes: int  # number of nodes after 2ps reductions
+    kernel_edges: int  # number of nodes after 2ps reductions
     nodes: int  # number of nodes
 
 
@@ -54,6 +55,7 @@ def get_data_m2s_bnr(file):
     seed = int(os.path.basename(file)[1:].split("_")[0])
     time = 0.0
     kernel_nodes = 0
+    kernel_edges = 0
     nodes = 0
 
     if not os.path.exists(file):
@@ -61,8 +63,10 @@ def get_data_m2s_bnr(file):
 
     with open(file, "r") as result_f:
         for line in result_f:
-            if "Kernel Nodes" in line:
+            if "Transformed G Nodes" in line:
                 kernel_nodes = int(line.split(":")[1].rstrip().strip())
+            if "Transformed G Edges" in line:
+                kernel_edges = int(line.split(":")[1].rstrip().strip())
             elif "-Nodes" in line:
                 nodes = int(line.split(":")[1].rstrip().strip())
             elif "Size" in line:
@@ -74,27 +78,30 @@ def get_data_m2s_bnr(file):
             elif "Timeout" in line:
                 timeout = True
 
-    return Result(name, time, timeout, size, seed, kernel_nodes, nodes)
+    return [Result(name, time, timeout, size, seed, kernel_nodes, kernel_edges, nodes)]
 
 
 def get_data_genetic_algo(file):
     results = []
 
-    if not os.path.exists(file) and "results_" in file:
+    if not os.path.exists(file) or "results_" not in file:
         return results
 
     with open(file, "r") as result_f:
         reader = csv.DictReader(result_f, delimiter=",")
         for row in reader:
+            print(file)
+            print(row.keys())
             name = row["Graph"]
             timeout = False
-            size = int(row["GA_withImp"])
+            size = int(float(row["GA_withImp"]))
             seed = int(row["Seed"])
             time = float(row["Init_Time"]) + float(row["Solve_Time"])
             kernel_nodes = 0
+            kernel_edges = 0
             nodes = 0
 
-            results.append(Result(name, time, timeout, size, seed, kernel_nodes, nodes))
+            results.append(Result(name, time, timeout, size, seed, kernel_nodes, kernel_edges, nodes))
 
     return results
 
@@ -134,7 +141,7 @@ def print_all():
                 mean([r.kernel_nodes for r in results])))
 
 
-def print_result_sol_time_kernel_table(algo_results: List[AlgoResults], instances_groups: List[InstanceGroup], out_filename):
+def print_result_sol_time_table(algo_results: List[AlgoResults], instances_groups: List[InstanceGroup], out_filename):
     """
     "vr": {
         "instances": ['CR-S-L-4'],
@@ -153,17 +160,15 @@ def print_result_sol_time_kernel_table(algo_results: List[AlgoResults], instance
 
     cols = [ColGroup(algo_result.label, algo_result.label, [
         ColHeader("$|S|$", "size", lambda sols: geometric_mean(sols) if len(sols) != 0 and 0 not in sols else 0,
-                  lambda data, filename: data.size, round),
-        ColHeader("$t$ [s]", "time", lambda times: geometric_mean(times) if len(times) != 0 and 0 not in times else 0,
-                  lambda data, filename: data.time,
-                  lambda x: '{:.5f}'.format(round(x, 5)), True),
-        ColHeader("$|\mathcal{C}|$", "transformed", lambda nodes: mean(nodes) if len(nodes) != 0 else 0,
-                  lambda data, filename: data.kernel_nodes, round)
-    ]) for algo_result in algo_results]
+                  lambda data, filename: data.size, round, True),
+        ColHeader("$t$ [ms]", "time", lambda times: geometric_mean(times) if len(times) != 0 and 0 not in times else 0,
+                  lambda data, filename: data.time*1000, # s to ms
+                  lambda x: '{:.2f}'.format(round(x, 2)), True)
+        ]) for algo_result in algo_results]
 
     cols = sorted(cols, key=lambda x: x.name)
 
-    rows = [RowGroup(group.name, group.key, [RowHeader(inst.replace("_", "\textunderscore"), inst) for inst in group.instances], group.print_agg_row) for group in
+    rows = [RowGroup(group.name, group.key, [RowHeader(inst.replace("_", "\\textunderscore "), inst) for inst in group.instances], group.print_agg_row) for group in
             instances_groups]
 
     table = DataTable(cols, rows)
@@ -177,7 +182,7 @@ def print_result_sol_time_kernel_table(algo_results: List[AlgoResults], instance
                 for r in result:
                     table.load_data_in_cell(r, "", group, inst, algo_result.label)
 
-    time_limit = 36000
+    time_limit = 36000000 # ms
 
     def found_optimal_sol(cols_in_table, get_col_val):
         for algo_result in algo_results:
@@ -190,11 +195,73 @@ def print_result_sol_time_kernel_table(algo_results: List[AlgoResults], instance
 
         return False
 
-    table.finish_loading(OrderedDict({"size": (DataTable.BestRowValue.MAX, []), "time": (DataTable.BestRowValue.MIN, ["size"]), "transformed" : (DataTable.BestRowValue.MIN, [])}), found_optimal_sol)
 
+    table.finish_loading(OrderedDict({"size": (DataTable.BestRowValue.MAX, []), "time": (DataTable.BestRowValue.MIN, ["size"])}), found_optimal_sol)
     table.print(out_filename)
 
+    labels = sorted([algo_result.label for algo_result in algo_results])
+    y_label_time = "$\\\\#\\\\{\\\\mathrm{instances}\\\\leq \\\\tau\\\\cdot\\\\mathrm{fastest}\\\\}/\\\\#\\\\mathrm{instances}~[\\\\%]$"
+    y_label_sol = "$\\\\#\\\\{\\\\mathrm{instances}\\\\geq \\\\tau\\\\cdot\\\\mathrm{best}\\\\}/\\\\#\\\\mathrm{instances}~[\\\\%]$"
+    table.print_performance("Performance Time %s" % instances_groups[0].name, "plots/performance_time_%s" % instances_groups[0].name, labels, "time", min, lambda x,best_scaled: x <= best_scaled, instances_groups[0].key, 1.0, 2.0, y_label=y_label_time)
+    table.print_performance("Performance Solution Quality %s" % instances_groups[0].name, "plots/performance_sol_%s" % instances_groups[0].name, labels, "size", max, lambda x,best_scaled: x>= best_scaled, instances_groups[0].key, 1.0, 0.0, y_label=y_label_sol)
+    table.print_performance("Performance Time %s (Log. Scale)" % instances_groups[0].name, "plots/performance_time_%s_log" % instances_groups[0].name, labels, "time", min, lambda x,best_scaled: x<= best_scaled, instances_groups[0].key, 1.0, 100000.0, ticks=1.0, y_label=y_label_time, x_log_scale=True)
 
+
+def print_result_kernel_table(algo_results: List[AlgoResults], instances_groups: List[InstanceGroup], out_filename):
+    """
+    "vr": {
+        "instances": ['CR-S-L-4'],
+        "name": "VR",
+        "key": "vr",
+        "print_agg_row": True
+    }
+
+    :param algo_results:
+    :param instances_groups:
+    :return:
+    """
+
+    for algo_result in algo_results:
+        algo_result.load()
+
+    cols = [ColGroup(algo_result.label, algo_result.label, [
+        ColHeader("$n(\mathcal{C})$", "transformed", lambda nodes: mean(nodes) if len(nodes) != 0 else None,
+                  lambda data, filename: data.kernel_nodes, round, True),
+        ColHeader("$m(\mathcal{C})$", "transformed-edges", lambda edges: mean(edges) if len(edges) != 0 else None,
+                  lambda data, filename: data.kernel_edges, round, True)
+
+    ]) for algo_result in algo_results]
+
+    cols = sorted(cols, key=lambda x: x.name)
+
+    rows = [RowGroup(group.name, group.key, [RowHeader(inst.replace("_", "\\textunderscore "), inst) for inst in group.instances], group.print_agg_row) for group in
+            instances_groups]
+
+    table = DataTable(cols, rows)
+
+    inst_to_group = {inst: group.key for group in instances_groups for inst in group.instances}
+
+    for algo_result in algo_results:
+        for inst, result in algo_result.data.items():
+            if inst in inst_to_group.keys():
+                group = inst_to_group[inst]
+                for r in result:
+                    table.load_data_in_cell(r, "", group, inst, algo_result.label)
+
+    time_limit = 36000000 # ms
+
+    def found_optimal_sol(cols_in_table, get_col_val):
+        for algo_result in algo_results:
+            kernel_nodes = get_col_val(algo_result.label, "transformed")
+            if kernel_nodes == 0:
+                return True
+
+        return False
+
+
+    table.finish_loading(OrderedDict({"transformed" : (DataTable.BestRowValue.MIN, []), "transformed-edges" : (DataTable.BestRowValue.MIN, [])}), found_optimal_sol)
+    table.print(out_filename)
+ 
 def get_reduction_effect_distribution(filename):
     vertices_reduced = {"degree_one": 0, "degree_two": 0, "twin": 0, "clique": 0, "domination": 0, "fast_domination": 0}
 
@@ -233,7 +300,7 @@ def performance_time(algo_results, instance_group: InstanceGroup):
             perfs[i] = perf / n_instances
 
     fig, ax = plt.subplots()
-    plt.rcParams['text.usetex'] = True
+    #plt.rcParams['text.usetex'] = True
 
     for algo_label in algos.keys():
         ax.plot(tau, p[algo_label], label=algo_label)
@@ -243,11 +310,10 @@ def performance_time(algo_results, instance_group: InstanceGroup):
     ax.grid()
     ax.legend()
     # plt.gca().invert_xaxis()
-    plt.ylim(0, 1)
+    plt.ylim(0, 1.02)
 
     fig.savefig("plots/performance_time_%s.png" % instance_group.name)
     plt.show()
-
 
 # print_all()
 # performance_all()
@@ -263,86 +329,151 @@ def get_instances_from_files(files):
     return instances
 
 
-performance_time(
+
+print_result_sol_time_table(
     [
         AlgoResults(
-            label="red2pack full",
-            files=get_file_paths(["out/erdos_graphs/all_reductions"]),
+            label="red2pack\\_full",
+            files=get_file_paths(["out/erdos_graphs/all_reductions", "out/cactus_graphs/all_reductions"]),
             get_data=get_data_m2s_bnr,
             data={}
         ),
         AlgoResults(
-            label="baseline",
-            files=get_file_paths(["out/erdos_graphs/no_reductions"]),
+            label="2pack",
+            files=get_file_paths(["out/erdos_graphs/no_reductions", "out/cactus_graphs/no_reductions"]),
             get_data=get_data_m2s_bnr,
             data={}
         ),
         AlgoResults(
-            label="red2pack o.d. full",
-            files=get_file_paths(["out/erdos_graphs/on_demand_all_reductions"]),
+            label="red2pack\\_full\\_od",
+            files=get_file_paths(["out/erdos_graphs/on_demand_all_reductions", "out/cactus_graphs/on_demand_all_reductions"]),
             get_data=get_data_m2s_bnr,
             data={}
         ),
         AlgoResults(
-            label="red2pack o.d. dom,clique",
-            files=get_file_paths(["out/erdos_graphs/on_demand_domination_clique"]),
+            label="red2pack\\_dom\\_clique\\_od",
+            files=get_file_paths(["out/erdos_graphs/on_demand_domination_clique", "out/cactus_graphs/on_demand_domination_clique"]),
             get_data=get_data_m2s_bnr,
             data={}
         ),
         AlgoResults(
-            label="red2pack dom,clique",
-            files=get_file_paths(["out/erdos_graphs/domination_clique"]),
+            label="red2pack\\_dom\\_clique",
+            files=get_file_paths(["out/erdos_graphs/domination_clique", "out/cactus_graphs/domination_clique"]),
             get_data=get_data_m2s_bnr,
             data={}
         ),
         AlgoResults(
-            label="genetic algorithm",
+            label="genetic$_{200}$",
             files=get_file_paths(["../../2-packing-Set/out", "../../2-packing-Set/out_cactus"]),
             get_data=get_data_genetic_algo,
             data={}
         )
     ],
-    InstanceGroup(
-        name="Erdos+Cactus",
-        key="erdos_cactus",
-        instances=get_instances_from_files(["all_erdos_graphs.txt", "all_cactus_graphs.txt"]),
+    [InstanceGroup(
+        name="Erdos",
+        key="erdos",
+        instances=get_instances_from_files(["all_erdos_graphs.txt"]),
         print_agg_row=False
-    )
+    )],
+    "out_erdos.txt"
 )
 
 '''
-print_result_sol_time_kernel_table([
+performance_time(
+    [
+        AlgoResults(
+            label="red2pack full",
+            files=get_file_paths(["out/social_graphs/all_reductions"]),
+            get_data=get_data_m2s_bnr,
+            data={}
+        ),
+        AlgoResults(
+            label="baseline",
+            files=get_file_paths(["out/social_graphs/no_reductions"]),
+            get_data=get_data_m2s_bnr,
+            data={}
+        ),
+        AlgoResults(
+            label="red2pack o.d. full",
+            files=get_file_paths(["out/social_graphs/on_demand_all_reductions"]),
+            get_data=get_data_m2s_bnr,
+            data={}
+        ),
+        AlgoResults(
+            label="red2pack o.d. dom,clique",
+            files=get_file_paths(["out/social_graphs/on_demand_domination_clique"]),
+            get_data=get_data_m2s_bnr,
+            data={}
+        ),
+        AlgoResults(
+            label="red2pack dom,clique",
+            files=get_file_paths(["out/social_graphs/domination_clique", "out/cactus_graphs/domination_clique"]),
+            get_data=get_data_m2s_bnr,
+            data={}
+        )#,
+        #AlgoResults(
+        #    label="genetic algorithm",
+        #    files=get_file_paths(["../../2-packing-Set/out", "../../2-packing-Set/out_cactus"]),
+        #    get_data=get_data_genetic_algo,
+        #    data={}
+        #)
+    ],
+    InstanceGroup(
+        name="Social Graphs",
+        key="social",
+        instances=["as-22july06",
+            "citationCiteseer",
+            "coAuthorsCiteseer",
+            "coAuthorsDBLP",
+            "coPapersCiteseer",
+            "coPapersDBLP",
+            "email-EuAll",
+            "enron",
+            "loc-brightkite_edges",
+            "loc-gowalla_edges",
+            "PGPgiantcompo",
+            "web-Google",
+            "wordassociation-2011"],
+        print_agg_row=False
+    )
+)
+'''
+
+
+our_social_algo_results = [
     AlgoResults(
-        label="red2pack full",
+        label="red2pack\\_full",
         files=get_file_paths(["out/social_graphs/all_reductions"]),
         get_data=get_data_m2s_bnr,
         data={}
     ),
     AlgoResults(
-        label="baseline",
+        label="2pack",
         files=get_file_paths(["out/social_graphs/no_reductions"]),
         get_data=get_data_m2s_bnr,
         data={}
     ),
     AlgoResults(
-        label="red2pack o.d. full",
+        label="red2pack\\_full\\_od",
         files=get_file_paths(["out/social_graphs/on_demand_all_reductions"]),
         get_data=get_data_m2s_bnr,
         data={}
     ),
     AlgoResults(
-        label="red2pack o.d. dom,clique",
+        label="red2pack\\_dom\\_clique\\_od",
         files=get_file_paths(["out/social_graphs/on_demand_domination_clique"]),
         get_data=get_data_m2s_bnr,
         data={}
     ),
     AlgoResults(
-        label="red2pack dom,clique",
+        label="red2pack\\_dom\\_clique",
         files=get_file_paths(["out/social_graphs/domination_clique"]),
         get_data=get_data_m2s_bnr,
         data={}
-    )
-], [
+    )]
+
+'''
+print_result_kernel_table(our_social_algo_results, [
     InstanceGroup(
         name="social",
         key="social",
@@ -360,7 +491,39 @@ print_result_sol_time_kernel_table([
             "web-Google",
             "wordassociation-2011"],
         print_agg_row=True
+    ),
+    InstanceGroup(
+        name="social mem/timeout",
+        key="social_timeout",
+        instances=["amazon-2008", "cnr-2000", "p2p-Gnutella04", "soc-Slashdot0902"],
+        print_agg_row=False
     )
+], "results_social_condensed.txt")
 
+print_result_sol_time_table(our_social_algo_results, [
+    InstanceGroup(
+        name="social",
+        key="social",
+        instances=["as-22july06",
+            "citationCiteseer",
+            "coAuthorsCiteseer",
+            "coAuthorsDBLP",
+            "coPapersCiteseer",
+            "coPapersDBLP",
+            "email-EuAll",
+            "enron",
+            "loc-brightkite_edges",
+            "loc-gowalla_edges",
+            "PGPgiantcompo",
+            "web-Google",
+            "wordassociation-2011"],
+        print_agg_row=True
+    ),
+    InstanceGroup(
+        name="social mem/timeout",
+        key="social_timeout",
+        instances=["amazon-2008", "cnr-2000", "p2p-Gnutella04", "soc-Slashdot0902"],
+        print_agg_row=False
+    )
 ], "results_social.txt")
 '''

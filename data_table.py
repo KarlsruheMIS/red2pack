@@ -205,6 +205,13 @@ class DataTable:
                     return False
             return True
 
+        def is_best_for_in_row_group(cmp_col_keys, row_group_idx, col_group_key):
+            for cmp_col_key in cmp_col_keys:
+                if not self.agg_rows[row_group_idx][self.get_col_idx(col_group_key, cmp_col_key)].is_best:
+                    return False
+            return True
+
+
         POS_COL_KEY_IN_TUPEL = 1
         POS_ROW_KEY_IN_TUPEL = 1
         for match_col_key, (best_type, depends_on) in match_best.items():
@@ -226,12 +233,14 @@ class DataTable:
                 cells = [self.agg_rows[row_group_idx][col_idx] for col_idx in range(self.n_cols) if
                          self.col_keys[col_idx][POS_COL_KEY_IN_TUPEL] == match_col_key and
                          self.cols[self.col_keys[col_idx][0]].cols[
-                             self.col_keys[col_idx][POS_COL_KEY_IN_TUPEL]].aggregate_col]
-            if len(cells) > 0:
-                values = [cell.value for cell in cells]
-                best = self.get_best(values, best_type)
-                for cell in cells:
-                    cell.is_best = cell.value == best
+                             self.col_keys[col_idx][POS_COL_KEY_IN_TUPEL]].aggregate_col and
+                         is_best_for_in_row_group(depends_on, row_group_idx, self.col_keys[col_idx][0])]
+                if len(cells) > 0:
+                    values = [cell.value for cell in cells]
+                    print("best agg values" + str(values))
+                    best = self.get_best(values, best_type)
+                    for cell in cells:
+                        cell.is_best = cell.value == best
 
     def mark_rows(self, is_marked):
         POS_ROW_KEY_IN_TUPEL = 1
@@ -400,12 +409,11 @@ class DataTable:
 
             file.write("\n\end{tabular} \n")
 
-    def print_performance(self, filename: str, col_group_keys: list, col_key: str, row_group_key, min_scale=0.0,
-                              max_scale=1.0,
-                              ticks=0.01):
+    def print_performance(self, title:str, filename: str, col_group_keys: list, col_key: str, best, compare, row_group_key, min_scale=0.0,
+                              max_scale=1.0, ticks=0.01, y_label="$performance(\\\\tau)~[\\\\%]$", x_label="$\\\\tau$", x_log_scale=False):
         eval_points = round(abs(max_scale - min_scale) / ticks) + 1
         lines = [[0 for _ in range(eval_points)] for _ in range(len(col_group_keys))]
-        best_values = [max([self.cells[self.get_col_idx(col_group_key, col_key)][
+        best_values = [best([self.cells[self.get_col_idx(col_group_key, col_key)][
                                 self.get_row_idx(row_group_key, row_key)].value for col_group_key in
                             col_group_keys]) for row_key in self.rows[row_group_key].row_keys]
         best_by_row_key = dict(zip(self.rows[row_group_key].row_keys, best_values))
@@ -418,7 +426,7 @@ class DataTable:
                 val = self.cells[self.get_col_idx(col_group_key, col_key)][
                     self.get_row_idx(row_group_key, row_key)].value
                 for tick in range(eval_points):
-                    if val >= (min_scale + abs(max_scale - min_scale)*(tick / (eval_points - 1))) * best_by_row_key[row_key]:
+                    if compare(val, (min_scale + (max_scale - min_scale)*(tick / (eval_points - 1))) * best_by_row_key[row_key]):
                         lines_by_col_group_key[col_group_key][tick] += performance_point
 
         csv_filename = filename + '.dat'
@@ -428,22 +436,30 @@ class DataTable:
 
             for tick in range(eval_points):
                 csv_writer.writerow(
-                    [(min_scale + abs(max_scale - min_scale)*(tick / (eval_points - 1)))] + [100*lines_by_col_group_key[col_group_key][tick] for
+                    [(min_scale + (max_scale - min_scale)*(tick / (eval_points - 1)))] + [100*lines_by_col_group_key[col_group_key][tick] for
                                                                 col_group_key in col_group_keys])
 
         file_path = filename + ".tex"
 
         with open(filename + ".p", "w") as gnuplot_file:
             plot_lines = []
-            plot_lines.append('set term epslatex standalone color colortext linewidth 4 size 4,3 font \",10\" fontscale 1.0\n')
+            plot_lines.append('set term epslatex standalone color colortext linewidth 4 size 4,3 font \",10\" fontscale 1.0 header \"\\\\sffamily\"\n')
             plot_lines.append('set output "' + file_path + '"\n')
-            plot_lines.append('set title "Performance"\n')
+            plot_lines.append('set title "%s"\n' % title)
             plot_lines.append('set grid xtics ytics\n')
             plot_lines.append('set xrange [' + str(min_scale) + ':' + str(max_scale) + ']\n')
-            plot_lines.append('set yrange [0:100]\n')
-            plot_lines.append('set xlabel "$\\\\rho$"\n')
-            plot_lines.append('set ylabel "$performance(\\\\rho)~[\\\\%]$"\n')
+            plot_lines.append('set yrange [0:102]\n')
+            if x_log_scale:
+                plot_lines.append('set logscale x 10\n')
+                plot_lines.append('set format x \"$10^{%L}$\"\n')
+            plot_lines.append('set xlabel "%s"\n' % x_label)
+            plot_lines.append('set ylabel "%s"\n' % y_label)
             plot_lines.append('set key bottom right\n')
+            #plot_lines.append('set linetype 1 dashtype "-" linewidth 1 \n')
+            #plot_lines.append('set linetype 2 dashtype "." linewidth 1 \n')
+            #plot_lines.append('set linetype 3 dashtype "-." linewidth 1 \n')
+            #plot_lines.append('set linetype 4 dashtype "--" linewidth 1 \n')
+            #plot_lines.append('random_lt = int(rand(0) * 4) + 1\n')
             plot_lines.append('p "' + csv_filename + '" ' + str(',\\\n\t "' + csv_filename + '" ').join(["using 1:" + str(i + 2) + " title " + '"' + self.cols[col_group_keys[i]].name.replace('\\', '\\\\') + '"' + ' with lines' for i in range(len(col_group_keys))]) + '\n')
             gnuplot_file.writelines(plot_lines)
 
