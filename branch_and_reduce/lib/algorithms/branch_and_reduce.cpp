@@ -38,10 +38,10 @@ bool branch_and_reduce::run() {
 
         if (mis_cfg.time_limit > 0) {
                 // find maximum independent set for kernel
-                cout_handler::disable_cout();
+                //cout_handler::disable_cout();
                 branch_and_reduce_algorithm mis_reducer(condensed_graph, mis_cfg);
                 bool solved = mis_reducer.run_branch_reduce();
-                cout_handler::enable_cout();
+                //cout_handler::enable_cout();
                 mis_reducer.apply_branch_reduce_solution(condensed_graph);
 
                 // apply results to solution status
