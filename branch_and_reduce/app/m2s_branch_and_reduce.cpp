@@ -12,34 +12,45 @@
 bool is_maximal_2ps(two_packing_set::m2s_graph_access& graph, const std::vector<bool>& sol, const NodeID sol_size) {
 
         NodeID check_sol_size = 0;
+        fast_set touched(graph.number_of_nodes());
 
         for (NodeID node = 0; node < graph.number_of_nodes(); node ++){
                 if (sol[node]) {
                         check_sol_size++;
 
+                        touched.clear();
                         forall_out_edges (graph, e, node) {
                                 if (sol[graph.getEdgeTarget(e)]) {
                                         std::cerr << "Direct Neighbors are part of the solution." << std::endl;
                                         return false;
                                 }
+                                touched.add(graph.getEdgeTarget(e));
                         }
                         endfor
 
-                        forall_out_edges2(graph, e, node) {
-                                if (sol[graph.getEdgeTarget2(e)]) {
-                                        std::cerr << "Two vertices with a common neighbor are part of the solution." << std::endl;
-                                        return false;
+                        touched.add(node);
+
+                        forall_out_edges (graph, e, node) {
+                                forall_out_edges (graph, e2, graph.getEdgeTarget(e)) {
+                                        if (!touched.get(graph.getEdgeTarget(e2)) && sol[graph.getEdgeTarget(e2)]) {
+                                                std::cerr << "Two vertices with a common neighbor are part of the solution." << std::endl;
+                                                return false;
+                                        }
+                                        touched.add(graph.getEdgeTarget(e2));
                                 }
+                                endfor
                         }
                         endfor
                 }else {
                         // maximal ?
 
                         bool maximal = false;
+                        touched.clear();
                         forall_out_edges (graph, e, node) {
                                 if (sol[graph.getEdgeTarget(e)]) {
                                         maximal = true;
                                 }
+                                touched.add(graph.getEdgeTarget(e));
                         }
                         endfor
 
@@ -48,6 +59,16 @@ bool is_maximal_2ps(two_packing_set::m2s_graph_access& graph, const std::vector<
                                         if (sol[graph.getEdgeTarget2(e)]) {
                                                 maximal = true;
                                         }
+                                }
+                                endfor
+                                forall_out_edges (graph, e, node) {
+                                        forall_out_edges (graph, e2, graph.getEdgeTarget(e)) {
+                                                if (!touched.get(graph.getEdgeTarget(e2)) && sol[graph.getEdgeTarget(e2)]) {
+                                                        maximal = true;
+                                                }
+                                                touched.add(graph.getEdgeTarget(e2));
+                                        }
+                                        endfor
                                 }
                                 endfor
                         }
@@ -106,13 +127,13 @@ int main(int argc, char **argv) {
 
         // VERIFY
         if (!found) {
-                std::cerr << "Timeout" << std::endl;
+                std::cout << "Timeout" << std::endl;
         }
 
         // PRINT RESULTS
         m2s_log::instance()->print_results();
 
-        graph.construct_2neighborhood();
+        //graph.construct_2neighborhood();
         auto valid = is_maximal_2ps(graph, solver.get_solution(), solver.get_solution_size());
         if (!valid) {
                 return 1;
