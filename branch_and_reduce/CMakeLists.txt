@@ -73,6 +73,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # M2S CPP Files
 set(CHECK_GRAPH_BIN "app/check_graph.cpp")
+set(CHECK_CONNECTED_BIN "app/check_connected.cpp")
+set(GRAPH_TO_GML_BIN "app/graph_to_gml.cpp")
 set(M2S_BIN "app/m2s_branch_and_reduce.cpp")
 set(M2S_LIB_SOURCES
         lib/algorithms/branch_and_reduce.cpp
@@ -134,4 +136,8 @@ endif (CMAKE_ENABLE_TESTING)
 set(M2S_EXE m2s_branch_and_reduce)
 add_executable(${M2S_EXE} ${M2S_BIN} $<TARGET_OBJECTS:libkaffpa2> $<TARGET_OBJECTS:libsources> $<TARGET_OBJECTS:${M2S_LIB}>)
 set(CHECK_GRAPH_EXE check_graph)
+set(CHECK_CONNECTED_EXE check_connected)
+set(GRAPH_TO_GML_EXE graph_to_gml)
 add_executable(${CHECK_GRAPH_EXE} ${CHECK_GRAPH_BIN} $<TARGET_OBJECTS:libkaffpa2> $<TARGET_OBJECTS:libsources> $<TARGET_OBJECTS:${M2S_LIB}>)
+add_executable(${CHECK_CONNECTED_EXE} ${CHECK_CONNECTED_BIN} $<TARGET_OBJECTS:libkaffpa2> $<TARGET_OBJECTS:libsources> $<TARGET_OBJECTS:${M2S_LIB}>)
+add_executable(${GRAPH_TO_GML_EXE} ${GRAPH_TO_GML_BIN} $<TARGET_OBJECTS:libkaffpa2> $<TARGET_OBJECTS:libsources> $<TARGET_OBJECTS:${M2S_LIB}>)
