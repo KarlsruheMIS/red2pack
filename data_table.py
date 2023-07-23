@@ -356,7 +356,7 @@ class DataTable:
                         if (col_group_key, col_key) != self.col_keys[-1]:
                             sep = "|"
 
-                        if cell.value == None:
+                        if cell.value == None and not num_print:
                             line += ' & \mc{1}{r' + sep + '}{-}'
 
                         elif cell.is_best:
