@@ -172,7 +172,7 @@ class DataTable:
                 self.cells[self.get_col_idx(col_group_key, col.key)][row_idx].values.append(
                     new_value)
 
-    def finish_loading(self, match_best: OrderedDict[any, BestRowValue], is_row_marked=lambda cols, get_col_val: False):
+    def finish_loading(self, match_best: OrderedDict[any, BestRowValue], is_row_marked=lambda cols, row_key, get_col_val: False):
         self.agg_values_in_cells()
         self.aggregate_over_cols()
         self.compute_best(match_best)
@@ -247,7 +247,7 @@ class DataTable:
         for row_idx in range(self.n_rows):
             get_col_value = lambda col_group_key, col_key: self.cells[self.get_col_idx(col_group_key, col_key)][
                 row_idx].value
-            if is_marked(self.col_keys, get_col_value):
+            if is_marked(self.col_keys, self.row_keys[row_idx][1], get_col_value):
                 self.rows[self.row_keys[row_idx][0]].rows[self.row_keys[row_idx][POS_ROW_KEY_IN_TUPEL]].mark = True
 
     def get_best(self, values: List[any], best_type: BestRowValue):
@@ -264,7 +264,7 @@ class DataTable:
         def row_is_agg(row_idx, col_key):
             """check if row is considered in all aggregations for col_key"""
             for col_group_key in self.col_group_keys:
-                if col_key in self.cols[col_group_key].col_keys:
+                if col_key in self.cols[col_group_key].col_keys and self.cols[col_group_key].cols[col_key].aggregate_col:
                     if self.cells[self.get_col_idx(col_group_key, col_key)][row_idx].value == None:
                         return False
             return True
@@ -380,7 +380,7 @@ class DataTable:
 
                 if print_agg_row and self.rows[row_group_key].print_agg_row:
                     line = "\n \hline \n \hline \n"
-                    line += "{}"
+                    line += "{overall}"
                     for col_idx in range(self.n_cols):
                         col_group_key, col_key = self.col_keys[col_idx]
                         col = self.cols[col_group_key].cols[col_key]
@@ -392,13 +392,19 @@ class DataTable:
                         if col.aggregate_col:
                             print_value = col.print_value
                             cell = self.agg_rows[row_group_idx][col_idx]
-                            if cell.is_best:
-                                line += ' & \mc{1}{|r' + sep + '}{\\textbf{\\numprint{' + str(
-                                    print_value(cell.value)) + '}}}'
+
+                            if cell.value == None:
+                                line += ' & \mc{1}{|r' + sep + '}{-}'
+                            elif cell.is_best:
+                                value_str = str(print_value(cell.value)) if not num_print else '\\numprint{' + str(
+                                print_value(cell.value)) + '}'
+                                line += ' & \mc{1}{|r' + sep + '}{\\textbf{' + value_str + '}}'
                             else:
-                                line += ' & \mc{1}{|r' + sep + '}{\\numprint{' + str(print_value(cell.value)) + '}}'
+                                value_str = str(print_value(cell.value)) if not num_print else '\\numprint{' + str(
+                                print_value(cell.value)) + '}'
+                                line += ' & \mc{1}{|r' + sep + '}{' + value_str + '}'
                         else:
-                            line += " & \mc{1}{|r" + sep + "}{} "
+                            line += " & \mc{1}{|r" + sep + "}{-}"
                     line += "\\\\ \n"
                     file.write(line)
 
@@ -411,33 +417,41 @@ class DataTable:
 
     def print_performance(self, title:str, filename: str, col_group_keys: list, col_key: str, best, compare, row_group_key, min_scale=0.0,
                               max_scale=1.0, ticks=0.01, y_label="$performance(\\\\tau)~[\\\\%]$", x_label="$\\\\tau$", x_log_scale=False):
-        eval_points = round(abs(max_scale - min_scale) / ticks) + 1
-        lines = [[0 for _ in range(eval_points)] for _ in range(len(col_group_keys))]
         best_values = [best([self.cells[self.get_col_idx(col_group_key, col_key)][
                                 self.get_row_idx(row_group_key, row_key)].value for col_group_key in
-                            col_group_keys]) for row_key in self.rows[row_group_key].row_keys]
+                            col_group_keys if self.cells[self.get_col_idx(col_group_key, col_key)][
+                                self.get_row_idx(row_group_key, row_key)].value is not None]) for row_key in self.rows[row_group_key].row_keys]
         best_by_row_key = dict(zip(self.rows[row_group_key].row_keys, best_values))
-        lines_by_col_group_key = dict(zip(col_group_keys, lines))
 
-        performance_point = 1.0 / len(self.rows[row_group_key].row_keys)
 
+        count_instances = self.rows[row_group_key].row_keys
         for col_group_key in col_group_keys:
+            taus = []
             for row_key in self.rows[row_group_key].row_keys:
-                val = self.cells[self.get_col_idx(col_group_key, col_key)][
-                    self.get_row_idx(row_group_key, row_key)].value
-                for tick in range(eval_points):
-                    if compare(val, (min_scale + (max_scale - min_scale)*(tick / (eval_points - 1))) * best_by_row_key[row_key]):
-                        lines_by_col_group_key[col_group_key][tick] += performance_point
+                val = self.cells[self.get_col_idx(col_group_key, col_key)][self.get_row_idx(row_group_key, row_key)].value
+                if val is not None:
+                    tau = val / best_by_row_key[row_key]
+                    taus.append(tau)
+            is_reversed =  True if max_scale - min_scale < 0 else False
+            taus = sorted(taus, reverse=is_reversed)
+            print("taus")
+            print(taus)
 
-        csv_filename = filename + '.dat'
-        with open(csv_filename, 'w') as csv_file:
-            csv_writer = csv.writer(csv_file, delimiter=' ',
-                                    quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            csv_filename = '%s_%s.dat' % (filename, col_group_key.replace("\\", ""))
+            with open(csv_filename, 'w') as csv_file:
+                csv_writer = csv.writer(csv_file, delimiter=' ',
+                                        quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
-            for tick in range(eval_points):
-                csv_writer.writerow(
-                    [(min_scale + (max_scale - min_scale)*(tick / (eval_points - 1)))] + [100*lines_by_col_group_key[col_group_key][tick] for
-                                                                col_group_key in col_group_keys])
+                if (not is_reversed and taus[0] > min_scale) or (is_reversed and taus[0] < min_scale):
+                    csv_writer.writerow([min_scale,0.0])
+
+                for idx,tau in enumerate(taus):
+                    if idx < len(taus)-1 and taus[idx+1] == tau:
+                        continue
+                    csv_writer.writerow([tau,(idx+1)*100/len(count_instances)])
+
+                if (not is_reversed and taus[-1] < max_scale) or (is_reversed and taus[-1] > max_scale):
+                    csv_writer.writerow([max_scale,len(taus)*100/len(count_instances)])
 
         file_path = filename + ".tex"
 
@@ -455,12 +469,11 @@ class DataTable:
             plot_lines.append('set xlabel "%s"\n' % x_label)
             plot_lines.append('set ylabel "%s"\n' % y_label)
             plot_lines.append('set key bottom right\n')
-            #plot_lines.append('set linetype 1 dashtype "-" linewidth 1 \n')
-            #plot_lines.append('set linetype 2 dashtype "." linewidth 1 \n')
-            #plot_lines.append('set linetype 3 dashtype "-." linewidth 1 \n')
-            #plot_lines.append('set linetype 4 dashtype "--" linewidth 1 \n')
-            #plot_lines.append('random_lt = int(rand(0) * 4) + 1\n')
-            plot_lines.append('p "' + csv_filename + '" ' + str(',\\\n\t "' + csv_filename + '" ').join(["using 1:" + str(i + 2) + " title " + '"' + self.cols[col_group_keys[i]].name.replace('\\', '\\\\') + '"' + ' with lines' for i in range(len(col_group_keys))]) + '\n')
+            for idx, col_group_key in enumerate(col_group_keys):
+                if idx == 0:
+                    plot_lines.append('p "%s_%s.dat" using 1:2 title "%s" with linespoints pt %s lt %s dt %s%s\n' % (filename, col_group_key.replace("\\", "").replace("\n", ""), self.cols[col_group_keys[idx]].name.replace('\\', '\\\\'), idx+1, idx+1, idx+1, ",\\" if len(col_group_keys) > 1 else ""))
+                else:
+                    plot_lines.append('\t"%s_%s.dat" using 1:2 title "%s" with linespoints pt %s lt %s dt %s%s\n' % (filename, col_group_key.replace("\\", "").replace("\n", ""), self.cols[col_group_keys[idx]].name.replace('\\', '\\\\'), idx+1, idx+1, idx+1, ",\\" if len(col_group_keys)-1 > idx else ""))
             gnuplot_file.writelines(plot_lines)
 
 
