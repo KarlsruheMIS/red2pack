@@ -861,6 +861,7 @@ our_algos_soa = [
             [
                 "out/erdos_graphs/on_demand_all_reductions",
                 "out/cactus_graphs/on_demand_all_reductions",
+                "out/planar_graphs/on_demand_all_reductions",
             ]
         ),
         get_data=get_data_m2s_bnr,
