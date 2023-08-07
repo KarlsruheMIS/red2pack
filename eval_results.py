@@ -511,7 +511,7 @@ def print_result_time_performance(
         max,
         instances_groups[0].key,
         1.0,
-        0.8,
+        0.9,
         y_label=y_label_sol,
         exclude=lambda x: x.status == SolStatus.NONE, # exclude results from set of solutions
         get_val=lambda val: val.sol,
@@ -526,7 +526,7 @@ def print_result_time_performance(
         1.0,
         2.0,
         y_label=y_label_time,
-        exclude=lambda x: x.status == TimeStatus.MEMOUT, # exclude results that produced memout from set of solutions
+        exclude=lambda x: x.status != TimeStatus.GOOD, # exclude results that produced memout or timeout (no solution) from set of solutions
         get_val=lambda val: val.t,
     )
     table.print_performance(
@@ -541,7 +541,7 @@ def print_result_time_performance(
         ticks=1.0,
         y_label=y_label_time,
         x_log_scale=True,
-        exclude=lambda x: x.status == TimeStatus.MEMOUT, # exclude results that produced memout from set of solutions
+        exclude=lambda x: x.status != TimeStatus.GOOD, # exclude results that produced memout or timeout (no solution) from set of solutions
         get_val=lambda val: val.t,
     )
 
@@ -980,6 +980,8 @@ print_result_time_performance(
     ],
 )
 
+
+
 """
 print_result_kernel_table(
     our_algos_erdos,
@@ -1007,6 +1009,27 @@ large_social_instances = sorted(
 planar_instances = sorted(
     get_instances_from_files(["all_planar_graphs.txt"]),
     key=lambda x: int(x.split("Outerplanar")[1]),
+)
+
+print_result_time_performance(
+    our_algos_soa
+    + [
+        AlgoResults(
+            label="gen2pack",
+            files=get_file_paths(["../../2-packing-Set/out_planar"]),
+            get_data=get_data_genetic_algo,
+            data={},
+            agg_cols=True,
+        )
+    ],
+    [
+        InstanceGroup(
+            name="Cactus",
+            key="cactus",
+            instances=planar_instances,
+            print_agg_row=True,
+        )
+    ],
 )
 
 our_social_algo_results = [
