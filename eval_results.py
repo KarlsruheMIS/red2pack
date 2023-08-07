@@ -6,16 +6,38 @@ from statistics import geometric_mean, mean
 from typing import List, Callable, Dict
 import matplotlib.pyplot as plt
 import numpy as np
+from enum import Enum
 
 from data_table import DataTable, ColGroup, ColHeader, RowGroup, RowHeader
 
 
+time_limit = 36000000 # ms
+
+class TimeStatus(Enum):
+    GOOD = "good"
+    TIMEOUT = "timeout"
+    MEMOUT = "memout"
+    NONE = "none"
+
+class SolStatus(Enum):
+    FOUND = "found"
+    NONE = "none"
+
+@dataclass 
+class Time:
+    t: float
+    status: TimeStatus
+
+@dataclass
+class Solution:
+    sol: int
+    status: SolStatus 
+
 @dataclass
 class Result:
     instance_name: str
-    time: float
-    timeout: bool
-    size: int
+    time: Time
+    size: Solution
     seed: int
     kernel_nodes: int  # number of nodes after 2ps reductions
     kernel_edges: int  # number of nodes after 2ps reductions
@@ -24,8 +46,6 @@ class Result:
     kernel_size: int
     time_kamis: float
     time_transform: float
-    memout: bool
-
 
 @dataclass
 class AlgoResults:
@@ -41,9 +61,10 @@ class AlgoResults:
             results = self.get_data(file)
             for result in results:
                 if result is not None:
-                    if result.instance_name not in self.data.keys():
-                        self.data[result.instance_name.split(".")[0]] = []
-                    self.data[result.instance_name.split(".")[0]].append(result)
+                    instance = result.instance_name.split(".")[0]
+                    if instance not in self.data.keys():
+                        self.data[instance] = []
+                    self.data[instance].append(result)
 
 
 @dataclass
@@ -56,10 +77,9 @@ class InstanceGroup:
 
 def get_data_m2s_bnr(file):
     name = ""
-    timeout = False
-    size = 0
+    size = Solution(0, SolStatus.NONE)
     seed = int(os.path.basename(file)[1:].split("_")[0])
-    time = None
+    time = Time(0, TimeStatus.MEMOUT)
     kernel_nodes = 0
     kernel_edges = 0
     nodes = 0
@@ -67,7 +87,6 @@ def get_data_m2s_bnr(file):
     kernel_size = 0
     time_kamis = 0.0
     time_transform=0.0
-    memout = False
 
     if not os.path.exists(file):
         return None
@@ -81,28 +100,28 @@ def get_data_m2s_bnr(file):
             elif "-Nodes" in line:
                 nodes = int(line.split(":")[1].rstrip().strip())
             elif "Size" in line:
-                size = int(line.split(":")[1].rstrip().strip())
+                size.sol = int(line.split(":")[1].rstrip().strip())
+                size.status = SolStatus.FOUND
             elif "Filename" in line:
                 name = line.split(":")[1].rstrip().strip()
             elif "Time found" in line:
-                time = float(line.split(":")[1].rstrip().strip())
+                time.t = sec_to_ms(float(line.split(":")[1].rstrip().strip()))
+                if time.t > time_limit:
+                    time.status = TimeStatus.TIMEOUT
+                else:
+                    time.status = TimeStatus.GOOD
             elif "Transformation time" in line or "Reduction time" in line:
-                time_transform += float(line.split(":")[1].rstrip().strip())
+                time_transform += float(line.split(":")[1].rstrip().strip())*1000
             elif "Offset" in line:
                 offset = float(line.split(":")[1].rstrip().strip())
             elif "[" in line and "]" in line:
                 kernel_size = int(line.split(" [")[0])
-                time_kamis = float(line.split(" [")[1].split("]")[0])
-            elif "Timeout" in line:
-                timeout = True
+                time_kamis = float(line.split(" [")[1].split("]")[0])*1000
 
-    if time is None:
-        memout = True
+    if time.status != TimeStatus.MEMOUT and time_kamis == 0.0 and kernel_nodes > 0:
+        time_kamis = time.t - time_transform
 
-    if not memout and time_kamis == 0.0 and kernel_nodes > 0:
-        time_kamis = time - time_transform
-
-    return [Result(name, time, timeout, size, seed, kernel_nodes, kernel_edges, nodes, offset, kernel_size, time_kamis, time_transform, memout)]
+    return [Result(name, time, size, seed, kernel_nodes, kernel_edges, nodes, offset, kernel_size, time_kamis, time_transform)]
 
 
 def get_data_genetic_algo(file):
@@ -114,18 +133,27 @@ def get_data_genetic_algo(file):
     with open(file, "r") as result_f:
         reader = csv.DictReader(result_f, delimiter=",")
         for row in reader:
-            print(file)
-            print(row.keys())
             name = row["Graph"]
-            timeout = False
-            size = int(float(row["GA_withImp"]))
+            size = Solution(int(float(row["GA_withImp"])), SolStatus.FOUND)
             seed = int(row["Seed"])
-            time = float(row["Init_Time"]) + float(row["Solve_Time"])
+            time = Time(1000*(float(row["Init_Time"]) + float(row["Solve_Time"])), TimeStatus.GOOD)
+            if time.t > time_limit:
+                time.status = TimeStatus.TIMEOUT
             kernel_nodes = 0
             kernel_edges = 0
             nodes = 0
 
-            results.append(Result(name, time, timeout, size, seed, kernel_nodes, kernel_edges, nodes, 0, 0, 0, 0, size==0))
+            results.append(Result(name, time, size, seed, kernel_nodes, kernel_edges, nodes, 0, 0, 0, 0))
+
+    if len(results) == 0:
+        # timeout/memout without finding any sol.
+        with open(file.replace("results_", "").replace("_wake.csv", ".log"), "r") as log_f:
+            memout = False
+            for line in log_f:
+                if "Out of memory" in line:
+                    memout = True
+                    break
+            results.append(Result(file.split("results_")[1].split("_wake.csv")[0], Time(time_limit+1, TimeStatus.TIMEOUT) if not memout else Time(0, TimeStatus.MEMOUT), Solution(0, SolStatus.NONE), None, 0, 0, 0, 0, 0, 0, 0))
 
     return results
 
@@ -140,7 +168,7 @@ def get_file_paths(dir_names: List[str]):
 
 def print_all():
     m2s_bnr_all_reductions = AlgoResults(
-        label="red2pack full",
+        label="red2pack elaborated",
         files=get_file_paths(["out/social_graphs/all_reductions"]),
         get_data=get_data_m2s_bnr,
         data={}
@@ -165,30 +193,133 @@ def print_all():
                 mean([r.kernel_nodes for r in results])))
 
 
-def print_time(time, time_limit, digits=2):
+def print_erdos_gen2pack():
+    gen2pack = AlgoResults(
+            label="gen2pack",
+            files=get_file_paths(["../../2-packing-Set/out"]),
+            get_data=get_data_genetic_algo,
+            data={},
+            agg_cols=False
+        )
+
+    gen2pack.load()
+
+    count_optimal_runs = 0
+    experiments = 0
+    count_optimal_instances = 0
+    for instance, results in gen2pack.data.items():
+        opt_size = 0
+        
+        with open(os.path.join("graphs/erdos_graphs_gml/", instance+".gml"), "r") as instance_fd:
+            for line in instance_fd:
+                if "maximum 2-packing set" in line:
+                    opt_size = int(line.split(":")[1].strip())
+                    break
+        opt = False
+        for r in results:
+            if r.size == opt_size:
+                count_optimal_runs+=1
+                opt = True
+        #print(results)
+        experiments += len(results)
+        if opt:
+            count_optimal_instances += 1
+
+
+    print("Gen2pack found in  %s/%s runs an optimal solution and for %s/%s instances at least once an optimal solution." % (count_optimal_runs, experiments, count_optimal_instances, len(gen2pack.data)))
+
+
+def print_time(time, digits=2):
     if time is None:
+        print("WARNING: time should not be None. Use Time(0, TimeStatus.NONE) instead!")
+        return "-" # no runs
+    if time.status == TimeStatus.MEMOUT:
         return "m.o."
-    if time > time_limit:
+    if time.status == TimeStatus.TIMEOUT:
         return "t.o."
-    return '\\numprint{' + ('{:.%sf}' % digits).format(round(time, digits)) + '}'
+    return '\\numprint{' + ('{:.%sf}' % digits).format(round(time.t, digits)) + '}'
+
+def print_size(size, digits=0):
+    if size is None:
+        print("WARNING: size should not be None. Use Solution(0, SolStatus.NONE) instead!")
+        return "-"
+
+    if size.status == SolStatus.NONE:
+        return "-"
+
+    return '\\numprint{' + ('{:.%sf}' % digits).format(round(size.sol, digits)) + '}'
 
 def print_size_approx(size, digits=2):
     return '\\numprint{' + ('{:.%sf}' % digits).format(round(size, digits)) + '}'
 
 
-def agg_time(times):
-    if None in times:
-        return None
-    return geometric_mean(times)
+def agg_size(sizes: List[Solution]):
+    feasible = [s.sol for s in sizes if s.status == SolStatus.FOUND]
+
+    if len(feasible) == 0:
+        return Solution(0, SolStatus.NONE)
+
+    if 0 in feasible:
+        print("ERROR: 0 in feasible solution sizes.")
+        quit()
+
+    return Solution(geometric_mean(feasible), SolStatus.FOUND)
+
+def agg_time(times: List[Time]):
+    memout = True
+    for t in times:
+        if t.status != TimeStatus.MEMOUT:
+            memout = False
+            break
+    if memout:
+        return Time(0, TimeStatus.MEMOUT)
+    new_t = geometric_mean([t.t for t in times if t.status != TimeStatus.MEMOUT])
+    status = TimeStatus.GOOD
+    if new_t > time_limit:
+        status = TimeStatus.TIMEOUT
+    return Time(new_t, status)
+
+def agg_time_mean(times: List[Time]):
+    memout = True
+    for t in times:
+        if t.status != TimeStatus.MEMOUT:
+            memout = False
+            break
+    if memout:
+        return Time(0, TimeStatus.MEMOUT)
+    new_t = mean([t.t for t in times])
+    status = TimeStatus.GOOD
+    if new_t > time_limit:
+        status = TimeStatus.TIMEOUT
+    return Time(new_t, status)
+
+
 
 def get_size(data):
-    if data.size > 0:
+    if data.size.sol > 0:
         return data.size
-    return data.kernel_size + data.offset
+    return Solution(data.kernel_size + data.offset, SolStatus.FOUND)
+
+def sec_to_ms(time):
+    if time == -1:
+        return time
+    else:
+        return time * 1000
+
+def exclude_memout(time):
+    if time == -1:
+        return True
+    return False
+
+def exclude_memout_timeout(time):
+    if time == -1:
+        return True
+    if time > time_limit:
+        return True
+    return False
 
 def print_result_time_performance(algo_results: List[AlgoResults], instances_groups: List[InstanceGroup]):
 
-    time_limit = 36000000 # ms
 
     for algo_result in algo_results:
         algo_result.load()
@@ -197,22 +328,22 @@ def print_result_time_performance(algo_results: List[AlgoResults], instances_gro
     for algo_result in algo_results:
         if algo_result.label != "gen2pack":
             cols.append(ColGroup(algo_result.label, algo_result.label, [
-                ColHeader("$|S|$", "size", lambda sols: geometric_mean(sols) if len(sols) != 0 and 0 not in sols else 0,
-                          lambda data, filename: get_size(data), round, False),
+                ColHeader("$|S|$", "size", lambda sols: agg_size(sols),
+                    lambda data, filename: get_size(data), round, False),
                 ColHeader("$t_p$ [ms]", "time-proof", lambda times: agg_time(times),
-                          lambda data, filename: data.time*1000 if data.time is not None else None, # s to ms
-                          lambda x: print_time(x, time_limit), algo_result.agg_cols, False),
+                          lambda data, filename: data.time, # s to ms
+                          lambda x: print_time(x), algo_result.agg_cols, False),
                 ColHeader("$t$ [ms]", "time", lambda times: agg_time(times),
-                          lambda data, filename: (data.time_transform+data.time_kamis)*1000, # s to ms
-                          lambda x: print_time(x, time_limit), algo_result.agg_cols, False)
+                          lambda data, filename: Time(data.time_transform+data.time_kamis, TimeStatus.GOOD), # s to mas
+                          lambda x: print_time(x), algo_result.agg_cols, False)
                 ]))
         else:
             cols.append(ColGroup(algo_result.label, algo_result.label, [
-                ColHeader("$|S|$", "size", lambda sols: geometric_mean(sols) if len(sols) != 0 and 0 not in sols else 0,
-                          lambda data, filename: get_size(data), round, algo_result.agg_cols),
+                ColHeader("$|S|$", "size", lambda sols: agg_size(sols),
+                          lambda data, filename: data.size, round, algo_result.agg_cols),
                 ColHeader("$t$ [ms]", "time", lambda times: agg_time(times),
-                          lambda data, filename: data.time*1000 if data.time is not None else None, # s to ms
-                          lambda x: print_time(x, time_limit), algo_result.agg_cols, False)
+                          lambda data, filename: data.time, # s to ms
+                          lambda x: print_time(x), algo_result.agg_cols, False)
                 ]))
 
 
@@ -243,11 +374,11 @@ def print_result_time_performance(algo_results: List[AlgoResults], instances_gro
     y_label_time = "$\\\\#\\\\{\\\\mathrm{instances}\\\\leq \\\\tau\\\\cdot\\\\mathrm{fastest}\\\\}/\\\\#\\\\mathrm{instances}~[\\\\%]$"
     y_label_sol = "$\\\\#\\\\{\\\\mathrm{instances}\\\\geq \\\\tau\\\\cdot\\\\mathrm{best}\\\\}/\\\\#\\\\mathrm{instances}~[\\\\%]$"
     table.print_performance("Solution Quality %s" % instances_groups[0].name, "plots/performance_sol_%s" % instances_groups[0].name, labels,
-                             "size", max, lambda x,best_scaled: x>= best_scaled, instances_groups[0].key, 1.0, 0.8, y_label=y_label_sol)
+            "size", max, instances_groups[0].key, 1.0, 0.8, y_label=y_label_sol, exclude=lambda x: x.status == SolStatus.NONE, get_val=lambda val: val.sol)
     table.print_performance("Time %s" % instances_groups[0].name, "plots/performance_time_%s" % instances_groups[0].name, labels,
-                             "time", min, lambda x,best_scaled: x <= best_scaled, instances_groups[0].key, 1.0, 2.0, y_label=y_label_time)
+            "time", min, instances_groups[0].key, 1.0, 2.0, y_label=y_label_time, exclude=lambda x: x.status == TimeStatus.MEMOUT, get_val=lambda val: val.t)
     table.print_performance("Time %s (Log. Scale)" % instances_groups[0].name, "plots/performance_time_%s_log" % instances_groups[0].name, labels, 
-                            "time", min, lambda x,best_scaled: x<= best_scaled, instances_groups[0].key, 1.0, 100000.0, ticks=1.0, y_label=y_label_time, x_log_scale=True)
+            "time", min, instances_groups[0].key, 1.0, 1000000.0, ticks=1.0, y_label=y_label_time, x_log_scale=True, exclude=lambda x: x.status == TimeStatus.MEMOUT, get_val=lambda val: val.t)
 
 
 def print_result_sol_time_table_erdos(algo_results: List[AlgoResults], instance_group: InstanceGroup, out_filename):
@@ -265,8 +396,6 @@ def print_result_sol_time_table_erdos(algo_results: List[AlgoResults], instance_
     """
 
 
-    time_limit = 36000000 # ms
-
     for algo_result in algo_results:
         algo_result.load()
 
@@ -276,20 +405,20 @@ def print_result_sol_time_table_erdos(algo_results: List[AlgoResults], instance_
             cols.append(ColGroup(algo_result.label, algo_result.label, [
                 ColHeader("$|S|$", "size", lambda sols: geometric_mean(sols) if len(sols) != 0 and 0 not in sols else 0,
                     lambda data, filename: get_size(data), lambda x: print_size_approx(x), True, False),
-                ColHeader("$t_p$ [ms]", "time-proof", lambda times: agg_time(times),
-                          lambda data, filename: data.time*1000 if data.time is not None else None, # s to ms
-                          lambda x: print_time(x, time_limit), algo_result.agg_cols, False),
                 ColHeader("$t$ [ms]", "time", lambda times: agg_time(times),
-                          lambda data, filename: (data.time_transform+data.time_kamis)*1000, # s to ms
-                          lambda x: print_time(x, time_limit), algo_result.agg_cols, False)
+                          lambda data, filename: sec_to_ms(data.time_transform+data.time_kamis), # s to ms
+                          lambda x: print_time(x, time_limit), algo_result.agg_cols, False, exclude=exclude_memout),
+                ColHeader("$t_p$ [ms]", "time-proof", lambda times: agg_time(times),
+                          lambda data, filename: sec_to_ms(data.time), # s to ms
+                          lambda x: print_time(x, time_limit), algo_result.agg_cols, False, exclude=exclude_memout_timeout)
                 ]))
         else:
             cols.append(ColGroup(algo_result.label, algo_result.label, [
                 ColHeader("$|S|$", "size", lambda sols: geometric_mean(sols) if len(sols) != 0 and 0 not in sols else 0,
-                    lambda data, filename: get_size(data), lambda x: print_size_approx(x), algo_result.agg_cols, False),
+                    lambda data, filename: data.size, lambda x: print_size_approx(x), algo_result.agg_cols, False),
                 ColHeader("$t$ [ms]", "time", lambda times: agg_time(times),
-                          lambda data, filename: data.time*1000 if data.time is not None else None, # s to ms
-                          lambda x: print_time(x, time_limit), algo_result.agg_cols, False)
+                          lambda data, filename: sec_to_ms(data.time), # s to ms
+                          lambda x: print_time(x, time_limit), algo_result.agg_cols, False, exclude=exclude_memout_timeout)
                 ]))
 
 
@@ -319,7 +448,7 @@ def print_result_sol_time_table_erdos(algo_results: List[AlgoResults], instance_
                 size = get_col_val(algo_result.label, "size")
                 time = get_col_val(algo_result.label, "time")
            
-                if time is not None and time <= time_limit and size > 0:
+                if time!=-1 and time is not None and time <= time_limit and size > 0:
                     return True
 
         return False
@@ -327,89 +456,6 @@ def print_result_sol_time_table_erdos(algo_results: List[AlgoResults], instance_
 
     table.finish_loading(OrderedDict({"size": (DataTable.BestRowValue.MAX, []), "time": (DataTable.BestRowValue.MIN, ["size"]), "time-proof": (DataTable.BestRowValue.MIN, ["size"])}), found_optimal_sol)
     table.print(out_filename)
-
-
-def print_result_sol_time_table(algo_results: List[AlgoResults], instances_groups: List[InstanceGroup], out_filename):
-    """
-    "vr": {
-        "instances": ['CR-S-L-4'],
-        "name": "VR",
-        "key": "vr",
-        "print_agg_row": True
-    }
-
-    :param algo_results:
-    :param instances_groups:
-    :return:
-    """
-
-
-    time_limit = 36000000 # ms
-
-    for algo_result in algo_results:
-        algo_result.load()
-
-    cols = []
-    for algo_result in algo_results:
-        if algo_result.label != "gen2pack":
-            cols.append(ColGroup(algo_result.label, algo_result.label, [
-                ColHeader("$|S|$", "size", lambda sols: geometric_mean(sols) if len(sols) != 0 and 0 not in sols else 0,
-                  lambda data, filename: get_size(data), round, True),
-                ColHeader("$t_p$ [ms]", "time-proof", lambda times: agg_time(times),
-                          lambda data, filename: data.time*1000 if data.time is not None else None, # s to ms
-                          lambda x: print_time(x, time_limit), algo_result.agg_cols, False),
-                ColHeader("$t$ [ms]", "time", lambda times: agg_time(times),
-                          lambda data, filename: (data.time_transform+data.time_kamis)*1000, # s to ms
-                          lambda x: print_time(x, time_limit), algo_result.agg_cols, False)
-                ]))
-        else:
-            cols.append(ColGroup(algo_result.label, algo_result.label, [
-                ColHeader("$|S|$", "size", lambda sols: geometric_mean(sols) if len(sols) != 0 and 0 not in sols else 0,
-                  lambda data, filename: get_size(data), round, algo_result.agg_cols, True),
-                ColHeader("$t$ [ms]", "time", lambda times: agg_time(times),
-                          lambda data, filename: data.time*1000 if data.time is not None else None, # s to ms
-                          lambda x: print_time(x, time_limit), algo_result.agg_cols, False)
-                ]))
-
-
-
-    cols = sorted(cols, key=lambda x: x.name)
-
-    rows = [RowGroup(group.name, group.key, [RowHeader(inst.replace("_", "\\textunderscore "), inst) for inst in group.instances], group.print_agg_row) for group in
-            instances_groups]
-
-    table = DataTable(cols, rows)
-
-    inst_to_group = {inst: group.key for group in instances_groups for inst in group.instances}
-
-    for algo_result in algo_results:
-        for inst, result in algo_result.data.items():
-            if inst in inst_to_group.keys():
-                group = inst_to_group[inst]
-                for r in result:
-                    table.load_data_in_cell(r, "", group, inst, algo_result.label)
-
-
-    def found_optimal_sol(cols_in_table, row_key, get_col_val):
-        for algo_result in algo_results:
-            size = get_col_val(algo_result.label, "size")
-            time = get_col_val(algo_result.label, "time")
-           
-            if time is not None and time <= time_limit and size > 0:
-                return True
-
-        return False
-
-
-    table.finish_loading(OrderedDict({"size": (DataTable.BestRowValue.MAX, []), "time": (DataTable.BestRowValue.MIN, ["size"]), "time-proof": (DataTable.BestRowValue.MIN, ["size"])}), found_optimal_sol)
-    table.print(out_filename)
-
-    #labels = sorted([algo_result.label for algo_result in algo_results])
-    #y_label_time = "$\\\\#\\\\{\\\\mathrm{instances}\\\\leq \\\\tau\\\\cdot\\\\mathrm{fastest}\\\\}/\\\\#\\\\mathrm{instances}~[\\\\%]$"
-    #y_label_sol = "$\\\\#\\\\{\\\\mathrm{instances}\\\\geq \\\\tau\\\\cdot\\\\mathrm{best}\\\\}/\\\\#\\\\mathrm{instances}~[\\\\%]$"
-    #table.print_performance("Performance Time %s" % instances_groups[0].name, "plots/performance_time_%s" % instances_groups[0].name, labels, "time", min, lambda x,best_scaled: x <= best_scaled, instances_groups[0].key, 1.0, 2.0, y_label=y_label_time)
-    #table.print_performance("Performance Solution Quality %s" % instances_groups[0].name, "plots/performance_sol_%s" % instances_groups[0].name, labels, "size", max, lambda x,best_scaled: x>= best_scaled, instances_groups[0].key, 1.0, 0.0, y_label=y_label_sol)
-    #table.print_performance("Performance Time %s (Log. Scale)" % instances_groups[0].name, "plots/performance_time_%s_log" % instances_groups[0].name, labels, "time", min, lambda x,best_scaled: x<= best_scaled, instances_groups[0].key, 1.0, 100000.0, ticks=1.0, y_label=y_label_time, x_log_scale=True)
 
 
 def print_result_kernel_table_erdos(algo_results: List[AlgoResults], instance_group: InstanceGroup, out_filename, instance_meta_file):
@@ -421,8 +467,6 @@ def print_result_kernel_table_erdos(algo_results: List[AlgoResults], instance_gr
     """
 
 
-    time_limit = 36000000 # ms
-
     for algo_result in algo_results:
         algo_result.load()
 
@@ -430,19 +474,25 @@ def print_result_kernel_table_erdos(algo_results: List[AlgoResults], instance_gr
         ColHeader("$n(\\tilde{G})$", "transformed", lambda nodes: mean(nodes) if len(nodes) != 0 else 0,
                   lambda data, filename: data.kernel_nodes, round, True),
         ColHeader("$m(\\tilde{G})$", "transformed-edges", lambda edges: mean(edges) if len(edges) != 0 else 0,
-                  lambda data, filename: data.kernel_edges, round, True)#,
-        #ColHeader("$t_{\\texttt{t}}$~[ms]", "transform-time", lambda tt: mean(tt),
-        #          lambda data, filename: data.time_transform*1000, # s to micro ms
-        #          lambda x: print_time(x, time_limit), True, False),
-        #ColHeader("$t_{\\texttt{KaMIS}}~[ms]$", "kamis-time", lambda kt: mean(kt),
-        #          lambda data, filename: data.time_kamis*1000, # s to micro ms
-        #          lambda x: print_time(x, time_limit), True, False)
+                  lambda data, filename: data.kernel_edges, round, True),
+        ColHeader("$t_{\\texttt{t}}$~[ms]", "transform-time", lambda tt: mean(tt),
+                  lambda data, filename: sec_to_ms(data.time_transform), # s to micro ms
+                  lambda x: print_time(x, time_limit), True, False),
+        ColHeader("$t_{\\texttt{solve}}~[ms]$", "kamis-time", lambda kt: mean(kt),
+                  lambda data, filename: sec_to_ms(data.time_kamis), # s to micro ms
+                  lambda x: print_time(x, time_limit), True, False)
     ]) for algo_result in algo_results if algo_result.label != '2pack']
 
     if '2pack' in [algo_result.label for algo_result in algo_results]:
         cols.append(ColGroup('2pack', '2pack', [
             ColHeader("$m(\\tilde{G})$", "transformed-edges", lambda edges: mean(edges) if len(edges) != 0 else 0,
-                  lambda data, filename: data.kernel_edges, round, True)
+                  lambda data, filename: data.kernel_edges, round, True),
+            ColHeader("$t_{\\texttt{t}}$~[ms]", "transform-time", lambda tt: mean(tt),
+                  lambda data, filename: sec_to_ms(data.time_transform), # s to micro ms
+                  lambda x: print_time(x, time_limit), True, False),
+            ColHeader("$t_{\\texttt{solve}}~[ms]$", "kamis-time", lambda kt: mean(kt),
+                  lambda data, filename: sec_to_ms(data.time_kamis), # s to micro ms
+                  lambda x: print_time(x, time_limit), True, False)
         ]))
 
     cols.append(ColGroup("", "descr", [
@@ -509,8 +559,6 @@ def print_result_sol_time_table(algo_results: List[AlgoResults], instances_group
     """
 
 
-    time_limit = 36000000 # ms
-
     for algo_result in algo_results:
         algo_result.load()
 
@@ -518,22 +566,22 @@ def print_result_sol_time_table(algo_results: List[AlgoResults], instances_group
     for algo_result in algo_results:
         if algo_result.label != "gen2pack":
             cols.append(ColGroup(algo_result.label, algo_result.label, [
-                ColHeader("$|S|$", "size", lambda sols: geometric_mean(sols) if len(sols) != 0 and 0 not in sols else 0,
-                  lambda data, filename: get_size(data), round, True),
-                ColHeader("$t_p$ [ms]", "time-proof", lambda times: agg_time(times),
-                          lambda data, filename: data.time*1000 if data.time is not None else None, # s to ms
-                          lambda x: print_time(x, time_limit), algo_result.agg_cols, False),
+                ColHeader("$|S|$", "size", lambda sols: agg_size(sols),
+                  lambda data, filename: get_size(data), print_size, True),
                 ColHeader("$t$ [ms]", "time", lambda times: agg_time(times),
-                          lambda data, filename: (data.time_transform+data.time_kamis)*1000, # s to ms
-                          lambda x: print_time(x, time_limit), algo_result.agg_cols, False)
+                          lambda data, filename: Time(data.time_transform+data.time_kamis, TimeStatus.GOOD), # s to ms
+                          lambda x: print_time(x), algo_result.agg_cols, False, exclude=exclude_memout),
+                ColHeader("$t_p$ [ms]", "time-proof", lambda times: agg_time(times),
+                          lambda data, filename: data.time, # s to ms
+                          lambda x: print_time(x), algo_result.agg_cols and False, False, exclude=exclude_memout_timeout)
                 ]))
         else:
             cols.append(ColGroup(algo_result.label, algo_result.label, [
-                ColHeader("$|S|$", "size", lambda sols: geometric_mean(sols) if len(sols) != 0 and 0 not in sols else 0,
-                  lambda data, filename: get_size(data), round, algo_result.agg_cols, True),
+                ColHeader("$|S|$", "size", lambda sols: agg_size(sols),
+                  lambda data, filename: data.size, print_size, algo_result.agg_cols, True),
                 ColHeader("$t$ [ms]", "time", lambda times: agg_time(times),
-                          lambda data, filename: data.time*1000 if data.time is not None else None, # s to ms
-                          lambda x: print_time(x, time_limit), algo_result.agg_cols, False)
+                          lambda data, filename: data.time, # s to ms
+                          lambda x: print_time(x), algo_result.agg_cols, False, exclude=exclude_memout)
                 ]))
 
 
@@ -557,16 +605,17 @@ def print_result_sol_time_table(algo_results: List[AlgoResults], instances_group
 
     def found_optimal_sol(cols_in_table, row_key, get_col_val):
         for algo_result in algo_results:
-            size = get_col_val(algo_result.label, "size")
-            time = get_col_val(algo_result.label, "time")
+            if algo_result.label != "gen2pack":
+                size = get_col_val(algo_result.label, "size")
+                time = get_col_val(algo_result.label, "time-proof")
            
-            if time is not None and time <= time_limit and size > 0:
-                return True
+                if time is not None and time.status == TimeStatus.GOOD and size.status == SolStatus.FOUND:
+                    return True
 
         return False
 
 
-    table.finish_loading(OrderedDict({"size": (DataTable.BestRowValue.MAX, []), "time": (DataTable.BestRowValue.MIN, ["size"]), "time-proof": (DataTable.BestRowValue.MIN, ["size"])}), found_optimal_sol)
+    table.finish_loading(OrderedDict({"size": (lambda vals: max([v.sol for v in vals]), []), "time": (lambda vals: min([t.t for t in vals]), ["size"]), "time-proof": (lambda vals: min([t.t for t in vals]), ["size"])}), found_optimal_sol)
     table.print(out_filename)
 
     #labels = sorted([algo_result.label for algo_result in algo_results])
@@ -577,7 +626,7 @@ def print_result_sol_time_table(algo_results: List[AlgoResults], instances_group
     #table.print_performance("Performance Time %s (Log. Scale)" % instances_groups[0].name, "plots/performance_time_%s_log" % instances_groups[0].name, labels, "time", min, lambda x,best_scaled: x<= best_scaled, instances_groups[0].key, 1.0, 100000.0, ticks=1.0, y_label=y_label_time, x_log_scale=True)
 
 
-def print_result_kernel_table(algo_results: List[AlgoResults], instances_groups: List[InstanceGroup], out_filename, instance_meta_file):
+def print_result_kernel_table(algo_results: List[AlgoResults], instances_groups: List[InstanceGroup], out_filename):
     """
     "vr": {
         "instances": ['CR-S-L-4'],
@@ -592,8 +641,6 @@ def print_result_kernel_table(algo_results: List[AlgoResults], instances_groups:
     """
 
 
-    time_limit = 36000000 # ms
-
     for algo_result in algo_results:
         algo_result.load()
 
@@ -601,20 +648,65 @@ def print_result_kernel_table(algo_results: List[AlgoResults], instances_groups:
         ColHeader("$n(\\tilde{G})$", "transformed", lambda nodes: mean(nodes) if len(nodes) != 0 else 0,
                   lambda data, filename: data.kernel_nodes, round, True),
         ColHeader("$m(\\tilde{G})$", "transformed-edges", lambda edges: mean(edges) if len(edges) != 0 else 0,
-                  lambda data, filename: data.kernel_edges, round, True)#,
-        #ColHeader("$t_{\\texttt{t}}$~[ms]", "transform-time", lambda tt: mean(tt),
-        #          lambda data, filename: data.time_transform*1000, # s to micro ms
-        #          lambda x: print_time(x, time_limit), True, False),
-        #ColHeader("$t_{\\texttt{KaMIS}}~[ms]$", "kamis-time", lambda kt: mean(kt),
-        #          lambda data, filename: data.time_kamis*1000, # s to micro ms
-        #          lambda x: print_time(x, time_limit), True, False)
+                  lambda data, filename: data.kernel_edges, round, True),
+        ColHeader("$t_{\\texttt{t}}$~[ms]", "transform-time", lambda tt: agg_time_mean(tt),
+                  lambda data, filename: Time(data.time_transform, TimeStatus.GOOD), # s to micro ms
+                  lambda x: print_time(x), True, False),
+        ColHeader("$t_{\\texttt{solve}}~[ms]$", "kamis-time", lambda kt: agg_time_mean(kt),
+                  lambda data, filename: Time(data.time_kamis, TimeStatus.GOOD), # s to micro ms
+                  lambda x: print_time(x), True, False)
     ]) for algo_result in algo_results if algo_result.label != '2pack']
 
     if '2pack' in [algo_result.label for algo_result in algo_results]:
         cols.append(ColGroup('2pack', '2pack', [
             ColHeader("$m(\\tilde{G})$", "transformed-edges", lambda edges: mean(edges) if len(edges) != 0 else 0,
-                  lambda data, filename: data.kernel_edges, round, True)
+                  lambda data, filename: data.kernel_edges, round, True),
+            ColHeader("$t_{\\texttt{t}}$~[ms]", "transform-time", lambda tt: agg_time_mean(tt),
+                  lambda data, filename: Time(data.time_transform, TimeStatus.GOOD), # s to micro ms
+                  lambda x: print_time(x), True, False),
+            ColHeader("$t_{\\texttt{solve}}~[ms]$", "kamis-time", lambda kt: agg_time_mean(kt),
+                  lambda data, filename: Time(data.time_kamis, TimeStatus.GOOD), # s to micro ms
+                  lambda x: print_time(x), True, False)
         ]))
+
+    cols = sorted(cols, key=lambda x: x.name)
+
+    rows = [RowGroup(group.name, group.key, [RowHeader(inst.replace("_", "\\textunderscore "), inst) for inst in group.instances], group.print_agg_row) for group in
+            instances_groups]
+
+    table = DataTable(cols, rows)
+
+    inst_to_group = {inst: group.key for group in instances_groups for inst in group.instances}
+
+    for algo_result in algo_results:
+        for inst, result in algo_result.data.items():
+            if inst in inst_to_group.keys():
+                group = inst_to_group[inst]
+                for r in result:
+                    table.load_data_in_cell(r, "", group, inst, algo_result.label) 
+
+
+    def found_optimal_sol(cols_in_table, row_key, get_col_val):
+        for algo_result in algo_results:
+            if algo_result.label != "2pack":
+                kernel_nodes = get_col_val(algo_result.label, "transformed")
+                if kernel_nodes == 0:
+                    return True
+
+        return False
+
+
+    table.finish_loading(OrderedDict({"transformed" : (min, []), "transformed-edges" : (min, [])}), found_optimal_sol)
+    table.print(out_filename)
+
+
+def print_meta_table(instances_groups: List[InstanceGroup], out_filename, instance_meta_file):
+    """
+    :return:
+    """
+
+
+    cols = []
 
     cols.append(ColGroup("", "descr", [
         ColHeader("$n(G)$", "nodes", lambda nodes: mean(nodes) if len(nodes) != 0 else 0,
@@ -633,14 +725,6 @@ def print_result_kernel_table(algo_results: List[AlgoResults], instances_groups:
 
     inst_to_group = {inst: group.key for group in instances_groups for inst in group.instances}
 
-    for algo_result in algo_results:
-        for inst, result in algo_result.data.items():
-            if inst in inst_to_group.keys():
-                group = inst_to_group[inst]
-                for r in result:
-                    table.load_data_in_cell(r, "", group, inst, algo_result.label)
-
-
     with open(instance_meta_file, "r") as meta_file:
         for line in meta_file:
             meta = line.split(",")
@@ -649,17 +733,12 @@ def print_result_kernel_table(algo_results: List[AlgoResults], instances_groups:
 
 
     def found_optimal_sol(cols_in_table, row_key, get_col_val):
-        for algo_result in algo_results:
-            if algo_result.label != "2pack":
-                kernel_nodes = get_col_val(algo_result.label, "transformed")
-                if kernel_nodes == 0:
-                    return True
-
         return False
 
 
-    table.finish_loading(OrderedDict({"transformed" : (DataTable.BestRowValue.MIN, []), "transformed-edges" : (DataTable.BestRowValue.MIN, [])}), found_optimal_sol)
+    table.finish_loading(OrderedDict({}), found_optimal_sol)
     table.print(out_filename)
+
 
 
 def print_result_summary_kernel_table(algo_results: List[AlgoResults], instances_groups: List[InstanceGroup], out_filename, instance_meta_file):
@@ -685,9 +764,9 @@ def print_result_summary_kernel_table(algo_results: List[AlgoResults], instances
         ColHeader("$m(\\tilde{G})$", "transformed-edges", lambda edges: mean(edges) if len(edges) != 0 else 0,
                   lambda data, filename: data["transformed-edges"], round, True),
         ColHeader("$t_{\\texttt{t}}$~[ms]", "transform-time", lambda tt: mean(tt) if len(tt) != 0 else 0,
-                  lambda data, filename: data["transform-time"]*1000, # s to micro ms
+                  lambda data, filename: sec_to_ms(data["transform-time"]), # s to micro ms
                   lambda x: '{:.2f}'.format(round(x, 2)), True)#,
-        #ColHeader("$t_{\\texttt{KaMIS}}~[$\mu$s]$", "kamis-time", lambda kt: geometric_mean(kt) if len(kt) != 0 and 0 not in kt else 0,
+        #ColHeader("$t_{\\texttt{solve}}~[$\mu$s]$", "kamis-time", lambda kt: geometric_mean(kt) if len(kt) != 0 and 0 not in kt else 0,
         #          lambda data, filename: data.time_kamis*1000000, # s to micro s
         #          lambda x: '{:.2f}'.format(round(x, 2)), True)
     ]) for algo_result in algo_results]
@@ -719,7 +798,6 @@ def print_result_summary_kernel_table(algo_results: List[AlgoResults], instances
             if meta[0] in inst_to_group.keys():
                 table.load_data_in_cell({"nodes": int(meta[1]), "edges": int(meta[2])}, "", "classes", inst_to_group[meta[0]], "descr")
 
-    time_limit = 36000000 # ms
 
     def found_optimal_sol(cols_in_table, get_col_val):
         for algo_result in algo_results:
@@ -774,13 +852,13 @@ print_result_summary_kernel_table(
             data={}
         ),
         AlgoResults(
-            label="red2pack full",
+            label="red2pack elaborated",
             files=get_file_paths(["out/erdos_graphs/on_demand_all_reductions", "out/cactus_graphs/on_demand_all_reductions", "out/social_graphs/on_demand_all_reductions"]),
             get_data=get_data_m2s_bnr,
             data={}
         ),
         AlgoResults(
-            label="red2pack dom+clique",
+            label="red2pack core",
             files=get_file_paths(["out/erdos_graphs/on_demand_domination_clique", "out/cactus_graphs/on_demand_domination_clique", "out/social_graphs/on_demand_domination_clique"]),
             get_data=get_data_m2s_bnr,
             data={}
@@ -832,28 +910,30 @@ print_result_summary_kernel_table(
 '''
 Cactus Graphs
 '''
+'''
 our_algos_cactus = [
-    [
         AlgoResults(
             label="2pack",
             files=get_file_paths(["out/cactus_graphs/no_reductions"]),
             get_data=get_data_m2s_bnr,
-            data={}
+            data={},
+            agg_cols=True
         ),
         AlgoResults(
-            label="red2pack full",
+            label="red2pack elaborated",
             files=get_file_paths(["out/cactus_graphs/on_demand_all_reductions"]),
             get_data=get_data_m2s_bnr,
-            data={}
+            data={},
+            agg_cols=True
         ),
         AlgoResults(
-            label="red2pack dom+clique",
+            label="red2pack core",
             files=get_file_paths(["out/cactus_graphs/on_demand_domination_clique"]),
             get_data=get_data_m2s_bnr,
-            data={}
+            data={},
+            agg_cols=True
         )
     ]
-]
 
 print_result_kernel_table(
     our_algos_cactus,
@@ -863,170 +943,146 @@ print_result_kernel_table(
         instances=sorted(get_instances_from_files(["all_cactus_graphs.txt"]), key=lambda x: int(x.split("cac")[1])),
         print_agg_row=True
     )],
-    "results_cactus_condensed.txt",
-    "all_instances_meta.txt"
+    "results_cactus_graphs_condensed_table.tex"
 )
+'''
 
-print_result_time_performance(
-    our_algos_cactus +
+####################################################################
+'''
+SOA: Graphs
+'''
+our_algos_soa=[
+        AlgoResults(
+            label="red2pack elaborated",
+            files=get_file_paths(["out/erdos_graphs/on_demand_all_reductions", "out/cactus_graphs/on_demand_all_reductions"]),
+            get_data=get_data_m2s_bnr,
+            data={},
+            agg_cols=True
+        )
+        #,
+        #AlgoResults(
+        #    label="2pack",
+        #    files=get_file_paths(["out/erdos_graphs/no_reductions"]),
+        #    get_data=get_data_m2s_bnr,
+        #    data={},
+        #    agg_cols=True
+        #),
+        #AlgoResults(
+        #    label="red2pack core",
+        #    files=get_file_paths(["out/erdos_graphs/on_demand_domination_clique"]),
+        #    get_data=get_data_m2s_bnr,
+        #    data={},
+        #    agg_cols=True
+        #)
+    ]
+
+erdos_instances=sorted(get_instances_from_files(["sample_erdos_graphs.txt"]), key=lambda x: (int(x.split("aGraphErdos")[1].split("-")[0]), int(x.split("aGraphErdos")[1].split("-")[1])))
+
+print_erdos_gen2pack()
+
+print_result_sol_time_table(
+    our_algos_soa +
     [
         AlgoResults(
             label="gen2pack",
-            files=get_file_paths(["../../2-packing-Set/out_cactus"]),
+            files=get_file_paths(["../../2-packing-Set/out", "../../2-packing-Set/out_cactus"]),
             get_data=get_data_genetic_algo,
-            data={}
+            data={},
+            agg_cols=True
         )
     ],
     [InstanceGroup(
         name="Cactus",
         key="cactus",
         instances=sorted(get_instances_from_files(["all_cactus_graphs.txt"]), key=lambda x: int(x.split("cac")[1])),
+        print_agg_row=True
+    ),
+    InstanceGroup(
+        name="Erdos",
+        key="erdos",
+        instances=erdos_instances,
+        print_agg_row=True
+    )],
+    "results_soa_graphs_table.tex"
+)
+
+print_result_time_performance(
+    our_algos_soa +
+    [
+        AlgoResults(
+            label="gen2pack",
+            files=get_file_paths(["../../2-packing-Set/out"]),
+            get_data=get_data_genetic_algo,
+            data={},
+            agg_cols=True
+        )
+    ],
+    [InstanceGroup(
+        name="Erdos",
+        key="erdos",
+        instances=erdos_instances,
         print_agg_row=True
     )]
 )
 
-print_result_sol_time_table(
-    our_algos_cactus +
+print_result_time_performance(
+    our_algos_soa +
     [
         AlgoResults(
             label="gen2pack",
             files=get_file_paths(["../../2-packing-Set/out_cactus"]),
             get_data=get_data_genetic_algo,
-            data={}
+            data={},
+            agg_cols=True
         )
     ],
     [InstanceGroup(
         name="Cactus",
         key="cactus",
-        instances=sorted(get_instances_from_files(["all_cactus_graphs.txt"]), key=lambda x: int(x.split("cac")[1])),
+        instances=get_instances_from_files(["all_cactus_graphs.txt"]),
+        print_agg_row=True
+    )]
+)
+
+'''
+print_result_kernel_table(
+    our_algos_erdos,
+    [InstanceGroup(
+        name="Erdos",
+        key="erdos",
+        instances=erdos_instances,
         print_agg_row=True
     )],
-    "results_cactus.txt"
-)
-
-####################################################################
-'''
-Erdos Graphs
-'''
-
-'''
-our_algos_erdos=[
-        AlgoResults(
-            label="red2pack full",
-            files=get_file_paths(["out/erdos_graphs/on_demand_all_reductions"]),
-            get_data=get_data_m2s_bnr,
-            data={},
-            agg_cols=True
-        ),
-        AlgoResults(
-            label="2pack",
-            files=get_file_paths(["out/erdos_graphs/no_reductions"]),
-            get_data=get_data_m2s_bnr,
-            data={},
-            agg_cols=True
-        ),
-        AlgoResults(
-            label="red2pack dom+clique",
-            files=get_file_paths(["out/erdos_graphs/on_demand_domination_clique"]),
-            get_data=get_data_m2s_bnr,
-            data={},
-            agg_cols=True
-        )
-    ]
-
-print_result_sol_time_table_erdos(
-    our_algos_erdos +
-    [
-        AlgoResults(
-            label="gen2pack",
-            files=get_file_paths(["../../2-packing-Set/out"]),
-            get_data=get_data_genetic_algo,
-            data={},
-            agg_cols=False
-        )
-    ],
-    InstanceGroup(
-        name="Erdos",
-        key="erdos",
-        instances=get_instances_from_files(["all_erdos_graphs.txt"]),
-        print_agg_row=True
-    ),
-    "results_erdos.txt"
-)
-
-print_result_time_performance(
-    our_algos_erdos +
-    [
-        AlgoResults(
-            label="gen2pack",
-            files=get_file_paths(["../../2-packing-Set/out"]),
-            get_data=get_data_genetic_algo,
-            data={},
-            agg_cols=True
-        )
-    ],
-    InstanceGroup(
-        name="Erdos",
-        key="erdos",
-        instances=get_instances_from_files(["all_erdos_graphs.txt"]),
-        print_agg_row=True
-    )
-)
-
-print_result_kernel_table_erdos(
-    our_algos_erdos,
-    InstanceGroup(
-        name="Erdos",
-        key="erdos",
-        instances=get_instances_from_files(["all_erdos_graphs.txt"]),
-        print_agg_row=True
-    ),
-    "results_erdos.txt"
+    "results_erdos_graphs_condensed_table.tex"
 )
 '''
 
 ####################################################################
 '''
-Social Graphs
+Comparison for our Algorithms on Social+Cluster+Planar
 '''
-social_instances=sorted([
-            "as-22july06",
-            "citationCiteseer",
-            "coAuthorsCiteseer",
-            "coAuthorsDBLP",
-            "coPapersCiteseer",
-            "coPapersDBLP",
-            "email-EuAll",
-            "enron",
-            "loc-brightkite_edges",
-            "loc-gowalla_edges",
-            "PGPgiantcompo",
-            "web-Google",
-            "wordassociation-2011",
-            "amazon-2008", 
-            "cnr-2000", 
-            "p2p-Gnutella04", 
-            "soc-Slashdot0902"
-        ])
+
+small_social_instances=sorted(get_instances_from_files(["small_new_social_instances.txt"]))
+large_social_instances=sorted(get_instances_from_files(["large_new_social_instances.txt"]))
 
 our_social_algo_results = [
     AlgoResults(
-        label="red2pack full",
-        files=get_file_paths(["out/social_graphs/on_demand_all_reductions"]),
+        label="red2pack elaborated",
+        files=get_file_paths(["out/social_graphs/on_demand_all_reductions", "out/clustering_graphs/on_demand_all_reductions", "out/planar_graphs/on_demand_all_reductions"]),
         get_data=get_data_m2s_bnr,
         data={},
         agg_cols=True
     ),
     AlgoResults(
         label="2pack",
-        files=get_file_paths(["out/social_graphs/no_reductions"]),
+        files=get_file_paths(["out/social_graphs/no_reductions", "out/clustering_graphs/no_reductions", "out/planar_graphs/no_reductions"]),
         get_data=get_data_m2s_bnr,
         data={},
         agg_cols=True
     ),
     AlgoResults(
-        label="red2pack dom+clique",
-        files=get_file_paths(["out/social_graphs/on_demand_domination_clique"]),
+        label="red2pack core",
+        files=get_file_paths(["out/social_graphs/on_demand_domination_clique", "out/clustering_graphs/on_demand_domination_clique", "out/planar_graphs/on_demand_domination_clique"]),
         get_data=get_data_m2s_bnr,
         data={},
         agg_cols=True
@@ -1035,43 +1091,113 @@ our_social_algo_results = [
 
 print_result_kernel_table(our_social_algo_results, [
     InstanceGroup(
-        name="Social",
-        key="social",
-        instances=social_instances,
+        name="Small Social",
+        key="small-social",
+        instances=small_social_instances,
         print_agg_row=True
-    )],
-    "results_social_condensed.txt")
+    ),
+    InstanceGroup(
+        name="Large Social",
+        key="large-social",
+        instances=large_social_instances,
+        print_agg_row=True
+    ),
+    InstanceGroup(
+        name="Planar",
+        key="planar",
+        instances=sorted(get_instances_from_files(["all_planar_graphs.txt"]), key=lambda x: int(x.split("Outerplanar")[1])),
+        print_agg_row=True
+    )
+    ],
+    "results_first_graphs_condensed_table.tex"
+    )
 
 
 print_result_sol_time_table(our_social_algo_results+
-    AlgoResults(
-        label="gen2pack",
-        files=get_file_paths(["../../2-packing-Set/out_social"]),
-        get_data=get_data_genetic_algo,
-        data={}
-    ), [
+    [
+        #AlgoResults(
+        #    label="gen2pack",
+        #    files=get_file_paths(["../../2-packing-Set/out_social", "../../2-packing-Set/out_clustering"]),
+        #    get_data=get_data_genetic_algo,
+        #    data={},
+        #    agg_cols=False
+        #)
+    ], [
     InstanceGroup(
-        name="Social",
-        key="social",
-        instances=social_instances,
-        print_agg_row=False
-    )],
-      "results_social.txt")
-
-print_result_time_performance(our_social_algo_results, [
+        name="Small Social",
+        key="small-social",
+        instances=small_social_instances,
+        print_agg_row=True
+    ),
     InstanceGroup(
-        name="Social",
-        key="social",
-        instances=social_instances,
+        name="Large Social",
+        key="large-social",
+        instances=large_social_instances,
+        print_agg_row=True
+    ),
+    InstanceGroup(
+        name="Planar",
+        key="planar",
+        instances=sorted(get_instances_from_files(["all_planar_graphs.txt"]), key=lambda x: int(x.split("Outerplanar")[1])),
         print_agg_row=True
     )
-])
+    ],
+      "results_first_graphs_table.tex")
+
+print_result_time_performance(our_social_algo_results+
+    [
+        #AlgoResults(
+        #    label="gen2pack",
+        #    files=get_file_paths(["../../2-packing-Set/out_social", "../../2-packing-Set/out_clustering"]),
+        #    get_data=get_data_genetic_algo,
+        #    data={},
+        #    agg_cols=False
+        #)
+    ], [
+    InstanceGroup(
+        name="Social",
+        key="social",
+        instances=small_social_instances+large_social_instances,
+        print_agg_row=True
+    )])
+
+print_meta_table([
+    InstanceGroup(
+        name="Cactus",
+        key="cactus",
+        instances=sorted(get_instances_from_files(["all_cactus_graphs.txt"]), key=lambda x: int(x.split("cac")[1])),
+        print_agg_row=True
+    ),
+    InstanceGroup(
+        name="Erdos",
+        key="erdos",
+        instances=erdos_instances,
+        print_agg_row=True
+    ),
+    InstanceGroup(
+        name="Small Social",
+        key="small-social",
+        instances=small_social_instances,
+        print_agg_row=True
+    ),
+    InstanceGroup(
+        name="Large Social",
+        key="large-social",
+        instances=large_social_instances,
+        print_agg_row=True
+    ),
+    InstanceGroup(
+        name="Planar",
+        key="planar",
+        instances=sorted(get_instances_from_files(["all_planar_graphs.txt"]), key=lambda x: int(x.split("Outerplanar")[1])),
+        print_agg_row=True
+    )], "meta_table.tex", "all_instances_meta.txt")
 
 ####################################################################
 '''
 Cluster Graphs
 '''
-
+'''
 cluster_instances = sorted(["adjnoun",
                 "astro-ph",
                 "caidaRouterLevel",
@@ -1088,7 +1214,6 @@ cluster_instances = sorted(["adjnoun",
                 "jazz",
                 "lesmis",
                 "netscience",
-                "PGPgiantcompo",
                 "polbooks",
                 "power",
                 "road_central",
@@ -1100,7 +1225,7 @@ cluster_instances = sorted(["adjnoun",
 
 our_clustering_algo_results = [
     AlgoResults(
-        label="red2pack full",
+        label="red2pack elaborated",
         files=get_file_paths(["out/clustering_graphs/on_demand_all_reductions"]),
         get_data=get_data_m2s_bnr,
         data={},
@@ -1115,7 +1240,7 @@ our_clustering_algo_results = [
         agg_cols=True
     ),
     AlgoResults(
-        label="red2pack dom+clique",
+        label="red2pack core",
         files=get_file_paths(["out/clustering_graphs/on_demand_domination_clique"]),
         get_data=get_data_m2s_bnr,
         data={},
@@ -1128,16 +1253,17 @@ print_result_sol_time_table(our_clustering_algo_results+
             label="gen2pack",
             files=get_file_paths(["../../2-packing-Set/out_clustering"]),
             get_data=get_data_genetic_algo,
-            data={}
+            data={},
+            agg_cols=False
         )
         ], [
     InstanceGroup(
         name="Cluster",
         key="cluster",
         instances=cluster_instances,
-        print_agg_row=False
+        print_agg_row=True
     ) 
-], "results_cluster.txt")
+], "results_cluster_graphs_table.tex")
 
 print_result_time_performance(our_clustering_algo_results + 
         [AlgoResults(
@@ -1147,14 +1273,14 @@ print_result_time_performance(our_clustering_algo_results +
             data={},
             agg_cols=False
         )
-        ], [
-    InstanceGroup(
-        name="Clustering",
-        key="clustering",
-        instnaces=cluster_instances,
+        ],
+    [InstanceGroup(
+        name="Cluster",
+        key="cluster",
+        instances=cluster_instances,
         print_agg_row=False
-    ),
-])
+    )]
+)
 
 print_result_kernel_table(our_clustering_algo_results, [
     InstanceGroup(
@@ -1163,30 +1289,34 @@ print_result_kernel_table(our_clustering_algo_results, [
         instances=cluster_instances,
         print_agg_row=True
     ) 
-], "results_clustering_condensed.txt", "all_instances_meta.txt")
-
+], "results_cluster_graphs_condensed_table.tex", "all_instances_meta.txt")
+'''
 ####################################################################
 '''
 Planar Graphs
 '''
+'''
 our_algos_planar =  [
         AlgoResults(
-            label="red2pack full",
+            label="red2pack elaborated",
             files=get_file_paths(["out/planar_graphs/on_demand_all_reductions"]),
             get_data=get_data_m2s_bnr,
-            data={}
+            data={},
+            agg_cols=True
         ),
         AlgoResults(
             label="2pack",
             files=get_file_paths(["out/planar_graphs/no_reductions"]),
             get_data=get_data_m2s_bnr,
-            data={}
+            data={},
+            agg_cols=True
         ),
         AlgoResults(
-            label="red2pack dom+clique",
+            label="red2pack core",
             files=get_file_paths(["out/planar_graphs/on_demand_domination_clique"]),
             get_data=get_data_m2s_bnr,
-            data={}
+            data={},
+            agg_cols=True
         )
     ]
 
@@ -1198,12 +1328,20 @@ print_result_kernel_table(
         instances=sorted(get_instances_from_files(["all_planar_graphs.txt"]), key=lambda x: int(x.split("Outerplanar")[1])),
         print_agg_row=True
     )],
-    "results_planar_condensed.txt",
+    "results_planar_graphs_condensed_table.tex",
     "all_instances_meta.txt"
 )
 
 print_result_time_performance(
-    our_algos_planar,
+    our_algos_planar+
+    [AlgoResults(
+            label="gen2pack",
+            files=get_file_paths(["../../2-packing-Set/out_planar"]),
+            get_data=get_data_genetic_algo,
+            data={},
+            agg_cols=False
+        )
+    ],
     [InstanceGroup(
         name="Planar",
         key="planar",
@@ -1213,12 +1351,22 @@ print_result_time_performance(
 )
 
 print_result_sol_time_table(
-    our_algos_planar,
+    our_algos_planar+
+    [AlgoResults(
+            label="gen2pack",
+            files=get_file_paths(["../../2-packing-Set/out_planar"]),
+            get_data=get_data_genetic_algo,
+            data={},
+            agg_cols=False
+        )
+    ],
     [InstanceGroup(
         name="Planar",
         key="planar",
         instances=sorted(get_instances_from_files(["all_planar_graphs.txt"]), key=lambda x: int(x.split("Outerplanar")[1])),
         print_agg_row=True
     )],
-    "results_planar.txt"
+    "results_planar_graphs_table.tex"
 )
+'''
+

@@ -9,7 +9,7 @@ import os
 
 class ColHeader:
     def __init__(self, name: str, key: str, aggregator: Callable[[list], any], query_value: Callable[[any], any],
-                 print_value: Callable[[any], any], aggregate_col=True, num_print=True):
+            print_value: Callable[[any], any], aggregate_col=True, num_print=True, exclude=lambda x: False):
         """
         :param name:
         :param key:
@@ -24,6 +24,7 @@ class ColHeader:
         self.print_value = print_value
         self.aggregate_col = aggregate_col
         self.num_print = num_print
+        self.exclude = exclude
 
 
 class ColGroup:
@@ -66,9 +67,10 @@ class Cell:
 class DataTable:
     class BestRowValue(Enum):
         MIN = 1,
-        MAX = 2
+        MAX = 2,
+        EXTRA = 3
 
-    def __init__(self, cols: List[ColGroup], rows: List[RowGroup]):
+    def __init__(self, cols: List[ColGroup], rows: List[RowGroup], do_overall_agg_row=True):
         self.col_keys = [(col_group.key, col_key) for col_group in cols for col_key in col_group.col_keys]
         self.col_group_keys = [col_group.key for col_group in cols]
         # self.col_keys_set = {col_key for col_group in cols for col_key in col_group.col_keys}
@@ -83,6 +85,9 @@ class DataTable:
 
         # aggregation rows (one per row group)
         self.agg_rows = [[Cell([], 0.0, False) for _ in range(self.n_cols)] for _ in range(len(self.rows))]
+        self.overall_agg_row = [Cell([], 0.0, False) for _ in range(self.n_cols)]
+        self.do_overall_agg_row = do_overall_agg_row
+
 
     def load_from_log(self, storage: str, get_col_group_key: Callable[[any, str], str],
                       get_row_key: Callable[[any, str], str], get_row_group_key: Callable[[any, str], str]):
@@ -102,8 +107,8 @@ class DataTable:
                     row_key = get_row_key(lines, source_filename)
                     row_group_key = get_row_group_key(lines, source_filename)
                     col_group_key = get_col_group_key(lines, source_filename)
-                    print(row_key)
-                    print(col_group_key)
+                    #print(row_key)
+                    #print(col_group_key)
                     # print(self.col_keys)
                     # print(self.cols.keys())
 
@@ -130,8 +135,8 @@ class DataTable:
 
                     row_key = get_row_key(source_j, source_filename)
                     col_group_key = get_col_group_key(source_j, source_filename)
-                    print(row_key)
-                    print(col_group_key)
+                    #print(row_key)
+                    #print(col_group_key)
                     # print(self.col_keys)
                     # print(self.cols.keys())
 
@@ -178,12 +183,13 @@ class DataTable:
         self.compute_best(match_best)
         self.mark_rows(is_row_marked)
 
+
     def agg_values_in_cells(self):
         cells_col_idx = 0
         for col_group in self.cols.values():
             for col in col_group.cols.values():
                 for row_idx in range(self.n_rows):
-                    print(self.cells[cells_col_idx][row_idx].values)
+                    #print(self.cells[cells_col_idx][row_idx].values)
                     cell = self.cells[cells_col_idx][row_idx]
                     if len(cell.values) > 0:
                         try:
@@ -211,22 +217,28 @@ class DataTable:
                     return False
             return True
 
+        def is_best_for_in_overall_agg_row(cmp_col_keys, col_group_key):
+            for cmp_col_key in cmp_col_keys:
+                if not self.overall_agg_row[self.get_col_idx(col_group_key, cmp_col_key)].is_best:
+                    return False
+            return True
+
 
         POS_COL_KEY_IN_TUPEL = 1
         POS_ROW_KEY_IN_TUPEL = 1
-        for match_col_key, (best_type, depends_on) in match_best.items():
+        for match_col_key, (get_best, depends_on) in match_best.items():
             for row_idx in range(self.n_rows):
-                cells = [self.cells[col_idx][row_idx] for col_idx in range(self.n_cols) if
+                cells = [(self.cells[col_idx][row_idx], self.cols[self.col_keys[col_idx][0]].cols[match_col_key].exclude) for col_idx in range(self.n_cols) if
                          self.col_keys[col_idx][POS_COL_KEY_IN_TUPEL] == match_col_key and
                          is_best_for(depends_on, row_idx, self.col_keys[col_idx][0])]
-                values = [cell.value for cell in cells if cell.value != None]
+                values = [cell.value for cell, exclude in cells if cell.value != None and not exclude(cell.value)]
 
                 if len(values) == 0:
                     continue
 
-                best = self.get_best(values, best_type)
+                best = get_best(values)
 
-                for cell in cells:
+                for cell,_ in cells:
                     cell.is_best = cell.value == best
             # best in agg_row
             for row_group_idx in range(len(self.rows)):
@@ -238,7 +250,20 @@ class DataTable:
                 if len(cells) > 0:
                     values = [cell.value for cell in cells]
                     print("best agg values" + str(values))
-                    best = self.get_best(values, best_type)
+                    best = get_best(values)
+                    for cell in cells:
+                        cell.is_best = cell.value == best
+
+            if self.do_overall_agg_row:
+                cells = [self.overall_agg_row[col_idx] for col_idx in range(self.n_cols) if
+                             self.col_keys[col_idx][POS_COL_KEY_IN_TUPEL] == match_col_key and
+                             self.cols[self.col_keys[col_idx][0]].cols[
+                                 self.col_keys[col_idx][POS_COL_KEY_IN_TUPEL]].aggregate_col and
+                             is_best_for_in_overall_agg_row(depends_on, self.col_keys[col_idx][0])]
+                if len(cells) > 0:
+                    values = [cell.value for cell in cells]
+                    print("best agg overall values" + str(values))
+                    best = get_best(values)
                     for cell in cells:
                         cell.is_best = cell.value == best
 
@@ -250,22 +275,14 @@ class DataTable:
             if is_marked(self.col_keys, self.row_keys[row_idx][1], get_col_value):
                 self.rows[self.row_keys[row_idx][0]].rows[self.row_keys[row_idx][POS_ROW_KEY_IN_TUPEL]].mark = True
 
-    def get_best(self, values: List[any], best_type: BestRowValue):
-        best = 0
-        if best_type == DataTable.BestRowValue.MAX:
-            best = max(values)
-        elif best_type == DataTable.BestRowValue.MIN:
-            best = min(values)
-
-        return best
-
     def aggregate_over_cols(self):
 
         def row_is_agg(row_idx, col_key):
             """check if row is considered in all aggregations for col_key"""
             for col_group_key in self.col_group_keys:
                 if col_key in self.cols[col_group_key].col_keys and self.cols[col_group_key].cols[col_key].aggregate_col:
-                    if self.cells[self.get_col_idx(col_group_key, col_key)][row_idx].value == None:
+                    val = self.cells[self.get_col_idx(col_group_key, col_key)][row_idx].value 
+                    if val == None or self.cols[col_group_key].cols[col_key].exclude(val):
                         return False
             return True
 
@@ -276,20 +293,38 @@ class DataTable:
             for col_idx in range(self.n_cols):
                 col_group_key, col_key = self.col_keys[col_idx]
                 col = self.cols[col_group_key].cols[col_key]
+                self.agg_rows[row_group_idx][col_idx].value = None
                 if col.aggregate_col:
                     first_row_idx = self.get_row_idx(row_group_key, self.rows[row_group_key].row_keys[0])
                     values = [self.cells[col_idx][i].value for i in
                               range(first_row_idx, first_row_idx + len(self.rows[row_group_key].rows)) if
                               row_is_agg(i, col_key)]
-                    if len(values) == 0:
-                        self.agg_rows[row_group_idx][col_idx].value = None
-                    else:
+                    if self.do_overall_agg_row:
+                        self.overall_agg_row[col_idx].values.extend(values)
+
+                    if len(values) > 0:
                         try:
                             self.agg_rows[row_group_idx][col_idx].value = col.aggregator(values)
                         except:
                             print("Couldn't aggregate values of col (*,({},{}))".format(
                                 col_group_key, col_key))
                             quit()
+
+        if self.do_overall_agg_row:
+            for col_idx in range(self.n_cols):
+                values = self.overall_agg_row[col_idx].values
+                if len(values) == 0:
+                    self.overall_agg_row[col_idx].value = None
+                else:
+                    col_group_key, col_key = self.col_keys[col_idx]
+                    try:
+                        col = self.cols[col_group_key].cols[col_key]
+                        self.overall_agg_row[col_idx].value = col.aggregator(values)
+                    except:
+                        print("Couldn't aggregate over all values (all row groups) of col (*,({},{}))".format(
+                                col_group_key, col_key))
+                        quit()
+
 
     def get_row_idx(self, row_group_key: str, row_key: str):
         return self.row_keys.index((row_group_key, row_key))
@@ -302,16 +337,8 @@ class DataTable:
             # first line
             line = "\\begin{tabular}{l"
             line += "".join(["c" for i in range(self.n_cols)])
-            line += "} \n \hline \n"
-
-            # first line table
-            line += "\mc{1}{l|}{graphs}"
-            for col_group_key, col_key in self.col_keys:
-                sep = ""
-                if self.cols[col_group_key].col_keys[-1] == col_key and self.col_group_keys[-1] != col_group_key:
-                    sep = "|"
-                line += " & \mc{1}{c" + sep + "}{" + self.cols[col_group_key].cols[col_key].name + "}"
-            line += "\\\\ \n \hline \n"
+            line += "} \n \\toprule \n"
+ 
             file.write(line)
 
             print_agg_row = False
@@ -325,18 +352,29 @@ class DataTable:
             row_group_idx = 0
             for row_group_key in self.row_group_keys:
 
-                # print second line
-                line = "\n \hline \n \hline \n"
-                line += "\mc{1}{l|}{" + self.rows[row_group_key].name + "}"
+                # row group description
+                line = "\mc{%s}{c}{%s} \\\\ \n \\midrule \n" % (self.n_cols+1, self.rows[row_group_key].name)
+
+                # second line: col group descr
+                line += "\mc{1}{l}{} "
                 for col_group_key in self.col_group_keys:
-                    sep = ""
-                    if self.col_group_keys[-1] != col_group_key:
-                        sep = "|"
-                    line += " & \mc{" + str(len(self.cols[col_group_key])) + "}{|c" + sep + "}{" + self.cols[
-                        col_group_key].name + "} "
+                    line += " & \mc{%s}{c}{%s} " % (len(self.cols[col_group_key]), self.cols[col_group_key].name)
                 line += "\\\\ \n"
+
+                # mid rule for col groups
+                start_pos=1
+                for col_group_key in self.col_group_keys:
+                    line += "\cmidrule(r){%s-%s}" % (start_pos+1,start_pos+len(self.cols[col_group_key]))
+                    start_pos+=len(self.cols[col_group_key])
+                line += "\n"
+
+                # third line table: col descr
+                line += "\mc{1}{l|}{\\thead[l]{Graphs}}"
+                for col_group_key, col_key in self.col_keys:
+                    line += " & \mc{1}{c}{\\thead[c]{" + self.cols[col_group_key].cols[col_key].name + "}}"
+                line += "\\\\ \n \hline \n"
+
                 file.write(line)
-                file.write("\hline\n")
 
                 for row_key in self.rows[row_group_key].row_keys:
 
@@ -352,21 +390,19 @@ class DataTable:
                         print_value = self.cols[col_group_key].cols[col_key].print_value
                         num_print = self.cols[col_group_key].cols[col_key].num_print
 
-                        sep = ""
-                        if (col_group_key, col_key) != self.col_keys[-1]:
-                            sep = "|"
-
-                        if cell.value == None and not num_print:
-                            line += ' & \mc{1}{r' + sep + '}{-}'
-
-                        elif cell.is_best:
-                            value_str = str(print_value(cell.value)) if not num_print else '\\numprint{' + str(
-                                print_value(cell.value)) + '}'
-                            line += ' & \mc{1}{r' + sep + '}{\\textbf{' + value_str + '}}'
+                        if cell.value == None and num_print:
+                            line += ' & \mc{1}{r}{-}'
                         else:
-                            value_str = str(print_value(cell.value)) if not num_print else '\\numprint{' + str(
-                                print_value(cell.value)) + '}'
-                            line += ' & \mc{1}{r' + sep + '}{' + value_str + '}'
+
+                            value_str =  ""
+                            if not num_print:
+                                value_str = str(print_value(cell.value))
+                            else:
+                                value_str = '\\numprint{' + str(print_value(cell.value)) + '}'
+                            if cell.is_best:
+                                line += ' & \mc{1}{r}{\\textbf{' + value_str + '}}'
+                            else:
+                                line += ' & \mc{1}{r}{' + value_str + '}'
 
                         cells_col_idx += 1
 
@@ -379,48 +415,76 @@ class DataTable:
                 # file.write("\hline\n")
 
                 if print_agg_row and self.rows[row_group_key].print_agg_row:
-                    line = "\n \hline \n \hline \n"
-                    line += "{overall}"
+                    line = "\n \hline \n"
+                    line += "\mc{1}{l|}{Overall %s}" % self.rows[row_group_key].name
                     for col_idx in range(self.n_cols):
                         col_group_key, col_key = self.col_keys[col_idx]
                         col = self.cols[col_group_key].cols[col_key]
 
-                        sep = ""
-                        if self.col_group_keys[-1] != col_group_key:
-                            sep = "|"
-
                         if col.aggregate_col:
                             print_value = col.print_value
+                            num_print = col.num_print
                             cell = self.agg_rows[row_group_idx][col_idx]
 
                             if cell.value == None:
-                                line += ' & \mc{1}{|r' + sep + '}{-}'
-                            elif cell.is_best:
-                                value_str = str(print_value(cell.value)) if not num_print else '\\numprint{' + str(
-                                print_value(cell.value)) + '}'
-                                line += ' & \mc{1}{|r' + sep + '}{\\textbf{' + value_str + '}}'
+                                line += ' & \mc{1}{r}{-}'
                             else:
-                                value_str = str(print_value(cell.value)) if not num_print else '\\numprint{' + str(
-                                print_value(cell.value)) + '}'
-                                line += ' & \mc{1}{|r' + sep + '}{' + value_str + '}'
+                                value_str =  ""
+                                if not num_print:
+                                    value_str = str(print_value(cell.value))
+                                else:
+                                    value_str = '\\numprint{' + str(print_value(cell.value)) + '}'
+                                if cell.is_best:
+                                    line += ' & \mc{1}{r}{\\textbf{' + value_str + '}}'
+                                else:
+                                    line += ' & \mc{1}{r}{' + value_str + '}'
                         else:
-                            line += " & \mc{1}{|r" + sep + "}{-}"
+                            line += " & \mc{1}{r}{-}"
                     line += "\\\\ \n"
                     file.write(line)
 
-                file.write("\hline\n")
-                file.write("\hline\n")
+                file.write("\\bottomrule\n")
 
-                row_group_idx = + 1
+                row_group_idx += 1
+
+            if self.do_overall_agg_row:
+
+                line = "\\bottomrule\n"
+                line += "\mc{1}{l}{Overall}"
+                for col_idx in range(self.n_cols):
+                    col_group_key, col_key = self.col_keys[col_idx]
+                    col = self.cols[col_group_key].cols[col_key]
+
+                    if col.aggregate_col:
+                        print_value = col.print_value
+                        num_print = col.num_print
+                        cell = self.overall_agg_row[col_idx]
+
+                        if cell.value == None:
+                            line += ' & \mc{1}{r}{-}'
+                        else:
+                            value_str =  ""
+                            if not num_print:
+                                value_str = str(print_value(cell.value))
+                            else:
+                                value_str = '\\numprint{' + str(print_value(cell.value)) + '}'
+                            if cell.is_best:
+                                line += ' & \mc{1}{r}{\\textbf{' + value_str + '}}'
+                            else:
+                                line += ' & \mc{1}{r}{' + value_str + '}'
+                    else:
+                        line += " & \mc{1}{r}{-}"
+                line += "\\\\ \n \\bottomrule \n"
+                file.write(line)
 
             file.write("\n\end{tabular} \n")
 
-    def print_performance(self, title:str, filename: str, col_group_keys: list, col_key: str, best, compare, row_group_key, min_scale=0.0,
-                              max_scale=1.0, ticks=0.01, y_label="$performance(\\\\tau)~[\\\\%]$", x_label="$\\\\tau$", x_log_scale=False):
-        best_values = [best([self.cells[self.get_col_idx(col_group_key, col_key)][
-                                self.get_row_idx(row_group_key, row_key)].value for col_group_key in
+    def print_performance(self, title:str, filename: str, col_group_keys: list, col_key: str, best, row_group_key, min_scale=0.0,
+            max_scale=1.0, ticks=0.01, y_label="$performance(\\\\tau)~[\\\\%]$", x_label="$\\\\tau$", x_log_scale=False, exclude=lambda x: False, get_val=lambda val: val):
+        best_values = [best([get_val(self.cells[self.get_col_idx(col_group_key, col_key)][
+                                self.get_row_idx(row_group_key, row_key)].value) for col_group_key in
                             col_group_keys if self.cells[self.get_col_idx(col_group_key, col_key)][
-                                self.get_row_idx(row_group_key, row_key)].value is not None]) for row_key in self.rows[row_group_key].row_keys]
+                                self.get_row_idx(row_group_key, row_key)].value is not None and not exclude(self.cells[self.get_col_idx(col_group_key, col_key)][self.get_row_idx(row_group_key, row_key)].value)]) for row_key in self.rows[row_group_key].row_keys]
         best_by_row_key = dict(zip(self.rows[row_group_key].row_keys, best_values))
 
 
@@ -429,20 +493,18 @@ class DataTable:
             taus = []
             for row_key in self.rows[row_group_key].row_keys:
                 val = self.cells[self.get_col_idx(col_group_key, col_key)][self.get_row_idx(row_group_key, row_key)].value
-                if val is not None:
-                    tau = val / best_by_row_key[row_key]
+                if val is not None and not exclude(val):
+                    tau = get_val(val) / best_by_row_key[row_key]
                     taus.append(tau)
             is_reversed =  True if max_scale - min_scale < 0 else False
             taus = sorted(taus, reverse=is_reversed)
-            print("taus")
-            print(taus)
 
             csv_filename = '%s_%s.dat' % (filename, col_group_key.replace("\\", ""))
             with open(csv_filename, 'w') as csv_file:
                 csv_writer = csv.writer(csv_file, delimiter=' ',
                                         quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
-                if (not is_reversed and taus[0] > min_scale) or (is_reversed and taus[0] < min_scale):
+                if len(taus) == 0 or (not is_reversed and taus[0] > min_scale) or (is_reversed and taus[0] < min_scale):
                     csv_writer.writerow([min_scale,0.0])
 
                 for idx,tau in enumerate(taus):
@@ -450,7 +512,7 @@ class DataTable:
                         continue
                     csv_writer.writerow([tau,(idx+1)*100/len(count_instances)])
 
-                if (not is_reversed and taus[-1] < max_scale) or (is_reversed and taus[-1] > max_scale):
+                if len(taus)== 0 or (not is_reversed and taus[-1] < max_scale) or (is_reversed and taus[-1] > max_scale):
                     csv_writer.writerow([max_scale,len(taus)*100/len(count_instances)])
 
         file_path = filename + ".tex"
