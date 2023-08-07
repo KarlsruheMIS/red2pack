@@ -690,7 +690,7 @@ def print_result_kernel_table(
                 ColHeader(
                     "$n(\\tilde{G})$",
                     "transformed",
-                    lambda nodes: mean(nodes) if len(nodes) != 0 else 0,
+                    lambda nodes: round(mean(nodes)) if len(nodes) != 0 else 0,
                     lambda data, filename: data.kernel_nodes,
                     round,
                     True,
@@ -698,7 +698,7 @@ def print_result_kernel_table(
                 ColHeader(
                     "$m(\\tilde{G})$",
                     "transformed-edges",
-                    lambda edges: mean(edges) if len(edges) != 0 else 0,
+                    lambda edges: round(mean(edges)) if len(edges) != 0 else 0,
                     lambda data, filename: data.kernel_edges,
                     round,
                     True,
@@ -718,7 +718,7 @@ def print_result_kernel_table(
                     ColHeader(
                         "$m(\\tilde{G})$",
                         "transformed-edges",
-                        lambda edges: mean(edges) if len(edges) != 0 else 0,
+                        lambda edges: round(mean(edges)) if len(edges) != 0 else 0,
                         lambda data, filename: data.kernel_edges,
                         round,
                         True,
