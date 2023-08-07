@@ -323,7 +323,7 @@ def print_size_approx(size, digits=2):
     return "\\numprint{" + ("{:.%sf}" % digits).format(round(size, digits)) + "}"
 
 
-def agg_size(sizes: List[Solution]):
+def agg_size(sizes: List[Solution], digits=0):
     feasible = [s.sol for s in sizes if s.status == SolStatus.FOUND]
 
     if len(feasible) == 0:
@@ -333,10 +333,10 @@ def agg_size(sizes: List[Solution]):
         print("ERROR: 0 in feasible solution sizes.")
         quit()
 
-    return Solution(geometric_mean(feasible), SolStatus.FOUND)
+    return Solution(round(geometric_mean(feasible), digits), SolStatus.FOUND)
 
 
-def agg_time(times: List[Time]):
+def agg_time(times: List[Time], digits=2):
     memout = True
     for t in times:
         if t.status != TimeStatus.MEMOUT:
@@ -348,7 +348,7 @@ def agg_time(times: List[Time]):
     status = TimeStatus.GOOD
     if new_t > time_limit:
         status = TimeStatus.TIMEOUT
-    return Time(new_t, status)
+    return Time(round(new_t, digits), status)
 
 
 def agg_time_mean(times: List[Time]):
@@ -687,29 +687,7 @@ def print_result_kernel_table(
                     lambda data, filename: data.kernel_edges,
                     round,
                     True,
-                ),
-                ColHeader(
-                    "$t_{\\texttt{t}}$~[ms]",
-                    "transform-time",
-                    lambda tt: agg_time_mean(tt),
-                    lambda data, filename: Time(
-                        data.time_transform, TimeStatus.GOOD
-                    ),
-                    lambda x: print_time(x),
-                    True,
-                    False,
-                ),
-                ColHeader(
-                    "$t_{\\texttt{solve}}~[ms]$",
-                    "kamis-time",
-                    lambda kt: agg_time_mean(kt),
-                    lambda data, filename: Time(
-                        data.time_kamis, TimeStatus.GOOD
-                    ),
-                    lambda x: print_time(x),
-                    True,
-                    False,
-                ),
+                )
             ],
         )
         for algo_result in algo_results
@@ -729,29 +707,7 @@ def print_result_kernel_table(
                         lambda data, filename: data.kernel_edges,
                         round,
                         True,
-                    ),
-                    ColHeader(
-                        "$t_{\\texttt{t}}$~[ms]",
-                        "transform-time",
-                        lambda tt: agg_time_mean(tt),
-                        lambda data, filename: Time(
-                            data.time_transform, TimeStatus.GOOD
-                        ),
-                        lambda x: print_time(x),
-                        True,
-                        False,
-                    ),
-                    ColHeader(
-                        "$t_{\\texttt{solve}}~[ms]$",
-                        "kamis-time",
-                        lambda kt: agg_time_mean(kt),
-                        lambda data, filename: Time(
-                            data.time_kamis, TimeStatus.GOOD
-                        ),
-                        lambda x: print_time(x),
-                        True,
-                        False,
-                    ),
+                    )
                 ],
             )
         )
