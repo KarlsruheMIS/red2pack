@@ -377,7 +377,22 @@ def sec_to_ms(time):
         return time
     else:
         return time * 1000
+    
+def best_sol(sols):
+    feasible = [s for s in sols if s.status == SolStatus.FOUND]
 
+    if len(feasible) == 0:
+        return None
+    
+    return Solution(max(s.sol for s in feasible), SolStatus.FOUND)
+
+def best_t(times):
+    feasible = [t for t in times if t.status == TimeStatus.GOOD]
+
+    if len(feasible) == 0:
+        return None
+
+    return Time(min(t.t for t in feasible), TimeStatus.GOOD)
 
 def print_result_time_performance(
     algo_results: List[AlgoResults], instances_groups: List[InstanceGroup]
@@ -651,9 +666,9 @@ def print_result_sol_time_table(
     table.finish_loading(
         OrderedDict(
             {
-                "size": (lambda vals: max([v.sol for v in vals]), []),
-                "time": (lambda vals: min([t.t for t in vals]), ["size"]),
-                "time-proof": (lambda vals: min([t.t for t in vals]), ["size"]),
+                "size": (best_sol, []),
+                "time": (best_t, ["size"]),
+                "time-proof": (best_t, ["size"]),
             }
         ),
         found_optimal_sol,
