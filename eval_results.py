@@ -706,26 +706,7 @@ def print_result_kernel_table(
             ],
         )
         for algo_result in algo_results
-        if algo_result.label != "2pack"
     ]
-
-    if "2pack" in [algo_result.label for algo_result in algo_results]:
-        cols.append(
-            ColGroup(
-                "2pack",
-                "2pack",
-                [
-                    ColHeader(
-                        "$m(\\tilde{G})$",
-                        "transformed-edges",
-                        lambda edges: round(mean(edges)) if len(edges) != 0 else 0,
-                        lambda data, filename: data.kernel_edges,
-                        round,
-                        True,
-                    )
-                ],
-            )
-        )
 
     cols = sorted(cols, key=lambda x: x.name)
 
@@ -1024,8 +1005,8 @@ print_result_time_performance(
     ],
     [
         InstanceGroup(
-            name="Cactus",
-            key="cactus",
+            name="Planar",
+            key="planar",
             instances=planar_instances,
             print_agg_row=True,
         )
