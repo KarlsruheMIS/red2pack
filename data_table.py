@@ -730,7 +730,7 @@ class DataTable:
                 plot_lines.append('set format x "$10^{%L}$"\n')
             plot_lines.append('set xlabel "%s"\n' % x_label)
             plot_lines.append('set ylabel "%s"\n' % y_label)
-            plot_lines.append('set key inside center top horizontal')
+            plot_lines.append('set key inside center top horizontal\n')
             for idx, col_group_key in enumerate(col_group_keys):
                 if idx == 0:
                     plot_lines.append(
