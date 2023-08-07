@@ -719,7 +719,6 @@ class DataTable:
                 'set term epslatex standalone color colortext linewidth 4 size 4,3 font ",10" fontscale 1.0 header "\\\\sffamily"\n'
             )
             plot_lines.append('set output "' + file_path + '"\n')
-            plot_lines.append('set multiplot layout 1, 1')
             plot_lines.append('set title "%s"\n' % title)
             plot_lines.append("set grid xtics ytics\n")
             plot_lines.append(
@@ -731,41 +730,14 @@ class DataTable:
                 plot_lines.append('set format x "$10^{%L}$"\n')
             plot_lines.append('set xlabel "%s"\n' % x_label)
             plot_lines.append('set ylabel "%s"\n' % y_label)
-            for idx, col_group_key in enumerate(col_group_keys):
-                if idx == 0:
-                    plot_lines.append(
-                        'p "%s_%s.dat" using 1:2 with linespoints pt %s lt %s dt %s%s\n'
-                        % (
-                            filename,
-                            col_group_key.replace("\\", "").replace("\n", ""),
-                            self.cols[col_group_keys[idx]].name.replace("\\", "\\\\"),
-                            idx + 1,
-                            idx + 1,
-                            idx + 1,
-                            ",\\" if len(col_group_keys) > 1 else "",
-                        )
-                    )
-                else:
-                    plot_lines.append(
-                        '\t"%s_%s.dat" using 1:2 with linespoints pt %s lt %s dt %s%s\n'
-                        % (
-                            filename,
-                            col_group_key.replace("\\", "").replace("\n", ""),
-                            self.cols[col_group_keys[idx]].name.replace("\\", "\\\\"),
-                            idx + 1,
-                            idx + 1,
-                            idx + 1,
-                            ",\\" if len(col_group_keys) - 1 > idx else "",
-                        )
-                    )
-            plot_lines.append('unset multiplot')
-            plot_lines.append("set output '%s_legend.tex'" % filename)
             plot_lines.append('set key inside center top horizontal')
             for idx, col_group_key in enumerate(col_group_keys):
                 if idx == 0:
                     plot_lines.append(
-                        'p NaN using 1:2 title "%s" with linespoints pt %s lt %s dt %s%s\n'
+                        'p "%s_%s.dat" using 1:2 title "%s" with linespoints pt %s lt %s dt %s%s\n'
                         % (
+                            filename,
+                            col_group_key.replace("\\", "").replace("\n", ""),
                             self.cols[col_group_keys[idx]].name.replace("\\", "\\\\"),
                             idx + 1,
                             idx + 1,
@@ -775,8 +747,10 @@ class DataTable:
                     )
                 else:
                     plot_lines.append(
-                        '\tNaN using 1:2 title "%s" with linespoints pt %s lt %s dt %s%s\n'
+                        '\t"%s_%s.dat" using 1:2 title "%s" with linespoints pt %s lt %s dt %s%s\n'
                         % (
+                            filename,
+                            col_group_key.replace("\\", "").replace("\n", ""),
                             self.cols[col_group_keys[idx]].name.replace("\\", "\\\\"),
                             idx + 1,
                             idx + 1,
@@ -784,7 +758,6 @@ class DataTable:
                             ",\\" if len(col_group_keys) - 1 > idx else "",
                         )
                     )
-            plot_lines.append('unset multiplot')
 
             gnuplot_file.writelines(plot_lines)
 
