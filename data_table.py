@@ -334,7 +334,7 @@ class DataTable:
                 best = get_best(values)
 
                 for cell, _ in cells:
-                    cell.is_best = get_best(cell.value) == best # little bit hacky ... extra function to get value? or await argmax/argmin as get_best
+                    cell.is_best = get_best([cell.value]) == best # little bit hacky ... extra function to get value? or await argmax/argmin as get_best
             # best in agg_row
             for row_group_idx in range(len(self.rows)):
                 cells = [
