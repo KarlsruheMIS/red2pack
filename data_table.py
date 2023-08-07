@@ -561,7 +561,7 @@ class DataTable:
                 # file.write("\hline\n")
 
                 if print_agg_row and self.rows[row_group_key].print_agg_row:
-                    line = "\n \hline \n"
+                    line = "\n \\toprule \n"
                     line += "\mc{1}{l|}{Overall %s}" % self.rows[row_group_key].name
                     for col_idx in range(self.n_cols):
                         col_group_key, col_key = self.col_keys[col_idx]
@@ -595,10 +595,13 @@ class DataTable:
 
                 file.write("\\bottomrule\n")
 
+                if row_group_idx < len(self.row_group_keys)-1:
+                    file.write("\\\\ \n")
+
                 row_group_idx += 1
 
             if self.do_overall_agg_row:
-                line = "\\bottomrule\n"
+                line = "\\toprule\n"
                 line += "\mc{1}{l}{Overall}"
                 for col_idx in range(self.n_cols):
                     col_group_key, col_key = self.col_keys[col_idx]
