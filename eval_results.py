@@ -394,7 +394,7 @@ def best_t(times):
 
     return Time(min(t.t for t in feasible), TimeStatus.GOOD)
 
-def print_result_time_performance(
+def print_result_sol_time_performance(
     algo_results: List[AlgoResults], instances_groups: List[InstanceGroup]
 ):
     for algo_result in algo_results:
@@ -547,7 +547,8 @@ def print_result_time_performance(
 
 
 def print_result_sol_time_table(
-    algo_results: List[AlgoResults], instances_groups: List[InstanceGroup], out_filename
+    algo_results: List[AlgoResults], instances_groups: List[InstanceGroup], out_filename,
+    agg_time_proof=False
 ):
     for algo_result in algo_results:
         algo_result.load()
@@ -586,7 +587,7 @@ def print_result_sol_time_table(
                             lambda times: agg_time(times),
                             lambda data, filename: data.time,  # s to ms
                             lambda x: print_time(x),
-                            algo_result.agg_cols and False,
+                            algo_result.agg_cols and agg_time_proof,
                             False,
                         ),
                     ],
@@ -921,9 +922,10 @@ print_result_sol_time_table(
         ),
     ],
     "results_soa_graphs_table.tex",
+    agg_time_proof=True
 )
 
-print_result_time_performance(
+print_result_sol_time_performance(
     our_algos_soa
     + [
         AlgoResults(
@@ -938,10 +940,10 @@ print_result_time_performance(
         InstanceGroup(
             name="Erdos", key="erdos", instances=erdos_instances, print_agg_row=True
         )
-    ],
+    ]
 )
 
-print_result_time_performance(
+print_result_sol_time_performance(
     our_algos_soa
     + [
         AlgoResults(
@@ -959,7 +961,7 @@ print_result_time_performance(
             instances=get_instances_from_files(["all_cactus_graphs.txt"]),
             print_agg_row=True,
         )
-    ],
+    ]
 )
 
 
@@ -993,7 +995,7 @@ planar_instances = sorted(
     key=lambda x: int(x.split("Outerplanar")[1]),
 )
 
-print_result_time_performance(
+print_result_sol_time_performance(
     our_algos_soa
     + [
         AlgoResults(
@@ -1014,7 +1016,7 @@ print_result_time_performance(
     ],
 )
 
-our_social_algo_results = [
+our_social_planar_algo_results = [
     AlgoResults(
         label="red2pack elaborated",
         files=get_file_paths(
@@ -1058,7 +1060,7 @@ our_social_algo_results = [
 
 
 print_result_kernel_table(
-    our_social_algo_results,
+    our_social_planar_algo_results,
     [
         InstanceGroup(
             name="Small Social",
@@ -1081,7 +1083,7 @@ print_result_kernel_table(
 
 
 print_result_sol_time_table(
-    our_social_algo_results
+    our_social_planar_algo_results
     + [
         # AlgoResults(
         #    label="gen2pack",
@@ -1111,8 +1113,8 @@ print_result_sol_time_table(
     "results_first_graphs_table.tex",
 )
 
-print_result_time_performance(
-    our_social_algo_results
+print_result_sol_time_performance(
+    our_social_planar_algo_results
     + [
         # AlgoResults(
         #    label="gen2pack",
@@ -1124,9 +1126,9 @@ print_result_time_performance(
     ],
     [
         InstanceGroup(
-            name="Social",
-            key="social",
-            instances=small_social_instances + large_social_instances,
+            name="Social + Planar",
+            key="social-planar",
+            instances=small_social_instances + large_social_instances + planar_instances,
             print_agg_row=True,
         )
     ],

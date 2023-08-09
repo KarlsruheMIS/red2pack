@@ -514,7 +514,7 @@ class DataTable:
                         + self.cols[col_group_key].cols[col_key].name
                         + "}}"
                     )
-                line += "\\\\ \n \hline \n"
+                line += "\\\\ \n \midrule \n"
 
                 file.write(line)
 
@@ -524,7 +524,7 @@ class DataTable:
                     if self.rows[row_group_key].rows[row_key].mark:
                         line += "\\rowcolor{lightgray} "
                     line += (
-                        "\mc{1}{l|}{\\textit{"
+                        "\mc{1}{l}{\\textit{"
                         + self.rows[row_group_key].rows[row_key].name
                         + "}}"
                     )
@@ -562,7 +562,7 @@ class DataTable:
 
                 if print_agg_row and self.rows[row_group_key].print_agg_row:
                     line = "\n \\toprule \n"
-                    line += "\mc{1}{l|}{Overall %s}" % self.rows[row_group_key].name
+                    line += "\mc{1}{l}{Overall %s}" % self.rows[row_group_key].name
                     for col_idx in range(self.n_cols):
                         col_group_key, col_key = self.col_keys[col_idx]
                         col = self.cols[col_group_key].cols[col_key]
