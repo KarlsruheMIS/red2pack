@@ -4,6 +4,3 @@
 [submodule "graphs/Gene2Pack"]
 	path = graphs/Gene2Pack
 	url = git@github.com:trejoel/Gene2Pack.git
-[submodule "graphs/Approximate2Packing"]
-	path = graphs/Approximate2Packing
-	url = git@github.com:trejoel/Approximate2Packing.git
