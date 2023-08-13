@@ -13,7 +13,7 @@ This MIS instance is solved using the weighted branch-and-reduce solver from [Ka
 
 ## Setup (Linux/MacOS)
 In following, the script downloads external benchmark sets from GitHub,
-and translates them to from the GML format to graphs.
+and translates them from the GML format to the METIS graph format.
 All graphs are moved to `./graphs/`.
 Execute the following commands:
 ```shell
