@@ -28,5 +28,7 @@ cd ..
 mkdir deploy
 cp ./build/m2s_branch_and_reduce deploy/
 cp ./build/check_graph deploy/
+cp ./build/graph_to_gml deploy/
+cp ./build/check_connected deploy/
 
 rm -rf build

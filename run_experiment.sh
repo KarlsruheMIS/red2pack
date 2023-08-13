@@ -10,12 +10,12 @@ graph_path=${1#.graph}
 graph=$(basename $graph_path)
 use_gen2pack=$2
 use_apx2p=$3
+time_limit=$4 # seconds
 
 out_dir="out_experiment"
 mkdir -p $out_dir
 
 seed=0
-time_limit=10 # seconds
 # 2pack
 results="$graph"
 log="${out_dir}/2pack_s${seed}_${graph}.log"
