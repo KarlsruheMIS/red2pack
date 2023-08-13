@@ -8,6 +8,7 @@ if [ $INIT == 1 ]; then
     cd ..
     cd competitor/Gene2Pack ||exit
     bash init.sh || exit
+    cd ../../
 fi
 
 # example_experiment.sh
