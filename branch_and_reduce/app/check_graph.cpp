@@ -9,7 +9,7 @@
 #include "m2s_config.h"
 #include "m2s_parse_parameters.h"
 #include "mis_config.h"
-#include "tools/graph_io.h"
+#include "tools/m2s_graph_io.h"
 #include "tools/m2s_log.h"
 
 int main(int argc, char **argv) {
@@ -26,8 +26,8 @@ int main(int argc, char **argv) {
         std::cout << "Checking: " << graph_filepath << std::endl;
 
         // read graph
-        two_packing_set::m2s_graph_access graph;
-        two_packing_set::graph_io::readGraphWeighted(graph, graph_filepath);
+        m2s_graph_access graph;
+        m2s_graph_io::readGraphWeighted(graph, graph_filepath);
         std::cout << "Nodes: " << graph.number_of_nodes() << std::endl;
         std::cout << "Edges: " << graph.number_of_edges()/2 << std::endl;
 

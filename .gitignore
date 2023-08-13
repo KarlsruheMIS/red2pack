@@ -11,3 +11,5 @@ venv
 .idea
 jobs.txt
 out/
+plots/
+plots/*

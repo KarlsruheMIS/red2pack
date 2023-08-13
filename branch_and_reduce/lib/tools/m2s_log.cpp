@@ -94,7 +94,7 @@ void m2s_log::print_graph() {
         filebuffer_string << "IO time:\t\t\t\t"         << total_timer.elapsed()                    << std::endl;
         filebuffer_string << "Filename:\t\t\t\t"        << log_config.graph_filename                << std::endl;
         filebuffer_string << "|-Nodes:\t\t\t\t"         << number_of_nodes                          << std::endl;
-        filebuffer_string << "|-Edges:\t\t\t\t"         << number_of_edges                          << std::endl;
+        filebuffer_string << "|-Edges:\t\t\t\t"         << number_of_edges/2                          << std::endl;
         filebuffer_string << std::endl;
 
         std::cout << "\t\tGraph"        << std::endl;
@@ -102,7 +102,7 @@ void m2s_log::print_graph() {
         std::cout << "IO time:\t\t\t"           << total_timer.elapsed()                    << std::endl;
         std::cout << "Filename:\t\t\t"          << log_config.graph_filename                << std::endl;
         std::cout << "|-Nodes:\t\t\t"           << number_of_nodes                          << std::endl;
-        std::cout << "|-Edges:\t\t\t"           << number_of_edges                          << std::endl;
+        std::cout << "|-Edges:\t\t\t"           << number_of_edges/2                          << std::endl;
         std::cout << std::endl;
 }
 
@@ -163,33 +163,6 @@ void m2s_log::print_round(M2SConfig & m2s_config) {
         std::cout << std::endl;
 }
 
-void m2s_log::print_repetition(M2SConfig & m2s_config) {
-        std::string skip = (evo_operator == "Initial")? "\t\t" : "\t";
-        std::string skip_operator;
-        if (evo_operator == "Multiway" || 
-            evo_operator == "Initial" || 
-            evo_operator == "Collect") skip_operator = "\t\t\t";
-        else if (evo_operator == "Vertex cover" || 
-                 evo_operator == "Node separator" || 
-                 evo_operator == "Global collect") skip_operator = "\t\t";
-        else skip_operator = "\t";
-        if (m2s_config.print_repetition) {
-                filebuffer_string               << number_of_repetitions << "\t\t"
-                                  << evo_operator << skip
-                                  << result_operator << "\t"
-                                  << best_solution_size << "\t"
-                                  << evo_timer.elapsed()                                  << std::endl;
-        }
-
-        if (m2s_config.print_repetition) {
-                std::cout               << number_of_repetitions << "\t\t"
-                          << evo_operator << skip
-                          << result_operator << "\t"
-                          << best_solution_size << "\t"
-                          << evo_timer.elapsed()                                  << std::endl;
-        }
-}
-
 void m2s_log::print_results() {
         filebuffer_string << std::endl;
         filebuffer_string << "\t\tResult" << std::endl;
@@ -206,31 +179,6 @@ void m2s_log::print_results() {
         std::cout << "Time found:\t\t\t" << time_taken_best << std::endl;
         std::cout << std::endl;
 }
-/* void m2s_log::print_results() { */
-/*     compute_avg(); */
-/*     filebuffer_string << std::endl; */
-/*     filebuffer_string << "\t\tStatistics"                                                          << std::endl; */
-/*     filebuffer_string << "=========================================="                           << std::endl; */
-/*     filebuffer_string << "Total time:\t\t\t\t"       << total_timer.elapsed()                   << std::endl; */
-/*     filebuffer_string << "\t\tBest"                                                             << std::endl; */
-/*     filebuffer_string << "=========================================="                           << std::endl; */
-/*     filebuffer_string << "Size:\t\t\t\t\t"            << optimum_size                                          << std::endl; */
-/*     filebuffer_string << "Time found:\t\t\t\t"        << time_taken_best                        << std::endl; */
-/*     filebuffer_string << std::endl; */
-
-/*     std::cout << std::endl; */
-/*     std::cout << "\t\tStatistics"                                                          << std::endl; */
-/*     std::cout << "=========================================="                           << std::endl; */
-/*     std::cout << "Total time:\t\t\t"         << total_timer.elapsed()                   << std::endl; */
-/*     std::cout << std::endl; */
-/*     std::cout << "--------------------------------------------------------------------------------" */
-/*               << std::endl; */
-/*     std::cout << "\t\tBest"                                                             << std::endl; */
-/*     std::cout << "=========================================="                           << std::endl; */
-/*     std::cout << "Size:\t\t\t\t"              << optimum_size                                          << std::endl; */
-/*     std::cout << "Time found:\t\t\t"          << time_taken_best                        << std::endl; */
-/*     std::cout << std::endl; */
-/* } */
 
 void m2s_log::print_pool_title() {
         filebuffer_string << "\t\tPartitioning"        << std::endl;

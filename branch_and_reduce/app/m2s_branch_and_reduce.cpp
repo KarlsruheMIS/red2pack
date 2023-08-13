@@ -6,7 +6,8 @@
 #include "m2s_config.h"
 #include "m2s_parse_parameters.h"
 #include "mis_config.h"
-#include "tools/graph_io.h"
+#include "io/graph_io.h"
+#include "tools/m2s_graph_io.h"
 #include "tools/m2s_log.h"
 
 bool is_maximal_2ps(two_packing_set::m2s_graph_access& graph, const std::vector<bool>& sol, const NodeID sol_size) {
@@ -55,8 +56,8 @@ bool is_maximal_2ps(two_packing_set::m2s_graph_access& graph, const std::vector<
                         endfor
 
                         if (!maximal) {
-                                forall_out_edges2(graph, e, node) {
-                                        if (sol[graph.getEdgeTarget2(e)]) {
+                                forall_out_edges(graph, e, node) {
+                                        if (sol[graph.getEdgeTarget(e)]) {
                                                 maximal = true;
                                         }
                                 }
@@ -106,7 +107,7 @@ int main(int argc, char **argv) {
 
         // read graph
         two_packing_set::m2s_graph_access graph;
-        two_packing_set::graph_io::readGraphWeighted(graph, graph_filepath);
+        two_packing_set::m2s_graph_io::readGraphWeighted(graph, graph_filepath);
         m2s_log::instance()->set_graph(graph);
 
         m2s_log::instance()->print_graph();
@@ -133,10 +134,14 @@ int main(int argc, char **argv) {
         // PRINT RESULTS
         m2s_log::instance()->print_results();
 
-        //graph.construct_2neighborhood();
         auto valid = is_maximal_2ps(graph, solver.get_solution(), solver.get_solution_size());
         if (!valid) {
                 return 1;
         }
+
+        if (m2s_config.write_2ps) {
+                m2s_graph_io::writeTwoPackingSet(solver.get_solution(), m2s_config.output_filename);
+        }
+
         return 0;
 }
