@@ -15,17 +15,17 @@ out_dir="out_experiment"
 mkdir -p $out_dir
 
 seed=0
-time_limit=36000 # seconds
+time_limit=10 # seconds
 # 2pack
 results="$graph"
 log="${out_dir}/2pack_s${seed}_${graph}.log"
-./branch_and_reduce/deploy/m2s_branch_and_reduce "$graph_path".graph \
+./branch_and_reduce/deploy/m2s_branch_and_reduce "$graph_path.graph" \
   "--seed=$seed" "--time_limit=$time_limit" \
   "--disable_deg_one" "--disable_deg_two" "--disable_twin" \
   "--disable_domination" "--disable_fast_domination" "--disable_clique" \
   >"$log" 2>&1
 
-result="$results,$(python3 eval_experiment.py "2pack" "$log"|awk -v OFS=, '{print $1,$2}')"
+result="$results,$(python3 eval_experiment.py "2pack" "$log" $time_limit|awk -v OFS=, '{print $1,$2,$3,$4,$5}')"
 
 
 # red2pack core
@@ -35,7 +35,7 @@ log="${out_dir}/red2pack_core_s${seed}_${graph}.log"
   "--reduction_style2=core" \
   >"$log" 2>&1
 
-result="$result,$(python3 eval_experiment.py "red2pack" "$log"|awk -v OFS=, '{print $1,$2}')"
+result="$result,$(python3 eval_experiment.py "red2pack" "$log" $time_limit|awk -v OFS=, '{print $1,$2,$3,$4,$5}')"
 
 # red2pack elaborated
 log="${out_dir}/red2pack_elaborated_s${seed}_${graph}.log"
@@ -44,7 +44,7 @@ log="${out_dir}/red2pack_elaborated_s${seed}_${graph}.log"
   "--reduction_style2=elaborated" \
   >"$log" 2>&1
 
-result="$result,$(python3 eval_experiment.py "red2pack" "$log"|awk -v OFS=, '{print $1,$2}')"
+result="$result,$(python3 eval_experiment.py "red2pack" "$log" $time_limit|awk -v OFS=, '{print $1,$2,$3,$4,$5}')"
 
 # competitor: gen2pack
 if [ $use_gen2pack == "1" ]; then
@@ -52,11 +52,15 @@ if [ $use_gen2pack == "1" ]; then
       echo "Competitor algorithm gen2pack not found! Skipping gen2pack!" >&2
       result="$result,-,-"
     else
-      log="$out_dir/gen2pack_s${seed}_${graph}.log"
+      source competitor/Gene2Pack/venv/bin/activate
+      log="$out_dir/gen2pack_${graph}.log"
 
+      python3 competitor/Gene2Pack/wake.py "$graph_path.gml" "$out_dir" >"$log" 2>&1
 
-      result="$result,$(python3 eval_experiment.py "gen2pack" "$log"|awk -v OFS=, '{print $1,$2}')"
+      result="$result,$(python3 eval_experiment.py "gen2pack" "$out_dir/results_${graph}_wake.csv" $time_limit|awk -v OFS=, '{print $1,$2}')"
     fi
+else
+  result="$result,-,-"
 fi
 
 # competitor: Apx-2P+Im2P
@@ -67,8 +71,10 @@ if [ $use_apx2p == "1" ]; then
     else
       log="$out_dir/apx2p_s${seed}_${graph}.log"
 
-      result="$result,$(python3 eval_experiment.py "apx2p" "$log"|awk -v OFS=, '{print $1,$2}')"
+      result="$result,$(python3 eval_experiment.py "apx2p" "$log" $time_limit|awk -v OFS=, '{print $1,$2}')"
     fi
+else
+  result="$result,-,-"
 fi
 
 echo $result

@@ -1,6 +1,7 @@
 """
     A small python script to parse the logs from the algorithms
 """
+import csv
 import os
 import sys
 from dataclasses import dataclass
@@ -98,41 +99,76 @@ def get_data_m2s_bnr(file):
     if time.status != TimeStatus.MEMOUT and time_kamis == 0.0 and kernel_nodes > 0:
         time_kamis = time.t - time_transform
 
-    return Result(
-            name,
-            time,
-            solution,
-            seed,
-            kernel_nodes,
-            kernel_edges,
-            nodes,
-            offset,
-            kernel_size,
-            time_kamis,
-            time_transform,
-        )
+    return Result(name, time, solution, seed, kernel_nodes, kernel_edges, nodes, offset, kernel_size, time_kamis,
+                  time_transform, )
+
+
+def get_data_genetic_algo(file):
+    results = []
+
+    if not os.path.exists(file) or "results_" not in file:
+        return results
+
+    with open(file, "r") as result_f:
+        reader = csv.DictReader(result_f, delimiter=",")
+        for row in reader:
+            name = row["Graph"]
+            size = Solution(int(float(row["GA_withImp"])), SolStatus.FOUND)
+            seed = int(row["Seed"])
+            time = Time(sec_to_ms(float(row["Init_Time"]) + float(row["Solve_Time"])), TimeStatus.GOOD, )
+            if time.t > time_limit:
+                time.status = TimeStatus.TIMEOUT
+
+            results.append(Result(name, time, size, seed, 0, 0, 0, 0, 0, 0, 0, ))
+
+    if len(results) == 0:
+        # timeout/memout without finding any sol.
+        with open(file.replace("results_", "gene2pack_").replace("_wake.csv", ".log"), "r") as log_f:
+            memout = False
+            for line in log_f:
+                if "Out of memory" in line:
+                    memout = True
+                    break
+            results.append(Result(file.split("results_")[1].split("_wake.csv")[0],
+                                  Time(time_limit + 1, TimeStatus.TIMEOUT) if not memout else Time(0,
+                                                                                                   TimeStatus.MEMOUT),
+                                  Solution(0, SolStatus.NONE), None, 0, 0, 0, 0, 0, 0, 0, ))
+
+    return results
+
 
 def print_2pack(res):
-    print(" ".join([str(res.solution.sol) if res.solution.status == SolStatus.FOUND else res.solution.status,
-                    str(round(res.time_transform+res.time_kamis, 2)),
-                    str(round(res.time.t, 2)) if res.time.status == TimeStatus.GOOD else res.time.status]))
+    print(" ".join([str(res.solution.sol) if res.solution.status == SolStatus.FOUND else str(res.solution.status),
+                    str(round(res.time_transform + res.time_kamis, 2)),
+                    str(round(res.time.t, 2)) if res.time.status == TimeStatus.GOOD else str(res.time.status),
+                    str(res.kernel_nodes), str(res.kernel_edges)]))
+
 
 def print_red2pack(res):
-    print(" ".join([str(res.solution.sol) if res.solution.status == SolStatus.FOUND else res.solution.status,
-                    str(round(res.time_transform+res.time_kamis, 2)),
-                    str(round(res.time.t, 2)) if res.time.status == TimeStatus.GOOD else res.time.status,
-                    str(res.kernel_nodes),
-                    str(res.kernel_edges)]))
+    print(" ".join([str(res.solution.sol) if res.solution.status == SolStatus.FOUND else str(res.solution.status),
+                    str(round(res.time_transform + res.time_kamis, 2)),
+                    str(round(res.time.t, 2)) if res.time.status == TimeStatus.GOOD else str(res.time.status),
+                    str(res.kernel_nodes), str(res.kernel_edges)]))
+
+
+def print_gen2pack(res):
+    print(" ".join([str(res.solution.sol) if res.solution.status == SolStatus.FOUND else str(res.solution.status),
+                    str(round(res.time.t, 2)) if res.time.status == TimeStatus.GOOD else str(res.time.status)]))
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python3 %s <2pack:red2pack:gen2pack:apx2p> <log_file>" % sys.argv[0])
+    if len(sys.argv) != 4:
+        print("Usage: python3 %s <2pack:red2pack:gen2pack:apx2p> <log_file> <time_limit_in_sec>" % sys.argv[0])
     else:
-        if (sys.argv[1] == "2pack"):
+        time_limit = sec_to_ms(int(sys.argv[3]))
+        if sys.argv[1] == "2pack":
             res = get_data_m2s_bnr(sys.argv[2])
             print_2pack(res)
-        elif (sys.argv[1] == "red2pack"):
+        elif sys.argv[1] == "red2pack":
             res = get_data_m2s_bnr(sys.argv[2])
             print_red2pack(res)
-
+        elif sys.argv[1] == "gen2pack":
+            res = get_data_genetic_algo(sys.argv[2])
+            # For the example experiment we only compute one result
+            res = res[0]
+            print_gen2pack(res)

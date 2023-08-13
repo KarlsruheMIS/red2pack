@@ -80,7 +80,7 @@ set(M2S_LIB_SOURCES
         lib/algorithms/branch_and_reduce.cpp
         lib/algorithms/kernel/reduce_algorithm.cpp
         lib/algorithms/kernel/reductions.cpp
-        lib/tools/graph_io.cpp
+        lib/tools/m2s_graph_io.cpp
         lib/tools/m2s_log.cpp)
 
 set(KAMIS ${CMAKE_CURRENT_SOURCE_DIR}/extern/KaMIS)

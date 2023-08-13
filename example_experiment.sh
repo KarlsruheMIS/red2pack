@@ -6,13 +6,15 @@ if [ $INIT == 1 ]; then
     cd branch_and_reduce ||exit
     bash compile_withcmake.sh || exit
     cd ..
+    cd competitor/Gene2Pack ||exit
+    bash init.sh || exit
 fi
 
 # example_experiment.sh
 results="results.csv"
-rm -v $results
-echo "graph,2pack,,red2pack elaborated S,,red2pack core,,gen2pack,,Apx-2p+Imp2p," >> $results
-echo ",S,t,S,t,S,t,S,t,S,t" >> $results # solution + time found
+rm $results
+echo "graph,2pack,,,,,red2pack core,,,,,red2pack elaborated,,,,,gen2pack,,Apx-2p+Imp2p," >> $results
+echo ",S,t,t_p,n,m,S,t,t_p,n,m,S,t,t_p,n,m,S,t,S,t" >> $results # solution + time found
 
 # Usage: bash run_experiment.sh <path_to_graph_filename> <use_genpack:1:0> <use_apx2p:1:0>
 
