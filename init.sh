@@ -8,13 +8,22 @@ mkdir -p graphs/cactus_graphs_gml
 mkdir -p graphs/planar_graphs
 mkdir -p graphs/planar_graphs_gml
 
+SKIP_GIT=0
+if [ ! -d .git ]; then
+  # skip git, assert submodules were downloaded
+  SKIP_GIT=1
+  echo "Found no git Repository. Skipping initialization of sub modules. Please, provide dependencies by yourself."
+fi
+
 # initialize and update submodules
 git submodule update --init --recursive --force
 
 # translate Erdos-Renyi + Cactus instances to metis format
 echo "Preparing Erdos-Renyi + Cactus graphs"
 cd graphs/Gene2Pack || exit
-git checkout amcs
+if [ $SKIP_GIT == 0 ]; then
+  git checkout amcs
+fi
 tar -xvf Graphs.zip
 cd Graphs/Erdos-Renyi-Graphs || exit
 for D in *; do
