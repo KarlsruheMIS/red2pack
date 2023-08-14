@@ -13,12 +13,15 @@ if [ ! -d branch_and_reduce/extern/KaMIS ]; then
   exit 1
 fi
 
-if [ ! -d branch_and_reduce/graphs/Gene2Pack ]; then
+if [ ! -d graphs/Gene2Pack ]; then
   echo "Gene2Pack not downloaded!"
   exit 1
+else
+  cd graphs/Gene2Pack
+  git checkout amcs
 fi
 
-if [ ! -d branch_and_reduce/graphs/Approximate2Packing ]; then
+if [ ! -d graphs/Approximate2Packing ]; then
   echo "Approximate2Packing not downloaded!"
   exit 1
 fi
