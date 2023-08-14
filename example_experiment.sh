@@ -2,12 +2,18 @@
 # init
 INIT=1
 if [ $INIT == 1 ]; then
-    bash init.sh || exit
+    if [ -d .git ]; then
+      # initialize and update submodules
+      git submodule update --init --recursive --force
+    fi
     cd branch_and_reduce ||exit
     bash compile_withcmake.sh || exit
     cd ..
     cd competitor/Gene2Pack ||exit
     bash init.sh || exit
+    cd ../../
+    cd competitor/Approximate2Packing ||exit
+    bash compile_withcmake.sh ||exit
     cd ../../
 fi
 

@@ -15,19 +15,22 @@ This MIS instance is solved using the weighted branch-and-reduce solver from [Ka
 In following, the script downloads external benchmark sets from GitHub,
 and translates them from the GML format to the METIS graph format.
 All graphs are moved to `./graphs/`.
+Moreover, it downloads KaMIS for the weighted branch-and-reduce solver for MIS problems.
 Execute the following commands:
 ```shell
 bash init.sh
 ```
 
 ## Build and use our algorithms (Linux/MacOS)
+Note: If you want to use the out-of-the-box experiment, skip this section and go to [Experiment](#Experiment).
+
 The implementation of our algorithms `red2pack core/elaborated` and `2pack` are located in `./branch_and_reduce`.
 We solve the MIS problem using the wighted branch-and-reduce solver of KaMIS. Please, make sure run the `init.sh` script beforehand.
 
 
-To build the executable run:
+To build the executable, please run:
 ```shell
-cd branch_and_reduce && bash compile_withcmake.sh
+cd branch_and_reduce && bash compile_withcmake.sh && cd ../
 ```
 
 The scripts installs four binaries in `./branch_and_reduce/deploy`:
@@ -38,10 +41,42 @@ The scripts installs four binaries in `./branch_and_reduce/deploy`:
 
 Use `--help` for an overview of the options or take a look in our example experiment `run_expriment.sh`.
 
+## Build and use the competitor algorithms (Linux)
+Note: If you want to use the out-of-the-box experiment, skip this section and go to [Experiment](#Experiment).
+
+We compare our algorithms to two competitor algorithms: gen2pack by Trejo et al. and Apx-2P+Im-2p by Trejo and Sanchez.
+We had to modify the original source-code slightly to make it work -- however, we did not modify the algorithms themselves
+and only added missing parts as described in the related papers.
+
+### gen2pack
+gen2pack was implemented in Python an depends on multiple Python libraries.
+We install them in a virtual environment for Python (venv).
+To do so, run the following:
+```shell
+cd competitor/Gene2Pack && bash init.sh && cd ../../
+```
+To access the virtual environment:
+```shell
+source competitor/Gene2Pack/venv/bin/activate
+```
+The Python3 script is called `wake.py`. You can change the number of runs in `numExp` (default 1) in the script.
+To solve a graph instance in GML format:
+```shell
+python3 competitor/Gene2Pack/wake.py <path_to_graph_instance> <out_dir>
+```
+
+### Apx-2p+Im-2p
+Apx-2p+Im-2p was implemented in C++. 
+It uses an optimization software library called CPLEX.
+
+TODO
+
+
+
 ## Experiment
 The following experiment works out of the box for a few example instances.
-Just clone this repository and run `bash example_experiment.sh`.
-The solution size of the 2pack and the run time is written to `results.csv`.
+Just clone or download this repository and run `bash example_experiment.sh`.
+The solution size (S) of the 2-packing set, the run time (t), the time to find a solution and proof optimality (t-p), the number of vertices in the transformed (n) and transformed edges of the MIS instance are written to `results.csv`.
 For more details of the execution you can take a look into the output of the algorithms
 in `./out_experiment`.
 ```shell
