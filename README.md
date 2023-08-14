@@ -67,7 +67,7 @@ python3 competitor/Gene2Pack/wake.py <path_to_graph_instance> <out_dir>
 
 ### Apx-2p+Im-2p
 Apx-2p+Im-2p was implemented in C++. 
-It uses an optimization software library called CPLEX from IBM. You can get a free academic version from https://www.ibm.com/products/ilog-cplex-optimization-studio.
+It uses an optimization software library called Cplex from IBM. You can get a free academic version from [Cplex](https://www.ibm.com/products/ilog-cplex-optimization-studio).
 To build Apx-2p+Im-2p, run the following snippet:
 ```shell
 # set the path to the Cplex installation
@@ -80,7 +80,7 @@ The path to the binary of Apx-2p+Im-2p is `competitor/Approximate2Packing/deploy
 ## Experiment
 The following experiment works out of the box for a few example instances.
 Just clone or download this repository and run `bash example_experiment.sh`.
-The solution size (S) of the 2-packing set, the run time (t), the time to find a solution and proof optimality (t-p), the number of vertices in the transformed (n) and transformed edges of the MIS instance are written to `results.csv`.
+The solution size (S) of the 2-packing set, the run time (t), the time to find a solution and proof optimality (t-p), the number of vertices (n) and edges of the transformed graph are written to `results.csv`.
 For more details of the execution you can take a look into the output of the algorithms
 in `./out_experiment`.
 ```shell
