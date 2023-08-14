@@ -31,3 +31,9 @@ rm data_table.py
 rm eval_results.py
 rm gen_algo.py
 rm gen_jobs*
+rm eject_upload_ready_version.sh
+
+echo "Upload ready version transformation was successful!"
+echo "Now run:"
+echo "cd .. && tar -czvf ${$(pwd)##*/}-$(date '+%Y%m%d%H%M%S').tar.gz ${$(pwd)##*/} && rm -rf ${$(pwd)##*/}"
+
