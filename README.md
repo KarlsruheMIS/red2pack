@@ -41,7 +41,7 @@ The scripts installs four binaries in `./branch_and_reduce/deploy`:
 
 Use `--help` for an overview of the options or take a look in our example experiment `run_expriment.sh`.
 
-## Build and use the competitor algorithms (Linux)
+## Build and use the competitor algorithms (Linux/MacOS)
 Note: If you want to use the out-of-the-box experiment, skip this section and go to [Experiment](#Experiment).
 
 We compare our algorithms to two competitor algorithms: gen2pack by Trejo et al. and Apx-2P+Im-2p by Trejo and Sanchez.
@@ -67,10 +67,14 @@ python3 competitor/Gene2Pack/wake.py <path_to_graph_instance> <out_dir>
 
 ### Apx-2p+Im-2p
 Apx-2p+Im-2p was implemented in C++. 
-It uses an optimization software library called CPLEX.
-
-TODO
-
+It uses an optimization software library called CPLEX from IBM. You can get a free academic version from https://www.ibm.com/products/ilog-cplex-optimization-studio.
+To build Apx-2p+Im-2p, run the following snippet:
+```shell
+# set the path to the Cplex installation
+CPLEX_ROOT_DIR=/Applications/CPLEX_Studio2211/
+cd competitor/Approximate2Packing && bash compile_with_cmake.sh $CPLEX_ROOT_DIR && cd ../../
+```
+The path to the binary of Apx-2p+Im-2p is `competitor/Approximate2Packing/deploy/apx-2p`.
 
 
 ## Experiment
