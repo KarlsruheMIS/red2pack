@@ -1,6 +1,8 @@
 #!/bin/bash
-# set the LD_LIBRARY_PATH pointing to your cplex installation
 
+# set cplex root dir
+# e.g. /Applications/CPLEX_Studio2211
+CPLEX_ROOT_DIR=$1
 
 NCORES=4
 unamestr=$(uname)
@@ -18,11 +20,11 @@ mkdir build
 cd build
 
 if [[ "$unamestr" == "Linux" ]]; then
-  cmake ../ -DCMAKE_C_COMPILER=$(which gcc) -DCMAKE_CXX_COMPILER=$(which g++) -DCMAKE_BUILD_TYPE=Release -DCMAKE_ENABLE_TESTING=False
+  cmake ../ -DCMAKE_C_COMPILER=$(which gcc) -DCMAKE_CXX_COMPILER=$(which g++) -DCMAKE_BUILD_TYPE=Release -DCMAKE_ENABLE_TESTING=False -DCPLEX_ROOT_DIR=$CPLEX_ROOT_DIR
 fi
 
 if [[ "$unamestr" == "Darwin" ]]; then
-  cmake ../ -DCMAKE_C_COMPILER=/usr/local/bin/gcc-13  -DCMAKE_CXX_COMPILER=/usr/local/bin/g++-13  -DCMAKE_BUILD_TYPE=Release -DCMAKE_ENABLE_TESTING=False
+  cmake ../ -DCMAKE_C_COMPILER=$(which clang)  -DCMAKE_CXX_COMPILER=$(which clang++) -DCMAKE_BUILD_TYPE=Release -DCMAKE_ENABLE_TESTING=False -DCPLEX_ROOT_DIR=$CPLEX_ROOT_DIR
 fi
 
 make -j $NCORES
