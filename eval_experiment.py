@@ -100,7 +100,33 @@ def get_data_m2s_bnr(file):
         time_kamis = time.t - time_transform
 
     return Result(name, time, solution, seed, kernel_nodes, kernel_edges, nodes, offset, kernel_size, time_kamis,
-                  time_transform, )
+                  time_transform)
+
+
+def get_data_apx2p(file):
+    name = ""
+    solution = Solution(0, SolStatus.NONE)
+    seed = int(os.path.basename(file)[1:].split("_s")[1][0])
+    time = Time(0, TimeStatus.MEMOUT)
+
+    if not os.path.exists(file):
+        return None
+
+    with open(file, "r") as result_f:
+        for line in result_f:
+            if "Total solution size:" in line:
+                solution.sol = int(line.split(":")[1].rstrip().strip())
+                solution.status = SolStatus.FOUND
+            elif "Openning" in line:
+                name = line.split("/")[-1].rstrip().strip()
+            elif "Time:" in line:
+                time.t = sec_to_ms(float(line.split(":")[1].rstrip().strip()))
+                if time.t > time_limit:
+                    time.status = TimeStatus.TIMEOUT
+                else:
+                    time.status = TimeStatus.GOOD
+
+    return Result(name, time, solution, seed, 0, 0, 0, 0, 0, 0, 0)
 
 
 def get_data_genetic_algo(file):
@@ -156,6 +182,11 @@ def print_gen2pack(res):
                     str(round(res.time.t, 2)) if res.time.status == TimeStatus.GOOD else str(res.time.status)]))
 
 
+def print_apx2p(res):
+    print(" ".join([str(res.solution.sol) if res.solution.status == SolStatus.FOUND else str(res.solution.status),
+                    str(round(res.time.t, 2)) if res.time.status == TimeStatus.GOOD else str(res.time.status)]))
+
+
 if __name__ == "__main__":
     if len(sys.argv) != 4:
         print("Usage: python3 %s <2pack:red2pack:gen2pack:apx2p> <log_file> <time_limit_in_sec>" % sys.argv[0])
@@ -172,3 +203,6 @@ if __name__ == "__main__":
             # For the example experiment we only compute one result
             res = res[0]
             print_gen2pack(res)
+        elif sys.argv[1] == "apx-2p":
+            res = get_data_apx2p(sys.argv[2])
+            print_apx2p(res)

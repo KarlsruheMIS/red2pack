@@ -1,6 +1,8 @@
 #!/bin/bash
 # init
 INIT=1
+USE_COMPETITOR_APX2P_IM2P=1
+CPLEX_ROOT_DIR="Applications/CPLEX_Studio2211" # provide cplex root dir if you want to test the competitor algorithm Apx-2p+Im-2p
 if [ $INIT == 1 ]; then
     if [ -d .git ]; then
       # initialize and update submodules
@@ -12,9 +14,11 @@ if [ $INIT == 1 ]; then
     cd competitor/Gene2Pack ||exit
     bash init.sh || exit
     cd ../../
-    cd competitor/Approximate2Packing ||exit
-    bash compile_withcmake.sh ||exit
-    cd ../../
+    if [ $USE_COMPETITOR_APX2P_IM2P == 1 ]; then
+      cd competitor/Approximate2Packing ||exit
+      bash compile_withcmake.sh $CPLEX_ROOT_DIR ||exit
+      cd ../../
+    fi
 fi
 
 # example_experiment.sh
@@ -33,7 +37,7 @@ echo "Finished aGraphErdos40-1"
 bash run_experiment.sh graphs/example/cac100 1 0 $time_limit>> $results
 echo "Finished cac100"
 # Outer planar graph from https://github.com/trejoel/Approximate2Packing
-bash run_experiment.sh graphs/example/Outerplanar500_1 0 1 $time_limit >> $results
+bash run_experiment.sh graphs/example/Outerplanar500_1 0 $USE_COMPETITOR_APX2P_IM2P $time_limit >> $results
 echo "Finished Outerplanar500_1"
 # Social graph from https://dimacs10.github.io/archive/clustering.shtml
 bash run_experiment.sh graphs/example/lesmis 0 0 $time_limit >> $results

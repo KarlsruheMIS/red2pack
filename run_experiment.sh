@@ -65,13 +65,15 @@ fi
 
 # competitor: Apx-2P+Im2P
 if [ $use_apx2p == "1" ]; then
-    if [ ! -d ./competitor/Approximate2Packing/deploy ]; then
+    if [ ! -f ./competitor/Approximate2Packing/deploy/apx-2p ]; then
       echo "Competitor algorithm Apx2P+Im2P not found! Skipping Apx2P+Im2P!" >&2
       result="$result,-,-"
     else
       log="$out_dir/apx2p_s${seed}_${graph}.log"
 
-      result="$result,$(python3 eval_experiment.py "apx2p" "$log" $time_limit|awk -v OFS=, '{print $1,$2}')"
+      ./competitor/Approximate2Packing/deploy/apx-2p "$graph_path.gml" >"$log" 2>&1
+
+      result="$result,$(python3 eval_experiment.py "apx-2p" "$log" $time_limit|awk -v OFS=, '{print $1,$2}')"
     fi
 else
   result="$result,-,-"
