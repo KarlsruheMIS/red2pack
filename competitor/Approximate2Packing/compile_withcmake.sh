@@ -1,4 +1,6 @@
 #!/bin/bash
+# set the LD_LIBRARY_PATH pointing to your cplex installation
+
 
 NCORES=4
 unamestr=$(uname)
@@ -14,6 +16,7 @@ rm -rf deploy
 rm -rf build
 mkdir build
 cd build
+
 if [[ "$unamestr" == "Linux" ]]; then
   cmake ../ -DCMAKE_C_COMPILER=$(which gcc) -DCMAKE_CXX_COMPILER=$(which g++) -DCMAKE_BUILD_TYPE=Release -DCMAKE_ENABLE_TESTING=False
 fi
