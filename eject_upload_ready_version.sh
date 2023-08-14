@@ -19,6 +19,7 @@ if [ ! -d graphs/Gene2Pack ]; then
 else
   cd graphs/Gene2Pack
   git checkout amcs
+  cd ../../
 fi
 
 if [ ! -d graphs/Approximate2Packing ]; then
