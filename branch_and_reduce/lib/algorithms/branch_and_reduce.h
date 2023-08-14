@@ -1,7 +1,3 @@
-//
-// Created by Jannick Borowitz on 21.06.23.
-//
-
 #ifndef INC_2_PACKING_SET_BRANCH_AND_REDUCE_H
 #define INC_2_PACKING_SET_BRANCH_AND_REDUCE_H
 

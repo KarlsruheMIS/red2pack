@@ -1,7 +1,3 @@
-//
-// Created by Jannick Borowitz on 21.06.23.
-//
-
 #ifndef INC_2_PACKING_SET_M2S_LOG_H
 #define INC_2_PACKING_SET_M2S_LOG_H
 

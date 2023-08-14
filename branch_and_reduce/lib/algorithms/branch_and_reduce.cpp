@@ -1,7 +1,3 @@
-//
-// Created by Jannick Borowitz on 21.06.23.
-//
-
 #include "branch_and_reduce.h"
 
 #include <chrono>

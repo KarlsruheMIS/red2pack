@@ -1,6 +1,3 @@
-//
-// Created by Jannick Borowitz on 21.06.23.
-//
 #include "m2s_graph_io.h"
 
 #include <fstream>
