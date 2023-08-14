@@ -36,5 +36,6 @@ rm eject_upload_ready_version.sh
 
 echo "Upload ready version transformation was successful!"
 echo "Now run:"
-echo "cd .. && tar -czvf ${$(pwd)##*/}-$(date '+%Y%m%d%H%M%S').tar.gz ${$(pwd)##*/} && rm -rf ${$(pwd)##*/}"
+PWD = $(pwd)
+echo "cd .. && tar -czvf ${PWD##*/}-$(date '+%Y%m%d%H%M%S').tar.gz ${PWD##*/} && rm -rf ${PWD##*/}"
 
