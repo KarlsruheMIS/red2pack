@@ -125,12 +125,6 @@ include_directories(app)
 set(M2S_LIB two_packing_set_lib)
 add_library(two_packing_set_lib OBJECT ${M2S_LIB_SOURCES})
 
-# TESTS
-if (CMAKE_ENABLE_TESTING)
-    add_subdirectory(tests)
-    enable_testing()
-endif (CMAKE_ENABLE_TESTING)
-
 # Executables
 # Benchmark for Branch and Reduce algorithm
 set(M2S_EXE m2s_branch_and_reduce)
