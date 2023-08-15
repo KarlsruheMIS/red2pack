@@ -16,15 +16,17 @@ if [ ! -d .git ]; then
 fi
 
 # initialize and update submodules
+if [ $SKIP_GIT -eq 0 ]; then
 git submodule update --init --recursive --force
+fi
 
 # translate Erdos-Renyi + Cactus instances to metis format
 echo "Preparing Erdos-Renyi + Cactus graphs"
 cd graphs/Gene2Pack || exit
-if [ $SKIP_GIT == 0 ]; then
+if [ $SKIP_GIT -eq 0 ]; then
   git checkout amcs
 fi
-tar -xvf Graphs.zip
+unzip Graphs.zip
 cd Graphs/Erdos-Renyi-Graphs || exit
 for D in *; do
     if [ -d "${D}" ]; then
@@ -50,7 +52,7 @@ cd ../
 # translate Planar instances to metis format
 echo "Preparing Outerplanar graphs"
 cd Approximate2Packing || exit
-find Instances_*.zip|xargs -I % tar -xvf %
+find Instances_*.zip|xargs -I % unzip %
 rm -r LastVersion
 for D in *; do
     if [ -d "${D}" ]; then

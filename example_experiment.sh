@@ -3,7 +3,7 @@
 INIT=1
 USE_COMPETITOR_APX2P_IM2P=1
 CPLEX_ROOT_DIR="/Applications/CPLEX_Studio2211" # provide cplex root dir if you want to test the competitor algorithm Apx-2p+Im-2p
-if [ $INIT == 1 ]; then
+if [ $INIT -eq 1 ]; then
     if [ -d .git ]; then
       # initialize and update submodules
       git submodule update --init --recursive --force
