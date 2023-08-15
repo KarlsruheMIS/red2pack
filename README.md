@@ -1,8 +1,8 @@
-# 2-Packing Set
+ 2-Packing Set
 
 ## Description
 This project provides a branch-and–reduce solver for the maximum 2-packing set problem.
-The branch-and-reduce solver applies exhaustively novel 2-packing set reductions and transforms the kernel to solve it 
+The branch-and-reduce solver applies novel 2-packing set reductions exhaustively and transforms the kernel to solve it 
 as an equivalent MIS instance.
 This MIS instance is solved using the weighted branch-and-reduce solver from [KaMIS](https://github.com/KarlsruheMIS/KaMIS).
 
@@ -25,7 +25,7 @@ bash init.sh
 Note: If you want to use the out-of-the-box experiment, skip this section and go to [Experiment](#Experiment).
 
 The implementation of our algorithms `red2pack core/elaborated` and `2pack` are located in `./branch_and_reduce`.
-We solve the MIS problem using the wighted branch-and-reduce solver of KaMIS. Please, make sure run the `init.sh` script beforehand.
+We solve the MIS problem using the wighted branch-and-reduce solver of KaMIS. Please, make sure to run the `init.sh` script beforehand.
 
 
 To build the executable, please run:
@@ -35,7 +35,7 @@ cd branch_and_reduce && bash compile_withcmake.sh && cd ../
 
 The scripts installs four binaries in `./branch_and_reduce/deploy`:
 - `m2s_branch_and_reduce` provides our the implementations for `red2pack core/elaborated` and `2pack`
-- `check_connected` to check whether a graph in connected. Is is used for the competitor algorithm `gen2pack`
+- `check_connected` to check whether a graph in connected. It is used for the competitor algorithm `gen2pack`
 - `check_graph` to check whether a M2PS-to-MIS condensed graph (with or without reductions) is small enough for the weighted branch-and-reduce solver from KaMIS (32 bit limit for Node/Edge representation)
 - `graph_to_gml` translates an undirected unweighted graph from the METIS format to the GML format
 
@@ -45,8 +45,8 @@ Use `--help` for an overview of the options or take a look in our example experi
 Note: If you want to use the out-of-the-box experiment, skip this section and go to [Experiment](#Experiment).
 
 We compare our algorithms to two competitor algorithms: gen2pack by Trejo et al. and Apx-2P+Im-2p by Trejo and Sanchez.
-We had to modify the original source-code slightly to make it work -- however, we did not modify the algorithms themselves
-and only added missing parts as described in the related papers.
+After correspondence with the authors, we modified the original source-code for Apx-2P+Imp-2P slightly to make it work -- however, we did not modify the algorithms themselves
+and only added missing parts as described in the related papers. 
 
 ### gen2pack
 gen2pack was implemented in Python an depends on multiple Python libraries.
@@ -145,6 +145,3 @@ bash run_experiment.sh <path_to_graph_filename> <use_genpack:1:0> <use_apx2p:1:0
 ## License (TODO)
 The project is released under MIT. However, some files used for kernelization are released under the BSD 3-clause license. See the respective files for their license. If you publish results using our algorithms, please acknowledge our work by quoting one or more of the following papers:
 
-```text
-ToDO
-```
