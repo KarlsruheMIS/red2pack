@@ -20,6 +20,7 @@ heuristic::heuristic(two_packing_set::m2s_graph_access& G, M2SConfig m2s_cfg, MI
 }
 
 bool heuristic::run() {
+    std::cout << "run" << std::endl;
         auto start_t = std::chrono::system_clock::now();
         // kernel obtained with 2-packing set reductions
         graph_access condensed_graph;
@@ -52,6 +53,7 @@ bool heuristic::run() {
 }
 
 void heuristic::construct_condensed_graph(graph_access& condensed_graph) {
+    std::cout << "construct" << std::endl;
         if(m2s_cfg.disable_fast_domination && m2s_cfg.disable_domination && m2s_cfg.disable_deg_two && m2s_cfg.disable_deg_one && m2s_cfg.disable_twin && m2s_cfg.disable_clique) {
                 auto start_t = std::chrono::system_clock::now();
                 graph.construct_2neighborhood();
@@ -77,10 +79,12 @@ void heuristic::construct_condensed_graph(graph_access& condensed_graph) {
                         for (size_t j = graph.get_first_edge(i); j < graph.get_first_invalid_edge(i); j++) {
                                 EdgeID e_bar = condensed_graph.new_edge(reduced_node_id[i], reduced_node_id[graph.getEdgeTarget(j)]);
                                 condensed_graph.setEdgeWeight(e_bar,1);
+                                std::cout << "edge weight" <<condensed_graph.getEdgeWeight(e_bar) << std::endl;
                         }
                         for (size_t j = graph.get_first_edge2(i); j < graph.get_first_invalid_edge2(i); j++) {
                                 EdgeID e_bar = condensed_graph.new_edge(reduced_node_id[i], reduced_node_id[graph.getEdgeTarget2(j)]);
                                 condensed_graph.setEdgeWeight(e_bar,1);
+                                std::cout << "edge weight" <<condensed_graph.getEdgeWeight(e_bar) << std::endl;
                         }
                 }
                 condensed_graph.finish_construction();
@@ -165,13 +169,17 @@ void heuristic::perform_initial_reductions(graph_access& condensed_graph) {
                                 condensed_graph.setNodeWeight(reduced_node_id[i], 1);
                                 for (size_t j = 0; j < status.graph[i].size(); j++) {
                                         if (status.node_status[status.graph[i][j]] == reduce_algorithm::pack_status::not_set) {
-                                                condensed_graph.new_edge(reduced_node_id[i], reduced_node_id[status.graph[i][j]]);
+                                               EdgeID e_bar = condensed_graph.new_edge(reduced_node_id[i], reduced_node_id[status.graph[i][j]]);
+                                               condensed_graph.setEdgeWeight(e_bar,1);
+                                               std::cout << "edge weight" <<condensed_graph.getEdgeWeight(e_bar) << std::endl;
                                         }
                                 }
                                 for (size_t j = 0; j < status.graph.get2neighbor_list(i).size(); j++) {
                                         if (status.node_status[status.graph.get2neighbor_list(i)[j]] ==
                                             reduce_algorithm::pack_status::not_set) {
-                                                condensed_graph.new_edge(reduced_node_id[i], reduced_node_id[status.graph.get2neighbor_list(i)[j]]);
+                                               EdgeID e_bar = condensed_graph.new_edge(reduced_node_id[i], reduced_node_id[status.graph.get2neighbor_list(i)[j]]);
+                                               condensed_graph.setEdgeWeight(e_bar,1);
+                                               std::cout << "edge weight" <<condensed_graph.getEdgeWeight(e_bar) << std::endl;
                                         }
                                 }
 

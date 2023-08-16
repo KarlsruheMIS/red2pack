@@ -16,7 +16,7 @@
 #include "fast_set.h"
 #include "graph_access.h"
 #include "m2s_config.h"
-#include "data_structures/sized_vector.h"
+#include "sized_vector.h"
 #include "timer.h"
 
 namespace two_packing_set {
