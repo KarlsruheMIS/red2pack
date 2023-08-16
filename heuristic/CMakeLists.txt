@@ -130,7 +130,6 @@ set(LIBKAFFPA_SOURCE_FILES
         ${KAMIS}/extern/KaHIP/lib/data_structure/graph_hierarchy.cpp
         ${KAMIS}/extern/KaHIP/lib/algorithms/strongly_connected_components.cpp
         ${KAMIS}/extern/KaHIP/lib/algorithms/topological_sort.cpp
-        ${KAMIS}/extern/KaHIP/lib/algorithms/push_relabel.cpp
         ${KAMIS}/extern/KaHIP/lib/io/graph_io.cpp
         ${KAMIS}/extern/KaHIP/lib/tools/quality_metrics.cpp
         ${KAMIS}/extern/KaHIP/lib/tools/random_functions.cpp
