@@ -75,10 +75,12 @@ void heuristic::construct_condensed_graph(graph_access& condensed_graph) {
                         condensed_graph.new_node();
                         condensed_graph.setNodeWeight(reduced_node_id[i], 1);
                         for (size_t j = graph.get_first_edge(i); j < graph.get_first_invalid_edge(i); j++) {
-                                condensed_graph.new_edge(reduced_node_id[i], reduced_node_id[graph.getEdgeTarget(j)]);
+                                EdgeID e_bar = condensed_graph.new_edge(reduced_node_id[i], reduced_node_id[graph.getEdgeTarget(j)]);
+                                condensed_graph.setEdgeWeight(e_bar,1);
                         }
                         for (size_t j = graph.get_first_edge2(i); j < graph.get_first_invalid_edge2(i); j++) {
-                                condensed_graph.new_edge(reduced_node_id[i], reduced_node_id[graph.getEdgeTarget2(j)]);
+                                EdgeID e_bar = condensed_graph.new_edge(reduced_node_id[i], reduced_node_id[graph.getEdgeTarget2(j)]);
+                                condensed_graph.setEdgeWeight(e_bar,1);
                         }
                 }
                 condensed_graph.finish_construction();

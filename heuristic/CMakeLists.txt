@@ -93,6 +93,7 @@ include_directories(
         ${KAMIS}/lib/mis/ils
         ${KAMIS}/lib/mis/initial_mis
         ${KAMIS}/lib/mis/kernel
+        ${KAMIS}/lib/mis/evolutionary
         ${KAMIS}/lib/tools
         ${KAMIS}/extern/KaHIP
         ${KAMIS}/extern/KaHIP/app
@@ -111,9 +112,45 @@ include_directories(
         ${KAMIS}/extern/KaHIP/lib/tools
 )
 
+set(LIBSOURCE_SOURCE_FILES
+    ${KAMIS}/lib/tools/mis_log.cpp
+    ${KAMIS}/lib/mis/ils/ils.cpp
+    ${KAMIS}/lib/mis/ils/local_search.cpp
+    ${KAMIS}/lib/mis/initial_mis/greedy_mis.cpp
+    ${KAMIS}/lib/mis/initial_mis/greedy_vertex.cpp
+    ${KAMIS}/lib/mis/initial_mis/random_mis.cpp
+    ${KAMIS}/lib/mis/initial_mis/initial_mis.cpp
+    ${KAMIS}/lib/data_structure/mis_permutation.cpp
+    ${KAMIS}/lib/data_structure/candidate_list.cpp
+    ${KAMIS}/lib/data_structure/operation_log.cpp
+    ${KAMIS}/lib/data_structure/priority_queues/bucket_array.cpp
+    ${KAMIS}/lib/mis/evolutionary/population_mis.cpp
+    ${KAMIS}/extern/argtable3-3.0.3/argtable3.c)
+add_library(libfiles OBJECT ${LIBSOURCE_SOURCE_FILES})
+
+set(LIBKAFFPA_SOURCE_FILES
+    ${KAMIS}/extern/KaHIP/lib/data_structure/graph_hierarchy.cpp
+    ${KAMIS}/extern/KaHIP/lib/algorithms/strongly_connected_components.cpp
+    ${KAMIS}/extern/KaHIP/lib/algorithms/topological_sort.cpp
+    ${KAMIS}/extern/KaHIP/lib/algorithms/push_relabel.cpp
+    ${KAMIS}/extern/KaHIP/lib/io/graph_io.cpp
+    ${KAMIS}/extern/KaHIP/lib/tools/quality_metrics.cpp
+    ${KAMIS}/extern/KaHIP/lib/tools/random_functions.cpp
+    ${KAMIS}/extern/KaHIP/lib/tools/graph_extractor.cpp
+    ${KAMIS}/extern/KaHIP/lib/tools/misc.cpp
+    ${KAMIS}/extern/KaHIP/lib/tools/partition_snapshooter.cpp)
+add_library(libkaffpa OBJECT ${LIBKAFFPA_SOURCE_FILES})
+
+set(LIBONLINEMIS_FILES
+    ${KAMIS}/lib/mis/ils/online_ils.cpp
+    ${KAMIS}/lib/mis/ils/local_search_online.cpp
+    ${KAMIS}/lib/mis/initial_mis/greedy_mis_online.cpp
+    ${KAMIS}/lib/data_structure/mis_permutation_online.cpp)
+add_library(libonlinemis OBJECT ${LIBONLINEMIS_FILES})
+
 
 # KaMIS source files
-add_subdirectory(${KAMIS})
+# add_subdirectory(${KAMIS})
 # add_subdirectory(${KAMIS_wmis})
 
 # M2S Headers

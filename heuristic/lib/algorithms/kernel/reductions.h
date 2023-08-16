@@ -8,7 +8,7 @@
 #include "data_structures/m2s_dynamic_graph.h"
 #include "definitions.h"
 #include "fast_set.h"
-#include "sized_vector.h"
+#include "data_structures/sized_vector.h"
 
 namespace two_packing_set {
 
@@ -35,8 +35,8 @@ constexpr size_t m2ps_REDUCTION_NUM = 14;  // this is the number of the reductio
 
 class vertex_marker_2pack {
        private:
-        sized_vector<NodeID> current;
-        sized_vector<NodeID> next;
+        two_packing_set::sized_vector<NodeID> current;
+        two_packing_set::sized_vector<NodeID> next;
         fast_set added_vertices;
 
        public:

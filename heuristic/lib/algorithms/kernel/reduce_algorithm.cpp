@@ -22,7 +22,7 @@ reduce_algorithm::reduce_algorithm(m2s_graph_access& G, const M2SConfig &m2s_con
       set_1(G.number_of_nodes()),
       set_2(G.number_of_nodes()),
       double_set(G.number_of_nodes() * 2),
-      buffers(2, sized_vector<NodeID>(G.number_of_nodes())) {
+      buffers(2, two_packing_set::sized_vector<NodeID>(G.number_of_nodes())) {
         if (config.reduction_style2 == M2SConfig::Reduction_Style2::elaborated) {
                 global_status.reductions2 =
                     make_2reduction_vector<deg_one_2reduction_e, deg_two_2reduction_e, twin2_reduction_e,
