@@ -8,6 +8,8 @@
 #include "local_search.h"
 #include "online_ils.h"
 #include "tools/m2s_log.h"
+/* #include "extern/KaMIs/extern/KaHIP/lib/io/graph_io.h" */
+#include "graph_io.h"
 
 namespace two_packing_set {
 heuristic::heuristic(two_packing_set::m2s_graph_access& G, M2SConfig m2s_cfg, MISConfig mis_cfg)
@@ -44,8 +46,10 @@ bool heuristic::run() {
                         if (condensed_graph.getPartitionIndex(node) == 1) {
                                 solution_status[former_node_id[node]] = true;
                                 solution_size++;
+                                
                         }
                 }
+                std::cout << "Sol size: " << solution_size << std::endl;
         }
 
         return false;
@@ -158,32 +162,43 @@ void heuristic::perform_initial_reductions(graph_access& condensed_graph) {
 
                         }
                 }
-                condensed_graph.start_construction(kernel_nodes, count_edges);
-                for (size_t i = 0; i < status.graph.size(); i++) {
-                        if (status.node_status[i] == reduce_algorithm::pack_status::not_set) {
-                                condensed_graph.new_node();
-                                condensed_graph.setNodeWeight(reduced_node_id[i], 1);
-                                for (size_t j = 0; j < status.graph[i].size(); j++) {
-                                        if (status.node_status[status.graph[i][j]] == reduce_algorithm::pack_status::not_set) {
-                                               EdgeID e_bar = condensed_graph.new_edge(reduced_node_id[i], reduced_node_id[status.graph[i][j]]);
-                                               condensed_graph.setEdgeWeight(e_bar,1);
-                                        }
-                                }
-                                for (size_t j = 0; j < status.graph.get2neighbor_list(i).size(); j++) {
-                                        if (status.node_status[status.graph.get2neighbor_list(i)[j]] ==
-                                            reduce_algorithm::pack_status::not_set) {
-                                               EdgeID e_bar = condensed_graph.new_edge(reduced_node_id[i], reduced_node_id[status.graph.get2neighbor_list(i)[j]]);
-                                               condensed_graph.setEdgeWeight(e_bar,1);
-                                        }
-                                }
 
+                condensed_graph.start_construction(kernel_nodes, count_edges);
+                std::vector<NodeID> adjA(kernel_nodes,0);
+                for (size_t node = 0; node < status.graph.size(); node++) {
+                        if (status.node_status[node] == reduce_algorithm::pack_status::not_set) {
+                            int local_count_edges = 0;
+                            condensed_graph.new_node();
+                            condensed_graph.setNodeWeight(reduced_node_id[node], 1);
+                            for (size_t j = 0; j < status.graph[node].size(); j++) {
+                                    if (status.node_status[status.graph[node][j]] == reduce_algorithm::pack_status::not_set) {
+                                        NodeID target = reduced_node_id[status.graph[node][j]];
+                                        adjA[local_count_edges++] = target;
+                                    }
+                            }
+                            for (size_t j = 0; j < status.graph.get2neighbor_list(node).size(); j++) {
+                                    if (status.node_status[status.graph.get2neighbor_list(node)[j]] == reduce_algorithm::pack_status::not_set) {
+                                        NodeID target = reduced_node_id[status.graph.get2neighbor_list(node)[j]];
+                                        adjA[local_count_edges++] = target;
+                                    }
+                            }
+                            auto end = adjA.begin();
+                            std::advance(end, local_count_edges);
+                            std::sort(adjA.begin(), end);
+
+                            for (NodeID idx = 0; idx < local_count_edges; idx++) {
+                                EdgeID e_bar = condensed_graph.new_edge(reduced_node_id[node], adjA[idx]);
+                                condensed_graph.setEdgeWeight(e_bar,1);
                         }
+                    }
                 }
                 condensed_graph.finish_construction();
+                graph_io::writeGraph(condensed_graph, "test.graph");
 
                 auto stop_construction = std::chrono::system_clock::now();
                 std::chrono::duration<double> elapsed_time_construction = stop_construction - start_construction;
                 m2s_log::instance()->print_condensed_graph(condensed_graph.number_of_nodes(), condensed_graph.number_of_edges()/2, elapsed_time_construction.count());
+                std::cout << "construction finished" << std::endl;
         }
 }
 
