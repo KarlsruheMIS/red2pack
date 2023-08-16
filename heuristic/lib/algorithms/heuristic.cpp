@@ -167,6 +167,7 @@ void heuristic::perform_initial_reductions(graph_access& condensed_graph) {
                 std::vector<NodeID> adjA(kernel_nodes,0);
                 for (size_t node = 0; node < status.graph.size(); node++) {
                         if (status.node_status[node] == reduce_algorithm::pack_status::not_set) {
+                            adjA.resize(kernel_nodes);
                             int local_count_edges = 0;
                             condensed_graph.new_node();
                             condensed_graph.setNodeWeight(reduced_node_id[node], 1);
@@ -182,6 +183,7 @@ void heuristic::perform_initial_reductions(graph_access& condensed_graph) {
                                         adjA[local_count_edges++] = target;
                                     }
                             }
+                            adjA.resize(local_count_edges);
                             auto end = adjA.begin();
                             std::advance(end, local_count_edges);
                             std::sort(adjA.begin(), end);
@@ -193,12 +195,11 @@ void heuristic::perform_initial_reductions(graph_access& condensed_graph) {
                     }
                 }
                 condensed_graph.finish_construction();
-                graph_io::writeGraph(condensed_graph, "test.graph");
+                graph_io::writeGraphWeighted(condensed_graph, "test.graph");
 
                 auto stop_construction = std::chrono::system_clock::now();
                 std::chrono::duration<double> elapsed_time_construction = stop_construction - start_construction;
                 m2s_log::instance()->print_condensed_graph(condensed_graph.number_of_nodes(), condensed_graph.number_of_edges()/2, elapsed_time_construction.count());
-                std::cout << "construction finished" << std::endl;
         }
 }
 
