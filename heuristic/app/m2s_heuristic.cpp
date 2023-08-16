@@ -118,8 +118,10 @@ int main(int argc, char **argv) {
         /*===============================BENCHMARK START===============================*/
         m2s_log::instance()->restart_timer();
         // COMPUTATION START
-        // init branch and reduce solver
+        // init heuristic solver
+        std::cout << "start solver" << std::endl;
         two_packing_set::heuristic solver(graph, m2s_config, mis_config);
+        std::cout << "run solver" << std::endl;
 
         // solve graph
         bool found = solver.run();
