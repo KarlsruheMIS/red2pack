@@ -20,6 +20,8 @@ if [ $SKIP_GIT -eq 0 ]; then
 git submodule update --init --recursive --force
 fi
 
+cp heuristic/mis_permutation_online.cpp heuristic/extern/KaMIS/lib/data_structure
+
 # translate Erdos-Renyi + Cactus instances to metis format
 echo "Preparing Erdos-Renyi + Cactus graphs"
 cd graphs/Gene2Pack || exit
