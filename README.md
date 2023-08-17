@@ -25,12 +25,14 @@ bash init.sh
 Note: If you want to use the out-of-the-box experiment, skip this section and go to [Experiment](#Experiment).
 
 The implementation of our algorithms `red2pack core/elaborated` and `2pack` are located in `./branch_and_reduce`.
-We solve the MIS problem using the wighted branch-and-reduce solver of KaMIS. Please, make sure to run the `init.sh` script beforehand.
+The implementation of `red2pack heuristic` is located in `./heuristic`.
+We solve the MIS problem using the wighted branch-and-reduce and OnlineMIS solver of KaMIS. Please, make sure to run the `init.sh` script beforehand.
 
 
 To build the executable, please run:
 ```shell
 cd branch_and_reduce && bash compile_withcmake.sh && cd ../
+cd heuristic && bash compile_withcmake.sh && cd ../
 ```
 
 The scripts installs four binaries in `./branch_and_reduce/deploy`:
@@ -38,6 +40,8 @@ The scripts installs four binaries in `./branch_and_reduce/deploy`:
 - `check_connected` to check whether a graph in connected. It is used for the competitor algorithm `gen2pack`
 - `check_graph` to check whether a M2PS-to-MIS condensed graph (with or without reductions) is small enough for the weighted branch-and-reduce solver from KaMIS (32 bit limit for Node/Edge representation)
 - `graph_to_gml` translates an undirected unweighted graph from the METIS format to the GML format
+The scripts installs four binaries in `./heuristic/deploy`:
+- `m2s_heuristic` provides our the implementations for `red2pack heuristic`
 
 Use `--help` for an overview of the options or take a look in our example experiment `run_expriment.sh`.
 
@@ -96,6 +100,10 @@ if [ $INIT == 1 ]; then
     cd branch_and_reduce ||exit
     bash compile_withcmake.sh || exit
     cd ..
+    cp heuristic/mis_permutation_online.cpp heuristic/extern/KaMIS/lib/data_structure
+    cd heuristic ||exit
+    bash compile_withcmake.sh || exit
+    cd ..
     cd competitor/Gene2Pack ||exit
     bash init.sh || exit
     cd ../../
@@ -110,8 +118,8 @@ fi
 results="results.csv"
 time_limit=10 # seconds
 rm $results
-echo "graph,2pack,,,,,red2pack core,,,,,red2pack elaborated,,,,,gen2pack,,Apx-2p+Imp2p," >> $results
-echo ",S,t,t_p,n,m,S,t,t_p,n,m,S,t,t_p,n,m,S,t,S,t" >> $results # solution + time found
+echo "graph,2pack,,,,,red2pack core,,,,,red2pack elaborated,,,,,red2pack heuristic,,,,gen2pack,,Apx-2p+Imp2p," >> $results
+echo ",S,t,t_p,n,m,S,t,t_p,n,m,S,t,t_p,n,m,S,t,n,m,S,t,S,t" >> $results # solution + time found
 
 # Usage: bash run_experiment.sh <path_to_graph_filename> <use_genpack:1:0> <use_apx2p:1:0> <time_limit>
 

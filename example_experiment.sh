@@ -12,10 +12,10 @@ if [ $INIT -eq 1 ]; then
       # initialize and update submodules
       git submodule update --init --recursive --force
     fi
-    cp heuristic/mis_permutation_online.cpp heuristic/extern/KaMIS/lib/data_structure
     cd branch_and_reduce ||exit
     bash compile_withcmake.sh || exit
     cd ..
+    cp heuristic/mis_permutation_online.cpp heuristic/extern/KaMIS/lib/data_structure
     cd heuristic ||exit
     bash compile_withcmake.sh || exit
     cd ..
