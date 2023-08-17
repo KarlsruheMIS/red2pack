@@ -22,7 +22,7 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 endif()
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
-find_package( CPLEX )
+find_package( Cplex )
 
 if(CPLEX_FOUND)
     set(OPTIMIZER_INCLUDE_DIRS ${CPLEX_INCLUDE_DIRS})
