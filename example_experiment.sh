@@ -32,14 +32,14 @@ fi
 # example_experiment.sh
 
 rm $results
-echo "graph,2pack,,,,,red2pack core,,,,,red2pack elaborated,,,,,red2pack heuristic,,,,gen2pack,,Apx-2p+Imp2p," >> $results
+echo "graph,2pack_bnr,,,,,red2pack_bnr core,,,,,red2pack_bnr elaborated,,,,,red2pack_bnr heuristic elaborated,,,,gen2pack,,Apx-2p+Imp2p," >> $results
 echo ",S,t,t_p,n,m,S,t,t_p,n,m,S,t,t_p,n,m,S,t,n,m,S,t,S,t" >> $results # solution + time found
 
 # Usage: bash run_experiment.sh <path_to_graph_filename> <use_genpack:1:0> <use_apx2p:1:0> <time_limit>
 
 # Erdos-Renyi graph from https://github.com/trejoel/Gene2Pack/tree/amcs
-bash run_experiment.sh graphs/example/aGraphErdos40-1 1 0 $time_limit >> $results
-echo "Finished aGraphErdos40-1"
+bash run_experiment.sh graphs/example/aGraphErdos40-8 1 0 $time_limit >> $results
+echo "Finished aGraphErdos40-8"
 # Cactus graph from https://github.com/trejoel/Gene2Pack/tree/amcs
 bash run_experiment.sh graphs/example/cac100 1 0 $time_limit>> $results
 echo "Finished cac100"
