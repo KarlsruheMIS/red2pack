@@ -101,6 +101,51 @@ def get_data_m2s_bnr(file):
 
     return Result(name, time, solution, seed, kernel_nodes, kernel_edges, nodes, offset, kernel_size, time_kamis,
                   time_transform)
+    
+def get_data_m2s_heuristic(file):
+    name = ""
+    solution = Solution(0, SolStatus.NONE)
+    seed = int(os.path.basename(file)[1:].split("_s")[1][0])
+    time = Time(0, TimeStatus.MEMOUT)
+    kernel_nodes = 0
+    kernel_edges = 0
+    nodes = 0
+    offset = 0
+    kernel_size = 0
+    time_kamis = 0.0
+    time_transform = 0.0
+
+    if not os.path.exists(file):
+        return None
+
+    with open(file, "r") as result_f:
+        for line in result_f:
+            if "Transformed G Nodes" in line:
+                kernel_nodes = int(line.split(":")[1].rstrip().strip())
+            if "Transformed G Edges" in line:
+                kernel_edges = int(line.split(":")[1].rstrip().strip())
+            elif "-Nodes" in line:
+                nodes = int(line.split(":")[1].rstrip().strip())
+            elif "Size:" in line:
+                if not "[" in line:
+                    solution.sol = int(line.split(":")[1].rstrip().strip())
+                    solution.status = SolStatus.FOUND
+            elif "Filename" in line:
+                name = line.split(":")[1].rstrip().strip()
+            elif "Time found" in line:
+                time.t = sec_to_ms(float(line.split(":")[1].rstrip().strip()))
+                if time.t > time_limit:
+                    time.status = TimeStatus.TIMEOUT
+                else:
+                    time.status = TimeStatus.GOOD
+            elif "Transformation time" in line or "Reduction time" in line:
+                time_transform += sec_to_ms(float(line.split(":")[1].rstrip().strip()))
+            elif "Offset" in line:
+                offset = float(line.split(":")[1].rstrip().strip())
+
+    return Result(name, time, solution, seed, kernel_nodes, kernel_edges, nodes, offset, kernel_size,time_transform,
+                  time_transform)
+
 
 
 def get_data_apx2p(file):
@@ -176,6 +221,9 @@ def print_red2pack(res):
                     str(round(res.time.t, 2)) if res.time.status == TimeStatus.GOOD else str(res.time.status),
                     str(res.kernel_nodes), str(res.kernel_edges)]))
 
+def print_red2pack_heuristic(res):
+    print(" ".join([str(res.solution.sol), str(round(res.time.t, 2)),
+                    str(res.kernel_nodes), str(res.kernel_edges)]))
 
 def print_gen2pack(res):
     print(" ".join([str(res.solution.sol) if res.solution.status == SolStatus.FOUND else str(res.solution.status),
@@ -198,6 +246,9 @@ if __name__ == "__main__":
         elif sys.argv[1] == "red2pack":
             res = get_data_m2s_bnr(sys.argv[2])
             print_red2pack(res)
+        elif sys.argv[1] == "red2pack_heuristic":
+            res = get_data_m2s_heuristic(sys.argv[2])
+            print_red2pack_heuristic(res)
         elif sys.argv[1] == "gen2pack":
             res = get_data_genetic_algo(sys.argv[2])
             # For the example experiment we only compute one result

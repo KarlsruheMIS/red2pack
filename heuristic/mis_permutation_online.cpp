@@ -102,6 +102,8 @@ bool mis_permutation_online::search_adj(NodeID source, NodeID target,
   EdgeID mid = 0;
 
   if (target == G.getEdgeTarget(0)) return true;
+
+  while (low<=high) {
     mid = low + (high - low) / 2;
     if (mid == 0) return false;
     if (target == G.getEdgeTarget(mid))
@@ -111,6 +113,7 @@ bool mis_permutation_online::search_adj(NodeID source, NodeID target,
     else
       low = mid + 1;
   }
+
   return false;
 }
 

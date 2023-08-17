@@ -46,6 +46,15 @@ log="${out_dir}/red2pack_elaborated_s${seed}_${graph}.log"
 
 result="$result,$(python3 eval_experiment.py "red2pack" "$log" $time_limit|awk -v OFS=, '{print $1,$2,$3,$4,$5}')"
 
+# red2pack heuristic
+log="${out_dir}/red2pack_heuristic_s${seed}_${graph}.log"
+./heuristic/deploy/m2s_heuristic "${graph_path}.graph" \
+  "--seed=$seed" "--time_limit=$time_limit" \
+  "--reduction_style2=elaborated" \
+  >"$log" 2>&1
+
+result="$result,$(python3 eval_experiment.py "red2pack_heuristic" "$log" $time_limit|awk -v OFS=, '{print $1,$2,$3,$4}')"
+
 # competitor: gen2pack
 if [ $use_gen2pack == "1" ]; then
     if [ ! -f ./competitor/Gene2Pack/wake.py ]; then

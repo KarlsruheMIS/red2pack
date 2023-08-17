@@ -1,4 +1,8 @@
 #!/bin/bash
+
+results="results.csv"
+time_limit=10 # seconds
+
 # init
 INIT=1
 USE_COMPETITOR_APX2P_IM2P=1
@@ -8,7 +12,11 @@ if [ $INIT -eq 1 ]; then
       # initialize and update submodules
       git submodule update --init --recursive --force
     fi
+    cp heuristic/mis_permutation_online.cpp heuristic/extern/KaMIS/lib/data_structure
     cd branch_and_reduce ||exit
+    bash compile_withcmake.sh || exit
+    cd ..
+    cd heuristic ||exit
     bash compile_withcmake.sh || exit
     cd ..
     cd competitor/Gene2Pack ||exit
@@ -22,11 +30,10 @@ if [ $INIT -eq 1 ]; then
 fi
 
 # example_experiment.sh
-results="results.csv"
-time_limit=10 # seconds
+
 rm $results
-echo "graph,2pack,,,,,red2pack core,,,,,red2pack elaborated,,,,,gen2pack,,Apx-2p+Imp2p," >> $results
-echo ",S,t,t_p,n,m,S,t,t_p,n,m,S,t,t_p,n,m,S,t,S,t" >> $results # solution + time found
+echo "graph,2pack,,,,,red2pack core,,,,,red2pack elaborated,,,,,red2pack heuristic,,,,gen2pack,,Apx-2p+Imp2p," >> $results
+echo ",S,t,t_p,n,m,S,t,t_p,n,m,S,t,t_p,n,m,S,t,n,m,S,t,S,t" >> $results # solution + time found
 
 # Usage: bash run_experiment.sh <path_to_graph_filename> <use_genpack:1:0> <use_apx2p:1:0> <time_limit>
 
