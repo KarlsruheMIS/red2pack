@@ -32,7 +32,7 @@ fi
 # example_experiment.sh
 
 rm $results
-echo "graph,2pack_bnr,,,,,red2pack_bnr core,,,,,red2pack_bnr elaborated,,,,,red2pack_bnr heuristic elaborated,,,,gen2pack,,Apx-2p+Imp2p," >> $results
+echo "graph,2pack_bnr,,,,,red2pack_bnr core,,,,,red2pack_bnr elaborated,,,,,red2pack_heuristic elaborated,,,,gen2pack,,Apx-2p+Imp2p," >> $results
 echo ",S,t,t_p,n,m,S,t,t_p,n,m,S,t,t_p,n,m,S,t,n,m,S,t,S,t" >> $results # solution + time found
 
 # Usage: bash run_experiment.sh <path_to_graph_filename> <use_genpack:1:0> <use_apx2p:1:0> <time_limit>

@@ -159,7 +159,7 @@ def get_data_apx2p(file):
 
     with open(file, "r") as result_f:
         for line in result_f:
-            if "Total solution size:" in line:
+            if "Checked solution size:" in line:
                 solution.sol = int(line.split(":")[1].rstrip().strip())
                 solution.status = SolStatus.FOUND
             elif "Openning" in line:
