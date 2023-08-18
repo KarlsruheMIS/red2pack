@@ -15,22 +15,23 @@ if [[ "$unamestr" == "Darwin" ]]; then
 fi
 
 rm -rf deploy
-rm -rf build
-mkdir build
-cd build
-
+mkdir deploy
 if [[ "$unamestr" == "Linux" ]]; then
-  cmake ../ -DCMAKE_C_COMPILER=$(which gcc) -DCMAKE_CXX_COMPILER=$(which g++) -DCMAKE_BUILD_TYPE=Release -DCMAKE_ENABLE_TESTING=False -DCPLEX_ROOT_DIR=$CPLEX_ROOT_DIR
+	make CPLEX_DIRECTORY=${CPLEX_ROOT_DIR}
+	mv modified_source deploy/
+	rm modified_source.o
 fi
 
 if [[ "$unamestr" == "Darwin" ]]; then
+rm -rf build
+mkdir build
+cd build
   cmake ../ -DCMAKE_C_COMPILER=$(which clang)  -DCMAKE_CXX_COMPILER=$(which clang++) -DCMAKE_BUILD_TYPE=Release -DCMAKE_ENABLE_TESTING=False -DCPLEX_ROOT_DIR=$CPLEX_ROOT_DIR
-fi
-
 make -j $NCORES
 cd ..
-
-mkdir deploy
 cp ./build/apx-2p deploy/
 
 rm -rf build
+fi
+
+
