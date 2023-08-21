@@ -1,5 +1,5 @@
 """
-    Translate graphs in gml format to dimacs format
+    Translate graphs in gml format to metis format
 """
 import os.path
 from enum import Enum
@@ -12,7 +12,7 @@ class ReadStatus(Enum):
     EDGE = 3
 
 
-def gml_to_dimacs(gml_filename, out_dir):
+def gml_to_metis(gml_filename, out_dir):
     out_lines = []
 
     nodes = []
@@ -77,6 +77,6 @@ def gml_to_dimacs(gml_filename, out_dir):
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("Usage: python3 graph_gml_to_dimacs instance.gml out_dir")
+        print("Usage: python3 graph_gml_to_metis instance.gml out_dir")
     else:
-        gml_to_dimacs(sys.argv[1], sys.argv[2])
+        gml_to_metis(sys.argv[1], sys.argv[2])

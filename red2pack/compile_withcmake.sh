@@ -12,7 +12,7 @@ fi
 
 rm -rf deploy
 mkdir deploy
-rm -rf build
+#rm -rf build
 mkdir build
 cd build
 if [[ "$unamestr" == "Linux" ]]; then
@@ -20,7 +20,7 @@ if [[ "$unamestr" == "Linux" ]]; then
 fi
 
 if [[ "$unamestr" == "Darwin" ]]; then
-  cmake ../ -DCMAKE_C_COMPILER=/usr/local/bin/gcc-13  -DCMAKE_CXX_COMPILER=/usr/local/bin/g++-13  -DCMAKE_BUILD_TYPE=Release -DCMAKE_ENABLE_TESTING=False
+  cmake ../ -DCMAKE_C_COMPILER=/usr/local/bin/gcc-13  -DCMAKE_CXX_COMPILER=/usr/local/bin/g++-13  -DCMAKE_BUILD_TYPE=Release -DCMAKE_ENABLE_TESTING=True
 fi
 
 make -j $NCORES
@@ -28,4 +28,4 @@ make -j $NCORES
 cmake --install .
 
 cd ..
-rm -rf build
+#rm -rf build

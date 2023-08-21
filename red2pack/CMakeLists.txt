@@ -105,6 +105,13 @@ ENDIF()
 # add red2pack-lib
 add_subdirectory(${RED2PACK_LIB_PATH})
 
+# add tests?
+set(CMAKE_ENABLE_TESTING True)
+IF (CMAKE_ENABLE_TESTING)
+    add_subdirectory(tests)
+    enable_testing()
+ENDIF ()
+
 # add executables
 add_executable(red2pack_branch_and_reduce ${RED2PACK_BNR_SOURCE} $<TARGET_OBJECTS:libkaffpa2> $<TARGET_OBJECTS:libsources> "$<TARGET_OBJECTS:${RED2PACK_LIB}>")
 
