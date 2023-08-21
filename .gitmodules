@@ -1,12 +1,9 @@
-[submodule "branch_and_reduce/extern/KaMIS"]
-	path = branch_and_reduce/extern/KaMIS
-	url = git@github.com:KarlsruheMIS/KaMIS.git
 [submodule "graphs/Gene2Pack"]
 	path = graphs/Gene2Pack
 	url = git@github.com:trejoel/Gene2Pack.git
 [submodule "graphs/Approximate2Packing"]
 	path = graphs/Approximate2Packing
 	url = git@github.com:trejoel/Approximate2Packing.git
-[submodule "heuristic/extern/KaMIS"]
-	path = heuristic/extern/KaMIS
+[submodule "red2pack/extern/KaMIS"]
+	path = red2pack/extern/KaMIS
 	url = git@github.com:KarlsruheMIS/KaMIS.git
