@@ -20,7 +20,7 @@ if [[ "$unamestr" == "Linux" ]]; then
 fi
 
 if [[ "$unamestr" == "Darwin" ]]; then
-  cmake ../ -DCMAKE_C_COMPILER=/usr/local/bin/gcc-13  -DCMAKE_CXX_COMPILER=/usr/local/bin/g++-13  -DCMAKE_BUILD_TYPE=Release -DCMAKE_ENABLE_TESTING=True
+  cmake ../ -DCMAKE_C_COMPILER=/usr/local/bin/gcc-13  -DCMAKE_CXX_COMPILER=/usr/local/bin/g++-13  -DCMAKE_BUILD_TYPE=Release -DCMAKE_ENABLE_TESTING=False
 fi
 
 make -j $NCORES
