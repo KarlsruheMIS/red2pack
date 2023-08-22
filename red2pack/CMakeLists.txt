@@ -34,6 +34,8 @@ if(CMAKE_BUILD_TYPE EQUAL "Debug")
     add_compile_options(-fsanitize=address)
 endif()
 
+add_compile_options(-fpermissive)
+
 # set KaMIS/wmis path for red2pack-lib and includes for app/
 set(KAMIS_WMIS ${CMAKE_CURRENT_SOURCE_DIR}/extern/KaMIS/wmis)
 # set OnlineMIS path
