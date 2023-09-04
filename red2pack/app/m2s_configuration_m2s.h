@@ -68,7 +68,7 @@ inline void m2s_configuration_m2s::standard(red2pack::M2SConfig &m2s_config) {
         m2s_config.console_log = false;
         m2s_config.write_2ps = false;
         // Reductions
-        m2s_config.reduction_style2 = red2pack::M2SConfig::Reduction_Style2::elaborated;
+        m2s_config.reduction_style = red2pack::M2SConfig::Reduction_Style2::elaborated;
         m2s_config.disable_twin = false;
         /* m2s_config.disable_neighborhood_e = false; */
         m2s_config.disable_deg_two = false;

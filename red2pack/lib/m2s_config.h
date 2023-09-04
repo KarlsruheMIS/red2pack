@@ -35,17 +35,18 @@ struct M2SConfig {
         bool disable_clique;
         bool disable_deg_two;
         bool disable_twin;
+
         bool on_demand_two_neighborhood;
 
-        Reduction_Style2 reduction_style2;
+        Reduction_Style2 reduction_style;
 
         void set2ReductionStyle(const std::string& redu_style) {
-                 if (strCompare(redu_style, "core")) {
-                        reduction_style2 = Reduction_Style2::core;
+                if (strCompare(redu_style, "core")) {
+                        reduction_style = Reduction_Style2::core;
                 } else if (strCompare(redu_style, "elaborated")) {
-                        reduction_style2 = Reduction_Style2::elaborated;
+                        reduction_style = Reduction_Style2::elaborated;
                 } else {
-                        reduction_style2 = Reduction_Style2::elaborated;
+                        reduction_style = Reduction_Style2::elaborated;
                 }
         }
 
@@ -57,6 +58,6 @@ struct M2SConfig {
                        });
         }
 };
-}  // namespace two_packing_set
+}  // namespace red2pack
 
 #endif

@@ -6,9 +6,9 @@
 
 namespace red2pack {
 
-typedef reduce_algorithm::pack_status pack_status;
+typedef reduce_algorithm::two_pack_status pack_status;
 
-bool deg_one_2reduction_e::reduce(reduce_algorithm* algo) {
+bool deg_one_2reduction::reduce(reduce_algorithm* algo) {
         auto config = algo->config;
         if (config.disable_deg_one) return false;
         auto& status = algo->global_status;
@@ -25,11 +25,11 @@ bool deg_one_2reduction_e::reduce(reduce_algorithm* algo) {
                 }
         }
 
-        std::cout << "degree_one_reduction_e:" << oldn - status.remaining_nodes << std::endl;
+        std::cout << "degree_one_reduction:" << oldn - status.remaining_nodes << std::endl;
         return oldn != status.remaining_nodes;
 }
 
-bool deg_two_2reduction_e::reduce(reduce_algorithm* algo) {
+bool deg_two_2reduction::reduce(reduce_algorithm* algo) {
         auto config = algo->config;
         if (config.disable_deg_two) return false;
         auto& status = algo->global_status;
@@ -82,11 +82,11 @@ bool deg_two_2reduction_e::reduce(reduce_algorithm* algo) {
                 }
         }
 
-        std::cout << "degree_two_2reduction_e:" << oldn - status.remaining_nodes << std::endl;
+        std::cout << "degree_two_2reduction:" << oldn - status.remaining_nodes << std::endl;
         return oldn != status.remaining_nodes;
 }
 
-bool twin2_reduction_e::reduce(reduce_algorithm* algo) {
+bool twin2_reduction::reduce(reduce_algorithm* algo) {
         auto config = algo->config;
         if (config.disable_twin) return false;
         auto& status = algo->global_status;
@@ -134,11 +134,11 @@ bool twin2_reduction_e::reduce(reduce_algorithm* algo) {
                 }
         }
 
-        std::cout << "twin_reduction_e:" << oldn - status.remaining_nodes << std::endl;
+        std::cout << "twin_reduction:" << oldn - status.remaining_nodes << std::endl;
         return oldn != status.remaining_nodes;
 }
 
-bool fast_domination2_reduction_e::reduce(reduce_algorithm* algo) {
+bool fast_domination2_reduction::reduce(reduce_algorithm* algo) {
         auto config = algo->config;
         if (config.disable_fast_domination) return false;
         auto& status = algo->global_status;
@@ -188,11 +188,11 @@ bool fast_domination2_reduction_e::reduce(reduce_algorithm* algo) {
                 }
         }
 
-        std::cout << "fast_domination_reduction_e:" << oldn - status.remaining_nodes << std::endl;
+        std::cout << "fast_domination_reduction:" << oldn - status.remaining_nodes << std::endl;
         return oldn != status.remaining_nodes;
 }
 
-bool domination2_reduction_e::reduce(reduce_algorithm* algo) {
+bool domination2_reduction::reduce(reduce_algorithm* algo) {
         auto config = algo->config;
         if (config.disable_domination) return false;
         auto& status = algo->global_status;
@@ -254,11 +254,11 @@ bool domination2_reduction_e::reduce(reduce_algorithm* algo) {
                 }
         }
 
-        std::cout << "domination_reduction_e:" << oldn - status.remaining_nodes << std::endl;
+        std::cout << "domination_reduction:" << oldn - status.remaining_nodes << std::endl;
         return oldn != status.remaining_nodes;
 }
 
-bool clique2_reduction_e::reduce(reduce_algorithm* algo) {
+bool clique2_reduction::reduce(reduce_algorithm* algo) {
         auto config = algo->config;
         if (config.disable_clique) return false;
 
@@ -322,7 +322,7 @@ bool clique2_reduction_e::reduce(reduce_algorithm* algo) {
                 }
         }
 
-        std::cout << "clique_reduction_e:" << oldn - status.remaining_nodes << std::endl;
+        std::cout << "clique_reduction:" << oldn - status.remaining_nodes << std::endl;
         return oldn != status.remaining_nodes;
 }
 

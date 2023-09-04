@@ -166,9 +166,7 @@ class m2s_graph_access {
         /* graph access methods */
         /* ============================================================= */
         NodeID number_of_nodes();
-        EdgeID number_of_edges();
-
-        void init_touched(int n);
+        EdgeID number_of_edges(); // returns number of 1-edges
 
         EdgeID get_first_edge(NodeID node);
         EdgeID get_first_invalid_edge(NodeID node);
@@ -228,13 +226,7 @@ class m2s_graph_access {
         void construct_access(long unsigned int n, long unsigned int m, int* xadj, int* adjncy);
         void construct_2neighborhood();
 
-        // void set_node_queue_index(NodeID node, Count queue_index);
-        // Count get_node_queue_index(NodeID node);
-
         void copy(m2s_graph_access& Gcopy);
-        // std::vector<Edge> get2neighbors(NodeID node);
-        // void construct_2neigh();
-        // std::vector<std::vector<int>> two_neighbors;
 
        private:
         basicGraph* graphref;

@@ -21,34 +21,27 @@
 
 namespace red2pack {
 
-class evo_graph;
-
 class reduce_algorithm {
        public:
-        enum pack_status { not_set, included, excluded, folded, unsafe };
+        enum two_pack_status { not_set, included, excluded, folded, unsafe };
 
        private:
         friend general_reduction_2pack;
-        friend deg_one_2reduction_e;
-        friend deg_two_2reduction_e;
-        friend twin2_reduction_e;
-        friend fast_domination2_reduction_e;
-        friend neighborhood2_reduction_e;
-        friend domination2_reduction_e;
-        friend clique2_reduction_e;
-
-        friend evo_graph;
+        friend deg_one_2reduction;
+        friend deg_two_2reduction;
+        friend twin2_reduction;
+        friend fast_domination2_reduction;
+        friend domination2_reduction;
+        friend clique2_reduction;
 
         struct graph_status {
-                friend evo_graph;
-
                 size_t n = 0;
                 size_t remaining_nodes = 0;
                 NodeWeight pack_weight = 0;
                 NodeWeight reduction_offset = 0;
                 m2s_dynamic_graph graph;
                 std::vector<NodeWeight> weights;
-                std::vector<pack_status> node_status;
+                std::vector<two_pack_status> node_status;
                 std::vector<reduction2_ptr> reductions2;
                 std::vector<m2ps_reduction_type> folded_queue;
                 std::vector<NodeID> modified_queue;
@@ -58,7 +51,7 @@ class reduce_algorithm {
                       remaining_nodes(n),
                       graph(G, two_neighborhood_initialized),
                       weights(n, 0),
-                      node_status(n, pack_status::not_set),
+                      node_status(n, two_pack_status::not_set),
                       folded_queue(n) {
                         forall_nodes (G, node) {
                                 weights[node] = G.getNodeWeight(node);
@@ -80,29 +73,33 @@ class reduce_algorithm {
         /////////////////////////////////////////////////////DATA/////////////////////////////////////////////////////////////////
         size_t active_reduction_index;
 
-        // graph_status global_status;
         std::vector<size_t> reduction_map;
 
         M2SConfig config;
         timer t;
-        // Lets see whether we need all of them or not...
         fast_set set_1;
-        fast_set set_2;
-        fast_set double_set;
         sized_vector<sized_vector<NodeID>> buffers;
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        //void set_imprecise(NodeID node, pack_status mpack_status);
-        void set(NodeID node, pack_status mpack_status);
+        /**
+         * Sets 2-pack status for node.
+         * @param node
+         * @param new_two_pack_status
+         */
+        void set(NodeID node, two_pack_status new_two_pack_status);
+
+        // get node degrees of current reduced graph
         size_t deg(NodeID node) const;
         size_t two_deg(NodeID node);
 
+        // adj queries for current reduced graph
         bool is_adj(NodeID first, NodeID second);
         bool is_two_adj(NodeID first, NodeID second);
 
+        // helper function to reduce node if degree 0 or 1 reduction applies
         bool reduce_deg_leq_one(NodeID node);
 
-
+        // helpers for reduction setup
         void init_reduction_step();
         void reduce_graph_internal();
 
@@ -110,7 +107,6 @@ class reduce_algorithm {
         reduce_algorithm(m2s_graph_access& G, const M2SConfig &m2s_config);
         void get_solution(std::vector<bool>& solution_vec);
         void run_reductions();
-        /* 	std::vector<NodeID> get_status();  */
         graph_status global_status;
 };
 

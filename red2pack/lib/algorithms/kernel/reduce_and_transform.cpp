@@ -91,7 +91,7 @@ void reduce_and_transform::transform_with_reductions(graph_access& condensed_gra
 
         // compute node id mapping for graph and kernel
         for (size_t i = 0; i < status.graph.size(); i++) {
-                if (status.node_status[i] == reduce_algorithm::pack_status::not_set) {
+                if (status.node_status[i] == reduce_algorithm::two_pack_status::not_set) {
                         reduced_node_id[i] = kernel_nodes;
                         former_node_id[kernel_nodes] = i;
                         kernel_nodes++;
@@ -111,16 +111,16 @@ void reduce_and_transform::transform_with_reductions(graph_access& condensed_gra
         } else {
                 EdgeID count_edges = 0;
                 for (size_t i = 0; i < status.graph.size(); i++) {
-                        if (status.node_status[i] == reduce_algorithm::pack_status::not_set) {
+                        if (status.node_status[i] == reduce_algorithm::two_pack_status::not_set) {
                                 for (size_t j = 0; j < status.graph[i].size(); j++) {
                                         if (status.node_status[status.graph[i][j]] ==
-                                            reduce_algorithm::pack_status::not_set) {
+                                            reduce_algorithm::two_pack_status::not_set) {
                                                 count_edges++;
                                         }
                                 }
                                 for (size_t j = 0; j < status.graph.get2neighbor_list(i).size(); j++) {
                                         if (status.node_status[status.graph.get2neighbor_list(i)[j]] ==
-                                            reduce_algorithm::pack_status::not_set) {
+                                            reduce_algorithm::two_pack_status::not_set) {
                                                 count_edges++;
                                         }
                                 }
@@ -137,15 +137,15 @@ void reduce_and_transform::transform_with_reductions(graph_access& condensed_gra
 
 void reduce_and_transform::build_condensed_graph_from_status(
     graph_access& condensed_graph, m2s_dynamic_graph& reduced_graph,
-    std::vector<reduce_algorithm::pack_status>& reduced_node_status, NodeID nodes, EdgeID edges) {
+    std::vector<reduce_algorithm::two_pack_status>& reduced_node_status, NodeID nodes, EdgeID edges) {
         condensed_graph.start_construction(nodes, edges);
         for (size_t i = 0; i < reduced_graph.size(); i++) {
-                if (reduced_node_status[i] == reduce_algorithm::pack_status::not_set) {
+                if (reduced_node_status[i] == reduce_algorithm::two_pack_status::not_set) {
                         condensed_graph.new_node();
                         condensed_graph.setNodeWeight(reduced_node_id[i], 1);
                         for (size_t j = 0; j < reduced_graph[i].size(); j++) {
                                 if (reduced_node_status[reduced_graph[i][j]] ==
-                                    reduce_algorithm::pack_status::not_set) {
+                                    reduce_algorithm::two_pack_status::not_set) {
                                         EdgeID e_bar = condensed_graph.new_edge(reduced_node_id[i],
                                                                  reduced_node_id[reduced_graph[i][j]]);
                                         condensed_graph.setEdgeWeight(e_bar, 1);
@@ -153,7 +153,7 @@ void reduce_and_transform::build_condensed_graph_from_status(
                         }
                         for (size_t j = 0; j < reduced_graph.get2neighbor_list(i).size(); j++) {
                                 if (reduced_node_status[reduced_graph.get2neighbor_list(i)[j]] ==
-                                    reduce_algorithm::pack_status::not_set) {
+                                    reduce_algorithm::two_pack_status::not_set) {
                                         EdgeID e_bar = condensed_graph.new_edge(
                                             reduced_node_id[i], reduced_node_id[reduced_graph.get2neighbor_list(i)[j]]);
                                         condensed_graph.setEdgeWeight(e_bar, 1);

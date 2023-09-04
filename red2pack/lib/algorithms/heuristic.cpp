@@ -46,25 +46,25 @@ void red2pack::heuristic::build_condensed_graph_from_access(graph_access& conden
 
 void red2pack::heuristic::build_condensed_graph_from_status(
     graph_access& condensed_graph, m2s_dynamic_graph& reduced_graph,
-    std::vector<reduce_algorithm::pack_status>& reduced_node_status, NodeID nodes, EdgeID edges) {
+    std::vector<reduce_algorithm::two_pack_status>& reduced_node_status, NodeID nodes, EdgeID edges) {
         condensed_graph.start_construction(nodes, edges);
         std::vector<NodeID> adjA(nodes, 0);
 
         for (size_t i = 0; i < reduced_graph.size(); i++) {
-                if (reduced_node_status[i] == reduce_algorithm::pack_status::not_set) {
+                if (reduced_node_status[i] == reduce_algorithm::two_pack_status::not_set) {
                         EdgeID local_count_edges = 0;
 
                         condensed_graph.new_node();
                         condensed_graph.setNodeWeight(reduced_node_id[i], 1);
                         for (size_t j = 0; j < reduced_graph[i].size(); j++) {
                                 if (reduced_node_status[reduced_graph[i][j]] ==
-                                    reduce_algorithm::pack_status::not_set) {
+                                    reduce_algorithm::two_pack_status::not_set) {
                                         adjA[local_count_edges++] = reduced_node_id[reduced_graph[i][j]];
                                 }
                         }
                         for (size_t j = 0; j < reduced_graph.get2neighbor_list(i).size(); j++) {
                                 if (reduced_node_status[reduced_graph.get2neighbor_list(i)[j]] ==
-                                    reduce_algorithm::pack_status::not_set) {
+                                    reduce_algorithm::two_pack_status::not_set) {
                                         adjA[local_count_edges++] =
                                             reduced_node_id[reduced_graph.get2neighbor_list(i)[j]];
                                 }

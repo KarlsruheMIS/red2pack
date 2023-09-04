@@ -1,8 +1,6 @@
 #include "reduce_algorithm.h"
 
-#include <numeric>
 #include <queue>
-#include <utility>
 
 #include "m2s_config.h"
 
@@ -15,23 +13,20 @@ struct deg_node {
 
         bool operator<(const deg_node& rhs) const { return deg < rhs.deg; }
 };
-/* reduce_algorithm::reduce_algorithm(graph_access& G, bool called_from_fold)  */
-reduce_algorithm::reduce_algorithm(m2s_graph_access& G, const M2SConfig &m2s_config)  //, bool called_from_fold)
+reduce_algorithm::reduce_algorithm(m2s_graph_access& G, const M2SConfig& m2s_config)
     : config(m2s_config),
       global_status(G, !m2s_config.on_demand_two_neighborhood),
       set_1(G.number_of_nodes()),
-      set_2(G.number_of_nodes()),
-      double_set(G.number_of_nodes() * 2),
       buffers(2, sized_vector<NodeID>(G.number_of_nodes())) {
-        if (config.reduction_style2 == M2SConfig::Reduction_Style2::elaborated) {
+        if (config.reduction_style == M2SConfig::Reduction_Style2::elaborated) {
                 global_status.reductions2 =
-                    make_2reduction_vector<deg_one_2reduction_e, deg_two_2reduction_e, twin2_reduction_e,
-                                           fast_domination2_reduction_e, domination2_reduction_e, clique2_reduction_e>(
+                    make_2reduction_vector<deg_one_2reduction, deg_two_2reduction, twin2_reduction,
+                                           fast_domination2_reduction, domination2_reduction, clique2_reduction>(
                         global_status.n);
 
-        } else if (config.reduction_style2 == M2SConfig::Reduction_Style2::core) {
+        } else if (config.reduction_style == M2SConfig::Reduction_Style2::core) {
                 global_status.reductions2 =
-                    make_2reduction_vector<clique2_reduction_e, domination2_reduction_e>(global_status.n);
+                    make_2reduction_vector<clique2_reduction, domination2_reduction>(global_status.n);
         }
         reduction_map.resize(m2ps_REDUCTION_NUM);
         for (size_t i = 0; i < global_status.reductions2.size(); i++) {
@@ -39,65 +34,25 @@ reduce_algorithm::reduce_algorithm(m2s_graph_access& G, const M2SConfig &m2s_con
         }
 }
 
-/*void reduce_algorithm::set_imprecise(NodeID node, pack_status mpack_status) {
-        if (mpack_status == pack_status::included) {
-                global_status.node_status[node] = mpack_status;
+void reduce_algorithm::set(NodeID node, two_pack_status new_two_pack_status) {
+        if (new_two_pack_status == two_pack_status::included) {
+                global_status.node_status[node] = new_two_pack_status;
                 global_status.remaining_nodes--;
                 global_status.pack_weight += global_status.weights[node];
-                global_status.graph.hide_node_imprecise(node);
 
-                for (auto neighbor : global_status.graph[node]) {
-                        global_status.node_status[neighbor] = pack_status::excluded;
-                        global_status.remaining_nodes--;
-                        global_status.graph.hide_node_imprecise(neighbor);
-                }
-
-                for (auto neighbor : global_status.graph.get2neighbor_list(node)) {
-                        global_status.node_status[neighbor] = pack_status::unsafe;
-                        /* global_status.remaining_nodes--;
-                }
-        } else {
-                global_status.node_status[node] = mpack_status;
-                global_status.remaining_nodes--;
-                global_status.graph.hide_node_imprecise(node);
-        }
-}*/
-
-void reduce_algorithm::set(NodeID node, pack_status mpack_status) {
-        if (mpack_status == pack_status::included) {
-                global_status.node_status[node] = mpack_status;
-                global_status.remaining_nodes--;
-                global_status.pack_weight += global_status.weights[node];
                 global_status.graph.hided_nodes[node] = true;
-                //global_status.graph.hide_node_imprecise(node);
 
                 for (auto neighbor : global_status.graph[node]) {
                         set(neighbor, excluded);
-                        /*global_status.node_status[node] = pack_status::excluded;
-                        global_status.remaining_nodes--;
-                        global_status.graph.hided_nodes[node] = true;
-                        for (auto two_neighbor : global_status.graph.get2neighbor_list(neighbor)) {
-                                if(!global_status.graph.hided_nodes[two_neighbor]) {
-                                        global_status.graph.hide_path(two_neighbor, neighbor);
-                                }
-                        }*/
                 }
                 for (auto neighbor : global_status.graph.get2neighbor_list(node)) {
                         set(neighbor, excluded);
-                        /*global_status.node_status[neighbor] = pack_status::excluded;
-                        global_status.remaining_nodes--;
-                        for (auto neighbor2 : global_status.graph[neighbor]) {
-                                global_status.graph.hide_edge(neighbor2, neighbor);
-                        }
-                        for (auto two_neighbor : global_status.graph.get2neighbor_list(neighbor)) {
-                                global_status.graph.hide_path(two_neighbor, neighbor);
-                        }*/
                 }
 
         } else {  // exclude
-                global_status.node_status[node] = mpack_status;
+                global_status.node_status[node] = new_two_pack_status;
                 global_status.remaining_nodes--;
-                global_status.graph.hide_node_imprecise(node);
+                global_status.graph.hide_node(node);
         }
 }
 
@@ -140,7 +95,6 @@ void reduce_algorithm::run_reductions() {
         reduce_graph_internal();
 }
 
-// gives us the actual two-packing set so far
 void reduce_algorithm::get_solution(std::vector<bool>& solution_vec) {
         // Now check whether we include nodes that are in conflict...
         for (size_t i = 0; i < solution_vec.size(); i++) {
@@ -190,4 +144,4 @@ bool reduce_algorithm::reduce_deg_leq_one(NodeID node) {
         return false;
 }
 
-}  // namespace two_packing_set
+}  // namespace red2pack

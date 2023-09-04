@@ -16,22 +16,14 @@ class reduce_algorithm;
 
 // Update this when more reuctions are implemented.
 enum m2ps_reduction_type {
-        clique2,
-        domination2,
-        deg_one2,
-        twin2,
-        cycle2,
-        fast_domination2,
-        neighborhood2,
         clique_e,
         domination_e,
         deg_one_e,
         twin_e,
         deg_two_e,
-        fast_domination_e,
-        neighborhood_e
+        fast_domination_e
 };
-constexpr size_t m2ps_REDUCTION_NUM = 14;  // this is the number of the reductions
+constexpr size_t m2ps_REDUCTION_NUM = 6;  // this is the number of the reductions
 
 class vertex_marker_2pack {
        private:
@@ -92,16 +84,15 @@ struct deg_one_2reduction : public general_reduction_2pack {
         ~deg_one_2reduction() {}
         virtual deg_one_2reduction* clone() const final { return new deg_one_2reduction(*this); }
 
-        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::deg_one2; }
+        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::deg_one_e; }
         virtual bool reduce(reduce_algorithm* algo) final;
 };
 
-struct cycle2_reduction : public general_reduction_2pack {
-        cycle2_reduction(size_t n) : general_reduction_2pack(n) {}
-        ~cycle2_reduction() {}
-        virtual cycle2_reduction* clone() const final { return new cycle2_reduction(*this); }
-
-        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::cycle2; }
+struct deg_two_2reduction : public general_reduction_2pack {
+        deg_two_2reduction(size_t n) : general_reduction_2pack(n) {}
+        ~deg_two_2reduction() {}
+        virtual deg_two_2reduction* clone() const final { return new deg_two_2reduction(*this); }
+        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::deg_two_e; }
         virtual bool reduce(reduce_algorithm* algo) final;
 };
 
@@ -109,8 +100,7 @@ struct twin2_reduction : public general_reduction_2pack {
         twin2_reduction(size_t n) : general_reduction_2pack(n) {}
         ~twin2_reduction() {}
         virtual twin2_reduction* clone() const final { return new twin2_reduction(*this); }
-
-        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::twin2; }
+        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::twin_e; }
         virtual bool reduce(reduce_algorithm* algo) final;
 };
 
@@ -118,17 +108,7 @@ struct fast_domination2_reduction : public general_reduction_2pack {
         fast_domination2_reduction(size_t n) : general_reduction_2pack(n) {}
         ~fast_domination2_reduction() {}
         virtual fast_domination2_reduction* clone() const final { return new fast_domination2_reduction(*this); }
-
-        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::fast_domination2; }
-        virtual bool reduce(reduce_algorithm* algo) final;
-};
-
-struct neighborhood2_reduction : public general_reduction_2pack {
-        neighborhood2_reduction(size_t n) : general_reduction_2pack(n) {}
-        ~neighborhood2_reduction() {}
-        virtual neighborhood2_reduction* clone() const final { return new neighborhood2_reduction(*this); }
-
-        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::neighborhood2; }
+        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::fast_domination_e; }
         virtual bool reduce(reduce_algorithm* algo) final;
 };
 
@@ -137,7 +117,7 @@ struct domination2_reduction : public general_reduction_2pack {
         ~domination2_reduction() {}
         virtual domination2_reduction* clone() const final { return new domination2_reduction(*this); }
 
-        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::domination2; }
+        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::domination_e; }
         virtual bool reduce(reduce_algorithm* algo) final;
 };
 
@@ -145,86 +125,6 @@ struct clique2_reduction : public general_reduction_2pack {
         clique2_reduction(size_t n) : general_reduction_2pack(n) {}
         ~clique2_reduction() {}
         virtual clique2_reduction* clone() const final { return new clique2_reduction(*this); }
-
-        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::clique2; }
-        virtual bool reduce(reduce_algorithm* algo) final;
-        // virtual void restore(reduce_algorithm* algo) final;
-        // virtual void apply(reduce_algorithm* algo) final;
-
-       private:
-        struct weighted_node {
-                NodeID node;
-                NodeWeight weight;
-        };
-
-        struct restore_data {
-                weighted_node isolated;
-                std::vector<NodeID> non_isolated;
-
-                restore_data() = default;
-                restore_data(const weighted_node& isolated, std::vector<NodeID>&& non_isolated)
-                    : isolated(isolated), non_isolated(std::move(non_isolated)){};
-        };
-
-        void fold(reduce_algorithm* algo, const weighted_node& isolated, std::vector<NodeID>&& non_isolated);
-
-        std::vector<restore_data> restore_vec;
-};
-
-struct deg_one_2reduction_e : public general_reduction_2pack {
-        deg_one_2reduction_e(size_t n) : general_reduction_2pack(n) {}
-        ~deg_one_2reduction_e() {}
-        virtual deg_one_2reduction_e* clone() const final { return new deg_one_2reduction_e(*this); }
-
-        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::deg_one_e; }
-        virtual bool reduce(reduce_algorithm* algo) final;
-};
-
-struct deg_two_2reduction_e : public general_reduction_2pack {
-        deg_two_2reduction_e(size_t n) : general_reduction_2pack(n) {}
-        ~deg_two_2reduction_e() {}
-        virtual deg_two_2reduction_e* clone() const final { return new deg_two_2reduction_e(*this); }
-        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::deg_two_e; }
-        virtual bool reduce(reduce_algorithm* algo) final;
-};
-
-struct twin2_reduction_e : public general_reduction_2pack {
-        twin2_reduction_e(size_t n) : general_reduction_2pack(n) {}
-        ~twin2_reduction_e() {}
-        virtual twin2_reduction_e* clone() const final { return new twin2_reduction_e(*this); }
-        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::twin_e; }
-        virtual bool reduce(reduce_algorithm* algo) final;
-};
-
-struct fast_domination2_reduction_e : public general_reduction_2pack {
-        fast_domination2_reduction_e(size_t n) : general_reduction_2pack(n) {}
-        ~fast_domination2_reduction_e() {}
-        virtual fast_domination2_reduction_e* clone() const final { return new fast_domination2_reduction_e(*this); }
-        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::fast_domination_e; }
-        virtual bool reduce(reduce_algorithm* algo) final;
-};
-
-struct neighborhood2_reduction_e : public general_reduction_2pack {
-        neighborhood2_reduction_e(size_t n) : general_reduction_2pack(n) {}
-        ~neighborhood2_reduction_e() {}
-        virtual neighborhood2_reduction_e* clone() const final { return new neighborhood2_reduction_e(*this); }
-        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::neighborhood_e; }
-        virtual bool reduce(reduce_algorithm* algo) final;
-};
-
-struct domination2_reduction_e : public general_reduction_2pack {
-        domination2_reduction_e(size_t n) : general_reduction_2pack(n) {}
-        ~domination2_reduction_e() {}
-        virtual domination2_reduction_e* clone() const final { return new domination2_reduction_e(*this); }
-
-        virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::domination_e; }
-        virtual bool reduce(reduce_algorithm* algo) final;
-};
-
-struct clique2_reduction_e : public general_reduction_2pack {
-        clique2_reduction_e(size_t n) : general_reduction_2pack(n) {}
-        ~clique2_reduction_e() {}
-        virtual clique2_reduction_e* clone() const final { return new clique2_reduction_e(*this); }
 
         virtual m2ps_reduction_type get_reduction_type() const final { return m2ps_reduction_type::clique_e; }
         virtual bool reduce(reduce_algorithm* algo) final;

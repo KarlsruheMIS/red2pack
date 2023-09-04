@@ -62,7 +62,7 @@ protected:
    * @param nodes
    * @param edges
    */
-  virtual void build_condensed_graph_from_status(graph_access& condensed_graph, m2s_dynamic_graph& reduced_graph, std::vector<reduce_algorithm::pack_status>& reduced_node_status, NodeID nodes, EdgeID edges);
+  virtual void build_condensed_graph_from_status(graph_access& condensed_graph, m2s_dynamic_graph& reduced_graph, std::vector<reduce_algorithm::two_pack_status>& reduced_node_status, NodeID nodes, EdgeID edges);
 
  private:
 

@@ -111,7 +111,7 @@ void m2s_log::print_config() {
         filebuffer_string << "=========================================="                            << std::endl;
         filebuffer_string << "Time limit:\t\t\t"         << log_config.time_limit                    << std::endl; 
         /* filebuffer_string << "Seed:\t\t\t\t"             << log_config.seed                          << std::endl;  */
-        filebuffer_string << "Reduction Style:\t\t"    << log_config.reduction_style2              << std::endl; 
+        filebuffer_string << "Reduction Style:\t\t"    << log_config.reduction_style << std::endl;
         filebuffer_string << "---"                       << std::endl;
         filebuffer_string << std::endl;
     
@@ -119,7 +119,7 @@ void m2s_log::print_config() {
         std::cout << "=========================================="                            << std::endl;
         std::cout << "Time limit:\t\t\t"         << log_config.time_limit                    << std::endl; 
         /* std::cout << "Seed:\t\t\t\t"             << log_config.seed                          << std::endl;  */
-        std::cout << "Reduction Style:\t\t"    << log_config.reduction_style2              << std::endl; 
+        std::cout << "Reduction Style:\t\t"    << log_config.reduction_style << std::endl;
         std::cout << std::endl;
 }
 void m2s_log::print_condensed_graph( unsigned int n, unsigned int m,  double time) {
