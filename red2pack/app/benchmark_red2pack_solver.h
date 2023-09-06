@@ -106,9 +106,9 @@ int benchmark_red2pack_solver(std::string graph_filepath, red2pack::M2SConfig m2
         m2s_log::instance()->set_config(m2s_config);
 
         // read graph
-        m2s_graph_access graph;
-        m2s_graph_io::readGraphWeighted(graph, graph_filepath);
-        m2s_log::instance()->set_graph(graph);
+        auto graph = std::make_unique<m2s_graph_access>();
+        m2s_graph_io::readGraphWeighted(*graph, graph_filepath);
+        m2s_log::instance()->set_graph(*graph);
 
         m2s_log::instance()->print_graph();
         m2s_log::instance()->print_config();
@@ -118,12 +118,14 @@ int benchmark_red2pack_solver(std::string graph_filepath, red2pack::M2SConfig m2
         m2s_log::instance()->restart_timer();
         // COMPUTATION START
         // init branch and reduce solver
-        Solver solver(graph, m2s_config, mis_config);
+        Solver solver(std::move(graph), m2s_config, mis_config);
 
         // solve graph
         bool found = solver.solve();
         // COMPUTATION END
         m2s_log::instance()->set_best_size(m2s_config, solver.get_solution_size());
+        // detach graph from solver
+        graph = std::move(solver.detach());
         /*===============================BENCHMARK END===============================*/
 
         // VERIFY
@@ -134,7 +136,7 @@ int benchmark_red2pack_solver(std::string graph_filepath, red2pack::M2SConfig m2
         // PRINT RESULTS
         m2s_log::instance()->print_results();
 
-        auto valid = is_maximal_2ps(graph, solver.get_solution(), solver.get_solution_size());
+        auto valid = is_maximal_2ps(*graph, solver.get_solution(), solver.get_solution_size());
         if (!valid) {
                 return 1;
         }

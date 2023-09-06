@@ -20,7 +20,7 @@ class reduce_and_transform {
          * @param graph
          * @param m2s_cfg
          */
-        reduce_and_transform(m2s_graph_access& G, M2SConfig m2s_cfg);
+        reduce_and_transform(std::unique_ptr<m2s_graph_access> G, M2SConfig m2s_cfg);
 
         /**
          * Applies 2-packing-set reductions and build the condensed graph for the MIS problem.
@@ -40,8 +40,23 @@ class reduce_and_transform {
          */
         const std::vector<bool>& get_solution() { return solution_status; }
 
+        /**
+         * Attach another graph and config to find a 2-packing-set for it.
+         * Note that if a graph was attached before, it can not be obtained back using detach afterwards.
+         * @param G
+         * @param m2s_cfg
+         * @return
+         */
+        virtual void attach(std::unique_ptr<m2s_graph_access> G, M2SConfig m2s_cfg);
+
+        /**
+         * Detach graph from solver
+         * @return
+         */
+        std::unique_ptr<m2s_graph_access>& detach();
+
        protected:
-        m2s_graph_access graph;
+        std::unique_ptr<m2s_graph_access> graph;
         M2SConfig m2s_cfg;
 
         // indicate solution vertices of the 2-packing-set for the input graph

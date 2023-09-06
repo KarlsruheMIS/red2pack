@@ -13,8 +13,8 @@ namespace red2pack {
  */
 class solver_scheme : public reduce_and_transform {
        public:
-        solver_scheme(m2s_graph_access& G, M2SConfig m2s_cfg)
-            : reduce_and_transform(G, std::move(m2s_cfg)), mis_solve_time_limit(m2s_cfg.time_limit) {}
+        solver_scheme(std::unique_ptr<m2s_graph_access> G, M2SConfig m2s_cfg)
+            : reduce_and_transform(std::move(G), std::move(m2s_cfg)), mis_solve_time_limit(m2s_cfg.time_limit) {}
 
         /**
          * Find a maximum two-packing set for the input graph.

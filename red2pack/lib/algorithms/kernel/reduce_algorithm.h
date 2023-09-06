@@ -50,7 +50,7 @@ class reduce_algorithm {
                 // solution status
                 std::vector<two_pack_status> node_status;
                 // 2-packing-set reductions that are applied in the given order
-                std::vector<reduction2_ptr> reductions;
+                std::vector<reduction_2pack_ptr> reductions;
                 // folds of nodes
                 std::vector<m2ps_reduction_type> folded_queue;
                 // modified vertices

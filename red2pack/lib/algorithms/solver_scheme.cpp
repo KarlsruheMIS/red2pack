@@ -3,6 +3,10 @@
 namespace red2pack {
 
 bool solver_scheme::solve() {
+        if (graph == nullptr) {
+                std::cerr << "No graph is attached to the 2-packing-set solver";
+                exit(1);
+        }
         auto start_t = std::chrono::system_clock::now();
         // kernel obtained with 2-packing set reductions
         graph_access condensed_graph;

@@ -78,3 +78,8 @@ void red2pack::heuristic::build_condensed_graph_from_status(
         }
         condensed_graph.finish_construction();
 }
+
+void red2pack::heuristic::attach(std::unique_ptr<m2s_graph_access> G, red2pack::M2SConfig m2s_cfg, onlinemis::MISConfig mis_cfg) {
+        reduce_and_transform::attach(std::move(G), std::move(m2s_cfg));
+        this->mis_cfg = std::move(mis_cfg);
+}

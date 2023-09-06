@@ -7,12 +7,12 @@
 #include "tools/m2s_log.h"
 
 namespace red2pack {
-reduce_and_transform::reduce_and_transform(m2s_graph_access& G, M2SConfig m2s_cfg)
+reduce_and_transform::reduce_and_transform(std::unique_ptr<m2s_graph_access> G, M2SConfig m2s_cfg)
     : m2s_cfg(std::move(m2s_cfg)),
-      solution_status(G.number_of_nodes(), false),
-      reduced_node_id(G.number_of_nodes(), G.number_of_nodes()),
-      former_node_id(G.number_of_nodes()) {
-        G.copy(this->graph);
+      solution_status(G->number_of_nodes(), false),
+      reduced_node_id(G->number_of_nodes(), G->number_of_nodes()),
+      former_node_id(G->number_of_nodes()) {
+        graph = std::move(G);
 }
 
 bool reduce_and_transform::run_reduce_and_transform(graph_access& condensed_graph) {
@@ -37,23 +37,23 @@ bool reduce_and_transform::run_reduce_and_transform(graph_access& condensed_grap
 
 void reduce_and_transform::transform_without_reductions(graph_access& condensed_graph) {
         auto start_t = std::chrono::system_clock::now();
-        graph.construct_2neighborhood();
+        graph->construct_2neighborhood();
         auto stop_t = std::chrono::system_clock::now();
         std::chrono::duration<double> time = stop_t - start_t;
         double reduction_time = time.count();
-        m2s_log::instance()->print_reduction(solution_offset_size, graph.number_of_nodes(), 0, reduction_time);
+        m2s_log::instance()->print_reduction(solution_offset_size, graph->number_of_nodes(), 0, reduction_time);
 
-        for (size_t i = 0; i < graph.number_of_nodes(); i++) {
+        for (size_t i = 0; i < graph->number_of_nodes(); i++) {
                 reduced_node_id[i] = i;
                 former_node_id[i] = i;
         }
         auto start_construction = std::chrono::system_clock::now();
         EdgeID count_edges = 0;
-        for (size_t i = 0; i < graph.number_of_nodes(); i++) {
-                count_edges += graph.getNodeDegree(i) + graph.get2Degree(i);
+        for (size_t i = 0; i < graph->number_of_nodes(); i++) {
+                count_edges += graph->getNodeDegree(i) + graph->get2Degree(i);
         }
 
-        build_condensed_graph_from_access(condensed_graph, graph, graph.number_of_nodes(), count_edges);
+        build_condensed_graph_from_access(condensed_graph, *graph, graph->number_of_nodes(), count_edges);
 
         auto stop_construction = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsed_time_construction = stop_construction - start_construction;
@@ -66,10 +66,10 @@ void reduce_and_transform::transform_with_reductions(graph_access& condensed_gra
         auto start_t = std::chrono::system_clock::now();
         // construct 2neighborhood
         if (!m2s_cfg.on_demand_two_neighborhood) {
-                graph.construct_2neighborhood();
+                graph->construct_2neighborhood();
         }
         // run first reductions
-        reduce_algorithm reducer(graph, m2s_cfg);
+        reduce_algorithm reducer(*graph, m2s_cfg);
         reducer.run_reductions();
 
         // set solution status
@@ -183,5 +183,19 @@ void reduce_and_transform::build_condensed_graph_from_access(graph_access& conde
         }
         condensed_graph.finish_construction();
 }
+
+void reduce_and_transform::attach(std::unique_ptr<m2s_graph_access> G, M2SConfig m2s_cfg) {
+        this->m2s_cfg = std::move(m2s_cfg);
+        solution_status.resize(G->number_of_nodes());
+        reduced_node_id.resize(G->number_of_nodes(), G->number_of_nodes());
+        former_node_id.resize(G->number_of_nodes());
+        for(NodeID node = 0; node < G->number_of_nodes(); node++) {
+                solution_status[node] = false;
+                reduced_node_id[node] = G->number_of_nodes();
+                former_node_id[node] = 0;
+        }
+        graph = std::move(G);
+}
+std::unique_ptr<m2s_graph_access>& reduce_and_transform::detach() { return graph; }
 
 }  // namespace red2pack
