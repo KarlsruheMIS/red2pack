@@ -123,8 +123,8 @@ TEMPLATE_LIST_TEST_CASE("Testing M2S Solvers", "[template][m2s]", Solver_Types) 
                 configurator_m2s.standard(m2sConfig);
                 m2sConfig.time_limit = time_limit;
 
-                m2s_graph_access graph;
-                m2s_graph_io::readGraphWeighted(graph, std::string(INSTANCES_PATH) + std::string("/") + instance);
+                auto graph = std::make_unique<m2s_graph_access>();
+                m2s_graph_io::readGraphWeighted(*graph, std::string(INSTANCES_PATH) + std::string("/") + instance);
 
                 typename TestType::MIS_Config misConfig;
                 typename TestType::configuration_mis configurator;
@@ -136,9 +136,9 @@ TEMPLATE_LIST_TEST_CASE("Testing M2S Solvers", "[template][m2s]", Solver_Types) 
                 misConfig.write_graph = false;
                 misConfig.time_limit = time_limit;
 
-                typename TestType::Solver solver(graph, m2sConfig, misConfig);
+                typename TestType::Solver solver(std::move(graph), m2sConfig, misConfig);
                 solver.solve();
-                auto res = is_maximal_2ps(graph, solver.get_solution(), solver.get_solution_size());
+                auto res = is_maximal_2ps(*graph, solver.get_solution(), solver.get_solution_size());
                 CHECK(res == true);
         }
 }
