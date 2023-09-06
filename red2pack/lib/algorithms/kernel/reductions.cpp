@@ -1,12 +1,9 @@
 #include "reductions.h"
-
-#include <utility>
-
 #include "reduce_algorithm.h"
 
 namespace red2pack {
 
-typedef reduce_algorithm::two_pack_status pack_status;
+using pack_status=reduce_algorithm::two_pack_status;
 
 bool deg_one_2reduction::reduce(reduce_algorithm* algo) {
         auto config = algo->config;
@@ -326,4 +323,4 @@ bool clique2_reduction::reduce(reduce_algorithm* algo) {
         return oldn != status.remaining_nodes;
 }
 
-}  // namespace two_packing_set
+}  // namespace red2pack

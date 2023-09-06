@@ -23,9 +23,9 @@ namespace red2pack {
 
 class reduce_algorithm {
        public:
-        enum two_pack_status { not_set, included, excluded, folded, unsafe };
+        enum two_pack_status { not_set, included, excluded };
 
-       private:
+       protected:
         friend general_reduction_2pack;
         friend deg_one_2reduction;
         friend deg_two_2reduction;
@@ -34,18 +34,33 @@ class reduce_algorithm {
         friend domination2_reduction;
         friend clique2_reduction;
 
+        // data structure that keeps track of all modifications by reductions to a given graph
         struct graph_status {
+
+                // original number of nodes
                 size_t n = 0;
+                // remaining nodes
                 size_t remaining_nodes = 0;
-                NodeWeight pack_weight = 0;
-                NodeWeight reduction_offset = 0;
+                // current 2-packing-set weight (size if unweighted)
+                NodeWeight sol_weight = 0;
+                // dynamic graph
                 m2s_dynamic_graph graph;
+                // weights of vertices
                 std::vector<NodeWeight> weights;
+                // solution status
                 std::vector<two_pack_status> node_status;
-                std::vector<reduction2_ptr> reductions2;
+                // 2-packing-set reductions that are applied in the given order
+                std::vector<reduction2_ptr> reductions;
+                // folds of nodes
                 std::vector<m2ps_reduction_type> folded_queue;
+                // modified vertices
                 std::vector<NodeID> modified_queue;
 
+                /**
+                 * Initialize new graph status
+                 * @param G
+                 * @param two_neighborhood_initialized true if the two neighborhood was constructed for G
+                 */
                 graph_status(m2s_graph_access& G, bool two_neighborhood_initialized)
                     : n(G.number_of_nodes()),
                       remaining_nodes(n),
@@ -60,14 +75,6 @@ class reduce_algorithm {
                 }
 
                 graph_status() = default;
-        };
-
-        struct node_pos {
-                NodeID node;
-                size_t pos;
-
-                // Konstruktor...
-                node_pos(NodeID node = 0, size_t pos = 0) : node(node), pos(pos) {}
         };
 
         /////////////////////////////////////////////////////DATA/////////////////////////////////////////////////////////////////
@@ -89,7 +96,7 @@ class reduce_algorithm {
         void set(NodeID node, two_pack_status new_two_pack_status);
 
         // get node degrees of current reduced graph
-        size_t deg(NodeID node) const;
+        [[nodiscard]] size_t deg(NodeID node) const;
         size_t two_deg(NodeID node);
 
         // adj queries for current reduced graph
@@ -107,9 +114,10 @@ class reduce_algorithm {
         reduce_algorithm(m2s_graph_access& G, const M2SConfig &m2s_config);
         void get_solution(std::vector<bool>& solution_vec);
         void run_reductions();
+
         graph_status global_status;
 };
 
-}  // namespace two_packing_set
+}  // namespace red2pack
 
 #endif  // INC_2_PACKING_SET_REDUCE_ALGORITHM_H

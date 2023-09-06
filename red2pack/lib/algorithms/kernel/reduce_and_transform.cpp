@@ -4,7 +4,6 @@
 #include <utility>
 
 #include "algorithms/kernel/reduce_algorithm.h"
-#include "branch_and_reduce_algorithm.h"
 #include "tools/m2s_log.h"
 
 namespace red2pack {
@@ -126,7 +125,8 @@ void reduce_and_transform::transform_with_reductions(graph_access& condensed_gra
                                 }
                         }
                 }
-                build_condensed_graph_from_status(condensed_graph, status.graph, status.node_status, kernel_nodes, count_edges);
+                build_condensed_graph_from_status(condensed_graph, status.graph, status.node_status, kernel_nodes,
+                                                  count_edges);
         }
         auto stop_construction = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsed_time_construction = stop_construction - start_construction;
@@ -147,7 +147,7 @@ void reduce_and_transform::build_condensed_graph_from_status(
                                 if (reduced_node_status[reduced_graph[i][j]] ==
                                     reduce_algorithm::two_pack_status::not_set) {
                                         EdgeID e_bar = condensed_graph.new_edge(reduced_node_id[i],
-                                                                 reduced_node_id[reduced_graph[i][j]]);
+                                                                                reduced_node_id[reduced_graph[i][j]]);
                                         condensed_graph.setEdgeWeight(e_bar, 1);
                                 }
                         }
@@ -166,23 +166,22 @@ void reduce_and_transform::build_condensed_graph_from_status(
 
 void reduce_and_transform::build_condensed_graph_from_access(graph_access& condensed_graph, m2s_graph_access& graph,
                                                              NodeID nodes, EdgeID edges) {
-
         condensed_graph.start_construction(nodes, edges);
         for (size_t i = 0; i < graph.number_of_nodes(); i++) {
                 condensed_graph.new_node();
                 condensed_graph.setNodeWeight(reduced_node_id[i], 1);
                 for (size_t j = graph.get_first_edge(i); j < graph.get_first_invalid_edge(i); j++) {
-                        EdgeID e_bar = condensed_graph.new_edge(reduced_node_id[i], reduced_node_id[graph.getEdgeTarget(j)]);
+                        EdgeID e_bar =
+                            condensed_graph.new_edge(reduced_node_id[i], reduced_node_id[graph.getEdgeTarget(j)]);
                         condensed_graph.setEdgeWeight(e_bar, 1);
                 }
                 for (size_t j = graph.get_first_edge2(i); j < graph.get_first_invalid_edge2(i); j++) {
-                        EdgeID e_bar = condensed_graph.new_edge(reduced_node_id[i], reduced_node_id[graph.getEdgeTarget2(j)]);
+                        EdgeID e_bar =
+                            condensed_graph.new_edge(reduced_node_id[i], reduced_node_id[graph.getEdgeTarget2(j)]);
                         condensed_graph.setEdgeWeight(e_bar, 1);
                 }
         }
         condensed_graph.finish_construction();
-
 }
-
 
 }  // namespace red2pack

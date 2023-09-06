@@ -1,3 +1,4 @@
+// this dynamic graphs is based on the dynamic graph from KaMIS
 #ifndef INC_2_PACKING_SET_M2S_DYNAMIC_GRAPH_H
 #define INC_2_PACKING_SET_M2S_DYNAMIC_GRAPH_H
 

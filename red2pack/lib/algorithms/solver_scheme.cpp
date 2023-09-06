@@ -1,10 +1,4 @@
-//
-// Created by Jannick Borowitz on 19.08.23.
-//
-
 #include "solver_scheme.h"
-
-#include <utility>
 
 namespace red2pack {
 
@@ -26,8 +20,6 @@ bool solver_scheme::solve() {
 
         if (mis_solve_time_limit > 0) {
                 // find maximum independent set for condensed graph
-                // cout_handler::disable_cout();
-                // cout_handler::enable_cout();
                 auto solved = solve_mis(condensed_graph);
                 apply_solution(condensed_graph);
 
@@ -42,11 +34,11 @@ void solver_scheme::apply_solution(graph_access& condensed_graph) {
                 if (condensed_graph.getPartitionIndex(node) == 1 && !solution_status[former_node_id[node]]) {
                         solution_status[former_node_id[node]] = true;
                         mis_solution_size++;
-                }else if (condensed_graph.getPartitionIndex(node) == 0 && solution_status[former_node_id[node]]){
+                } else if (condensed_graph.getPartitionIndex(node) == 0 && solution_status[former_node_id[node]]) {
                         solution_status[former_node_id[node]] = false;
                         mis_solution_size--;
                 }
         }
 }
 
-}  // namespace two_packing_set
+}  // namespace red2pack

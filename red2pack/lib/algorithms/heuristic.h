@@ -1,7 +1,3 @@
-//
-// Created by Jannick Borowitz on 21.08.23.
-//
-
 #ifndef RED2PACK_HEURISTIC_H
 #define RED2PACK_HEURISTIC_H
 #include "../../extern/onlinemis/mis_config.h"

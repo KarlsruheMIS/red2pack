@@ -6,31 +6,24 @@
 
 namespace red2pack {
 
-struct deg_node {
-       public:
-        size_t v;
-        size_t deg;
-
-        bool operator<(const deg_node& rhs) const { return deg < rhs.deg; }
-};
 reduce_algorithm::reduce_algorithm(m2s_graph_access& G, const M2SConfig& m2s_config)
     : config(m2s_config),
       global_status(G, !m2s_config.on_demand_two_neighborhood),
       set_1(G.number_of_nodes()),
       buffers(2, sized_vector<NodeID>(G.number_of_nodes())) {
         if (config.reduction_style == M2SConfig::Reduction_Style2::elaborated) {
-                global_status.reductions2 =
+                global_status.reductions =
                     make_2reduction_vector<deg_one_2reduction, deg_two_2reduction, twin2_reduction,
                                            fast_domination2_reduction, domination2_reduction, clique2_reduction>(
                         global_status.n);
 
         } else if (config.reduction_style == M2SConfig::Reduction_Style2::core) {
-                global_status.reductions2 =
+                global_status.reductions =
                     make_2reduction_vector<clique2_reduction, domination2_reduction>(global_status.n);
         }
         reduction_map.resize(m2ps_REDUCTION_NUM);
-        for (size_t i = 0; i < global_status.reductions2.size(); i++) {
-                reduction_map[global_status.reductions2[i]->get_reduction_type()] = i;  // Hm....
+        for (size_t i = 0; i < global_status.reductions.size(); i++) {
+                reduction_map[global_status.reductions[i]->get_reduction_type()] = i;  // Hm....
         }
 }
 
@@ -38,7 +31,7 @@ void reduce_algorithm::set(NodeID node, two_pack_status new_two_pack_status) {
         if (new_two_pack_status == two_pack_status::included) {
                 global_status.node_status[node] = new_two_pack_status;
                 global_status.remaining_nodes--;
-                global_status.pack_weight += global_status.weights[node];
+                global_status.sol_weight += global_status.weights[node];
 
                 global_status.graph.hided_nodes[node] = true;
 
@@ -61,12 +54,12 @@ size_t reduce_algorithm::deg(NodeID node) const { return global_status.graph[nod
 size_t reduce_algorithm::two_deg(NodeID node) { return global_status.graph.get2neighbor_list(node).size(); }
 
 void reduce_algorithm::init_reduction_step() {
-        if (!global_status.reductions2[active_reduction_index]->has_run) {
-                global_status.reductions2[active_reduction_index]->marker.fill_current_ascending(global_status.n);
-                global_status.reductions2[active_reduction_index]->marker.clear_next();
-                global_status.reductions2[active_reduction_index]->has_run = true;
+        if (!global_status.reductions[active_reduction_index]->has_run) {
+                global_status.reductions[active_reduction_index]->marker.fill_current_ascending(global_status.n);
+                global_status.reductions[active_reduction_index]->marker.clear_next();
+                global_status.reductions[active_reduction_index]->has_run = true;
         } else {
-                global_status.reductions2[active_reduction_index]->marker.get_next();
+                global_status.reductions[active_reduction_index]->marker.get_next();
         }
 }
 
@@ -76,7 +69,7 @@ void reduce_algorithm::reduce_graph_internal() {
         do {
                 progress = false;
 
-                for (auto& reduction : global_status.reductions2) {
+                for (auto& reduction : global_status.reductions) {
                         active_reduction_index = reduction_map[reduction->get_reduction_type()];
 
                         init_reduction_step();

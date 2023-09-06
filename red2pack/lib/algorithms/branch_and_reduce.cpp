@@ -1,7 +1,3 @@
-//
-// Created by Jannick Borowitz on 21.08.23.
-//
-
 #include "branch_and_reduce.h"
 
 #include "branch_and_reduce_algorithm.h"

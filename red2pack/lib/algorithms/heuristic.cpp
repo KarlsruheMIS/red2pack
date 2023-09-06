@@ -1,7 +1,3 @@
-//
-// Created by Jannick Borowitz on 21.08.23.
-//
-
 #include "heuristic.h"
 
 #include "online_ils.h"
