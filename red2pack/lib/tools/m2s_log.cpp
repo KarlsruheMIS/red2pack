@@ -169,14 +169,14 @@ void m2s_log::print_results() {
         filebuffer_string << "=========================================="
                           << std::endl;
         filebuffer_string << "Size:\t\t\t\t\t" << best_solution_size << std::endl;
-        filebuffer_string << "Time found:\t\t\t\t" << time_taken_best << std::endl;
+        filebuffer_string << "Time found(+proof):\t\t\t\t" << time_taken_best << std::endl;
         filebuffer_string << std::endl;
 
         std::cout << std::endl;
         std::cout << "\t\tResult" << std::endl;
         std::cout << "==========================================" << std::endl;
         std::cout << "Size:\t\t\t\t" << best_solution_size << std::endl;
-        std::cout << "Time found:\t\t\t" << time_taken_best << std::endl;
+        std::cout << "Time found(+proof):\t\t" << time_taken_best << std::endl;
         std::cout << std::endl;
 }
 
@@ -337,19 +337,5 @@ void m2s_log::set_avg_solution_size(double avg_size) {
 void m2s_log::reset_best_size() {
         optimum_size = 0;
 }
-
-/* void m2s_log::set_best_size(M2SConfig & m2s_config, unsigned int size) { */
-/*     best_solution_size = size; */
-/*     if (best_solution_size > optimum_size) { */
-/*         print_repetition(m2s_config); */
-/*         optimum_size = best_solution_size; */
-/* time_taken_best = evo_timer.elapsed(); */
-/* operator_best = evo_operator; */
-/* repetition_best = number_of_repetitions; */
-/* round_best = number_of_rounds; */
-/* } */
-/* } */
-
-
 
 }
