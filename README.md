@@ -56,7 +56,7 @@ If you want to use our reduction pack `red2pack` in a standalone fashion, e.g., 
 then the following tutorial will help you.
 
 1. Start a new CMake project,
-2. Install red2pack as a recursive submodule
+2. Install `red2pack` as a recursive submodule
 3. Start a new class for your solver that inherits from `lib/solver_scheme.h` and implement `solve_mis` that solves the MIS problem.
 4. Add a main function that calls your solver (similar to `/app/bnr/red2pack_branch_and_reduce.cpp`).
 5. Add the following in your CMakeLists.txt and adapt it to your setup  
