@@ -14,7 +14,7 @@ To compile and initializing the build environment, please make sure, you have th
 ## Setup
 First of all, you need to clone this project. Then you can download KaMIS by cloning it as a submodule:
 ```shell
-git submodule --init update
+git submodule update --init
 ```
 
 ## Build (Linux/MacOS)
