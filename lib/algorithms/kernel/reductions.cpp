@@ -101,8 +101,6 @@ bool twin2_reduction::reduce(reduce_algorithm* algo) {
                                 NodeID neighbor1 = status.graph[v][0];
                                 NodeID neighbor2 = status.graph[v][1];
 
-                                // Jannick: before: algo->deg(neighbor1) == 3 && algo->deg(neighbor2) == 3
-                                //  too strong? now covering V-Shape
                                 if (algo->deg(neighbor1) == algo->deg(neighbor2) &&
                                     algo->two_deg(v) == algo->deg(neighbor2) - 1) {
                                         for (NodeID neighbor : status.graph[neighbor1]) {
