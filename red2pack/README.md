@@ -3,7 +3,7 @@
 
 ## Description
 This project provides a branch-and–reduce and heuristic solver for the maximum 2-packing set problem.
-They apply exhaustively novel maximum 2-packing set (M2S) reductions in a preprocessing step and transform the kernel to an equivalent maximum independent set (MIS) problem instance.
+They apply exhaustively novel maximum 2-packing set (M2S) data-reductions in a preprocessing step and transform the kernel to an equivalent maximum independent set (MIS) problem instance.
 This is joint work between Jannick Borowitz, Ernestine Großmann, Christian Schulz, and Dominik Schweisgut.
 
 ## Dependencies
