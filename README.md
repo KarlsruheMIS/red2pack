@@ -33,7 +33,7 @@ bash compile_withcmake.sh $BUILDTYPE $ENABLE_TESTING
 The script builds the binaries in `build` directory and installs the solvers in `deploy`.
 
 ## Run and benchmark
-The following executable are installed and allow you to run and benchmark our algorithms:
+The following executables are installed and allow you to run and benchmark our algorithms:
 - `red2pack_branch_and_reduce` using the weighted B&R solver from KaMIS
 - `red2pack_heuristic` using OnlineMIS from KaMIS
 
@@ -48,7 +48,7 @@ GRAPH=tests/graphs/lesmis.graph
 LOG=$SEED-$TIMELIMIT-$RED2PACK_REDUCTION_STYLE-$(basename $RED2PACK_SOLVER)-$(basename ${GRAPH%.graph}).log
 
 # run
-$RED2PACK_SOLVER $GRAPH --seed=$SEED --timelimit=$TIMELIMIT --reduction_style2=$RED2PACK_REDUCTION_STYLE --console_log=$LOG
+$RED2PACK_SOLVER $GRAPH --seed=$SEED --timelimit=$TIMELIMIT --reduction_style2=$RED2PACK_REDUCTION_STYLE > $LOG
 ```
 
 ## How to use our reduction pack `red2pack` as a standalone
