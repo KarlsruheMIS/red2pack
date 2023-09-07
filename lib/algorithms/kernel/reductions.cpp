@@ -291,9 +291,6 @@ bool clique2_reduction::reduce(reduce_algorithm* algo) {
 
                         bool is_clique = true;
 
-                        // TODO: is this correct?
-                        //  Checks whether N2[node] is 2-clique (here every two different nodes of N2[node]
-                        //   are connected over at *most* 2 vertices)
                         for (auto neighbor : neighbors) {
                                 size_t count = 0;
 
