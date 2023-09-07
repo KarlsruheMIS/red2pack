@@ -1,10 +1,8 @@
- 2-Packing Set
+# red2pack
 
 ## Description
-This project provides a branch-and–reduce solver for the maximum 2-packing set problem.
-The branch-and-reduce solver applies novel 2-packing set reductions exhaustively and transforms the kernel to solve it 
-as an equivalent MIS instance.
-This MIS instance is solved using the weighted branch-and-reduce solver from [KaMIS](https://github.com/KarlsruheMIS/KaMIS).
+This project provides a branch-and–reduce and heuristic solver for the maximum 2-packing set problem.
+They apply novel 2-packing set reductions exhaustively in a preprocessing step and transforms the kernel an equivalent MIS instance.
 
 ## Dependencies
 - GCC 13.1.0 or newer
