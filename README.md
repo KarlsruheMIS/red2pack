@@ -66,7 +66,7 @@ add_subdirectory(path/to/red2pack)
 add_executable(solver solver.cpp $<TARGET_OBJECTS:libkaffpa2> $<TARGET_OBJECTS:libsources> $<TARGET_OBJECTS:libred2pack>)
 ```
 
-## License (TODO)
+## License 
 The project is released under MIT. However, some files from KaMIS are released under the BSD 3-clause license. See the respective files for their license. If you publish results using our algorithms, please acknowledge our work by quoting one or more of the following papers:
 
 For our reduction pack `red2pack` or one of our solvers, `red2pack_branch_and_reduce` or `red2pack_heuristic`, for the maximum 2-packing set problem,
