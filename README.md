@@ -3,11 +3,11 @@
 
 ## Description
 This project provides a branch-and–reduce and heuristic solver for the maximum 2-packing set problem.
-They apply exhaustively novel maximum 2-packing set (M2S) data-reductions in a preprocessing step and transform the kernel to an equivalent maximum independent set (MIS) problem instance.
+They apply exhaustively novel maximum 2-packing set (M2S) data reductions in a preprocessing step and transform the kernel to an equivalent maximum independent set (MIS) problem instance.
 This is joint work between Jannick Borowitz, Ernestine Großmann, Christian Schulz, and Dominik Schweisgut.
 
 ## Dependencies
-To compile and initializing the build environment, please make sure, you have the following dependencies installed:
+To compile and initialize the build environment, please make sure you have the following dependencies installed:
 - GCC 13.1.0 or newer
 - cmake 3.16 or newer
 
@@ -18,7 +18,7 @@ git submodule update --init
 ```
 
 ## Build (Linux/MacOS)
-We solve the MIS problem using the wighted branch-and-reduce (B&R) solver and OnlineMIS solver of KaMIS. 
+We solve the MIS problem using the weighted branch-and-reduce (B&R) solver and OnlineMIS solver of KaMIS. 
 
 In the case you want to run tests
 - read [Testing](tests/README.md).
@@ -26,7 +26,7 @@ In the case you want to run tests
 To build the executables, please run:
 ```shell
 BUILDTYPE="Release" # set "Debug" if you want to debug the project
-ENABLE_TESTING="False" # set True if you want to build ctests
+ENABLE_TESTING="False" # set True if you want to build CTests
 bash compile_withcmake.sh $BUILDTYPE $ENABLE_TESTING
 ```
 
@@ -37,7 +37,7 @@ The following executable are installed and allow you to run and benchmark our al
 - `red2pack_branch_and_reduce` using the weighted B&R solver from KaMIS
 - `red2pack_heuristic` using OnlineMIS from KaMIS
 
-Use `--help` for an overview of the options. Probably, the following script does all what you want:
+Use `--help` for an overview of the options. Probably, the following script does all that you want:
 ```bash
 # set a few parameters
 RED2PACK_SOLVER=./deploy/red2pack_branch_and_reduce # or /deploy/red2pack_heuristic
