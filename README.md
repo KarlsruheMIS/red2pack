@@ -1,4 +1,4 @@
-# red2pack
+# red2pack ![build status](https://github.com/KarlsruheMIS/red2pack/actions/workflows/cmake-single-platform.yml/badge.svg?branch=master)
 ![reduce-and-transform](img/reduce-and-transform.svg "Red2pack: Apply maximum 2-packing set reductions and transform to maximum independent set problem")
 
 ## Description
