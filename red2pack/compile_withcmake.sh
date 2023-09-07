@@ -1,4 +1,11 @@
 #!/bin/bash
+if (( $# != 2 )); then
+  >&2 echo "Usage: $0 <buildtype:Release/Debug> <build tests:True/False>"
+  exit 1
+fi
+
+buildtype=$1 # Release or Debug
+testing=$2 # True or False
 
 NCORES=4
 unamestr=$(uname)
@@ -12,15 +19,15 @@ fi
 
 rm -rf deploy
 mkdir deploy
-#rm -rf build
+rm -rf build
 mkdir build
 cd build
 if [[ "$unamestr" == "Linux" ]]; then
-  cmake ../ -DCMAKE_C_COMPILER=$(which gcc) -DCMAKE_CXX_COMPILER=$(which g++) -DCMAKE_BUILD_TYPE=Release -DCMAKE_ENABLE_TESTING=False
+  cmake ../ -DCMAKE_C_COMPILER=$(which gcc) -DCMAKE_CXX_COMPILER=$(which g++) -DCMAKE_BUILD_TYPE=$buildtype -DCMAKE_ENABLE_TESTING=$testing
 fi
 
 if [[ "$unamestr" == "Darwin" ]]; then
-  cmake ../ -DCMAKE_C_COMPILER=/usr/local/bin/gcc-13  -DCMAKE_CXX_COMPILER=/usr/local/bin/g++-13  -DCMAKE_BUILD_TYPE=Release -DCMAKE_ENABLE_TESTING=False
+  cmake ../ -DCMAKE_C_COMPILER=/usr/local/bin/gcc-13  -DCMAKE_CXX_COMPILER=/usr/local/bin/g++-13  -DCMAKE_BUILD_TYPE=$buildtype -DCMAKE_ENABLE_TESTING=$testing
 fi
 
 make -j $NCORES

@@ -1,46 +1,58 @@
 # red2pack
+![reduce-and-transform](img/reduce-and-transform.svg "Red2pack: Apply maximum 2-packing set reductions and transform to maximum independent set problem")
 
 ## Description
 This project provides a branch-and–reduce and heuristic solver for the maximum 2-packing set problem.
-They apply novel 2-packing set reductions exhaustively in a preprocessing step and transforms the kernel an equivalent MIS instance.
+They apply exhaustively novel maximum 2-packing set (M2S) reductions in a preprocessing step and transform the kernel to an equivalent maximum independent set (MIS) problem instance.
+This is joint work between Jannick Borowitz, Ernestine Großmann, Christian Schulz, and Dominik Schweisgut.
 
 ## Dependencies
+To compile and initializing the build environment, please make sure, you have the following dependencies installed:
 - GCC 13.1.0 or newer
 - cmake 3.16 or newer
 
-## Setup (Linux/MacOS)
-Run the following to setup git submodules.
+## Setup
+First of all, you need to clone this project. Then you can download KaMIS by cloning it as a submodule:
 ```shell
 git submodule --init update
 ```
 
-## Build and use our algorithms (Linux/MacOS)
-The implementation of our algorithms are located in `lib/algorithms`. 
-We solve the MIS problem using the wighted branch-and-reduce and OnlineMIS solver of KaMIS. Please, make sure to run the `init.sh` script beforehand.
+## Build (Linux/MacOS)
+We solve the MIS problem using the wighted branch-and-reduce (B&R) solver and OnlineMIS solver of KaMIS. 
 
-To build the executable, please run:
+In the case you want to run tests
+- read [Testing](tests/README.md).
+
+To build the executables, please run:
 ```shell
-bash compile_withcmake.sh
+BUILDTYPE="Release" # set "Debug" if you want to debug the project
+ENABLE_TESTING="False" # set True if you want to build ctests
+bash compile_withcmake.sh $BUILDTYPE $ENABLE_TESTING
 ```
 
-The scripts installs two binaries in `./branch_and_reduce/deploy`.
-They allow you to benchmark our algorithms:
-- `red2pack_branch_and_reduce` using the weighted-branch-and-reduce solver from KaMIS
-- `red2pack_heuristic` using OnlineMIS
+The script builds the binaries in `build` directory and installs the solvers in `deploy`.
+
+## Run and benchmark
+The following executable are installed and allow you to run and benchmark our algorithms:
+- `red2pack_branch_and_reduce` using the weighted B&R solver from KaMIS
+- `red2pack_heuristic` using OnlineMIS from KaMIS
 
 Use `--help` for an overview of the options. Probably, the following script does all what you want:
 ```bash
+# set a few parameters
 RED2PACK_SOLVER=./deploy/red2pack_branch_and_reduce # or /deploy/red2pack_heuristic
 RED2PACK_REDUCTION_STYLE=elaborated # or "core" or "none"
 SEED=0
 TIMELIMIT=300 # seconds
 GRAPH=tests/graphs/lesmis.graph
 LOG=$SEED-$TIMELIMIT-$RED2PACK_REDUCTION_STYLE-$(basename $RED2PACK_SOLVER)-$(basename ${GRAPH%.graph}).log
+
+# run
 $RED2PACK_SOLVER $GRAPH --seed=$SEED --timelimit=$TIMELIMIT --reduction_style2=$RED2PACK_REDUCTION_STYLE --console_log=$LOG
 ```
 
-## How to use our reduction pack `red2pack`
-If you want to use only our reduction pack `red2pack`, e.g. you want to build your own maximum 2-packing-set solver,
+## How to use our reduction pack `red2pack` as a standalone
+If you want to use our reduction pack `red2pack` in a standalone fashion, e.g., you want to build your own M2S solver,
 then the following tutorial will help you.
 
 1. Start a new CMake project,
@@ -55,9 +67,9 @@ add_executable(solver solver.cpp $<TARGET_OBJECTS:libkaffpa2> $<TARGET_OBJECTS:l
 ```
 
 ## License (TODO)
-The project is released under MIT. However, some files used for kernelization are released under the BSD 3-clause license. See the respective files for their license. If you publish results using our algorithms, please acknowledge our work by quoting one or more of the following papers:
+The project is released under MIT. However, some files from KaMIS are released under the BSD 3-clause license. See the respective files for their license. If you publish results using our algorithms, please acknowledge our work by quoting one or more of the following papers:
 
-For our reduction pack `red2pack` or one of our solvers `red2pack_branch_and_reduce` or `red2pack_heuristic` for the maximum 2-packing set problem,
+For our reduction pack `red2pack` or one of our solvers, `red2pack_branch_and_reduce` or `red2pack_heuristic`, for the maximum 2-packing set problem,
 please cite:
 ```text
 @article{DBLP:journals/corr/abs-2308-15515,
@@ -79,7 +91,7 @@ please cite:
 }
 ```
 
-If you use `red2pack_branch_and_reduce`, please also cite the following work because we solve the MIS problem using the weighted branch-and-reduce solver from KaMIS:
+If you use `red2pack_branch_and_reduce`, please also cite the following work as we solve the MIS problem using the weighted branch-and-reduce solver from KaMIS:
 ```text
 @inproceedings{DBLP:conf/alenex/Lamm0SWZ19,
 author    = {Sebastian Lamm and
@@ -98,7 +110,7 @@ year      = {2019}
 }
 ```
 
-If you use `red2pack_heuristic`, please also cite the following work because we solve the MIS problem using OnlineMIS from KaMIS:
+If you use `red2pack_heuristic`, please also cite the following work as we solve the MIS problem using OnlineMIS from KaMIS:
 ```text
 @inproceedings{DBLP:conf/wea/DahlumLS0SW16,
   author    = {Jakob Dahlum and

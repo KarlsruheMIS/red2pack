@@ -137,8 +137,10 @@ TEMPLATE_LIST_TEST_CASE("Testing M2S Solvers", "[template][m2s]", Solver_Types) 
                 misConfig.time_limit = time_limit;
 
                 typename TestType::Solver solver(std::move(graph), m2sConfig, misConfig);
+                INFO("Testing " << TestType().info << " for " << instance);
                 solver.solve();
+                graph = std::move(solver.detach());
                 auto res = is_maximal_2ps(*graph, solver.get_solution(), solver.get_solution_size());
-                CHECK(res == true);
+                REQUIRE(res);
         }
 }

@@ -108,7 +108,6 @@ ENDIF()
 add_subdirectory(${RED2PACK_LIB_PATH})
 
 # add tests?
-set(CMAKE_ENABLE_TESTING True)
 IF (CMAKE_ENABLE_TESTING)
     add_subdirectory(tests)
     enable_testing()
