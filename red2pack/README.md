@@ -17,8 +17,6 @@ git submodule --init update
 ```
 
 ## Build and use our algorithms (Linux/MacOS)
-Note: If you want to use the out-of-the-box experiment, skip this section and go to [Experiment](#Experiment).
-
 The implementation of our algorithms are located in `lib/algorithms`. 
 We solve the MIS problem using the wighted branch-and-reduce and OnlineMIS solver of KaMIS. Please, make sure to run the `init.sh` script beforehand.
 
