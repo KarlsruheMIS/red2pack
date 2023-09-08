@@ -41,7 +41,7 @@ Use `--help` for an overview of the options. Probably, the following script does
 ```bash
 # set a few parameters
 RED2PACK_SOLVER=./deploy/red2pack_branch_and_reduce # or /deploy/red2pack_heuristic
-RED2PACK_REDUCTION_STYLE=elaborated # or "core" or "none"
+RED2PACK_REDUCTION_STYLE=elaborated # or "core"
 SEED=0
 TIMELIMIT=300 # seconds
 GRAPH=tests/graphs/lesmis.graph
@@ -50,6 +50,21 @@ LOG=$SEED-$TIMELIMIT-$RED2PACK_REDUCTION_STYLE-$(basename $RED2PACK_SOLVER)-$(ba
 # run
 $RED2PACK_SOLVER $GRAPH --seed=$SEED --time_limit=$TIMELIMIT --reduction_style2=$RED2PACK_REDUCTION_STYLE --on_demand_two_neighborhood > $LOG
 ```
+
+You can turn off single data reductions by adding the respective flag:
+- `--disable_deg_one_reduction`
+- `--disable_deg_two_reduction`
+- `--disable_twin_reduction`
+- `--disable_fast_domination`
+- `--disable_clique`
+- `--disable_domination`
+
+Note that the reduction style `core` disables all data reductions except for domination and clique.
+Whereas `elaborated` uses all of them.
+
+Moreover, we suggest adding the option `--on_demand_two_neighborhood`, which notifies the solver to construct and store the two-neighborhood of a vertex only when needed instead of pre-computing it.
+
+For further details about our data reductions and the on-demand-two-neighborhood, we recommend reading [our paper](https://arxiv.org/abs/2308.15515).
 
 ## How to use our reduction pack `red2pack` as a standalone
 If you want to use our reduction pack `red2pack` in a standalone fashion, e.g., you want to build your own M2S solver,
