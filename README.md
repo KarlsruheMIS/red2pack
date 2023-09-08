@@ -48,7 +48,7 @@ GRAPH=tests/graphs/lesmis.graph
 LOG=$SEED-$TIMELIMIT-$RED2PACK_REDUCTION_STYLE-$(basename $RED2PACK_SOLVER)-$(basename ${GRAPH%.graph}).log
 
 # run
-$RED2PACK_SOLVER $GRAPH --seed=$SEED --time_limit=$TIMELIMIT --reduction_style2=$RED2PACK_REDUCTION_STYLE > $LOG
+$RED2PACK_SOLVER $GRAPH --seed=$SEED --time_limit=$TIMELIMIT --reduction_style2=$RED2PACK_REDUCTION_STYLE --on_demand_two_neighborhood > $LOG
 ```
 
 ## How to use our reduction pack `red2pack` as a standalone
