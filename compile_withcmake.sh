@@ -1,11 +1,12 @@
 #!/bin/bash
 if (( $# != 2 )); then
-  >&2 echo "Usage: $0 <buildtype:Release/Debug> <build tests:True/False>"
-  exit 1
-fi
-
+  >&2 echo "Usage: $0 <buildtype:Release/Debug> <build tests:True/False>  Default: buildtype:Release tests:False"
+  buildtype=Release
+  testing=False
+else
 buildtype=$1 # Release or Debug
 testing=$2 # True or False
+fi
 
 NCORES=4
 unamestr=$(uname)
