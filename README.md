@@ -12,8 +12,9 @@ To compile and initialize the build environment, please make sure you have the f
 - cmake 3.16 or newer
 
 ## Setup
-First of all, you need to clone this project. Then you can download KaMIS by cloning it as a submodule:
+First of all, you need to clone this project. Then you can download KaMIS by cloning it as a submodule. Both can be done as follows:
 ```shell
+git@github.com:KarlsruheMIS/red2pack.git
 git submodule update --init
 ```
 
