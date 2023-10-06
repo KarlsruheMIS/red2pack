@@ -25,11 +25,10 @@ In the case you want to run tests
 
 To build the executables, please run:
 ```shell
-bash compile_withcmake.sh Release False
+bash compile_withcmake.sh
 ```
 
 The script builds the binaries in the `build` directory and installs the solvers in `deploy`.
-Alternatively to Release, you can also choose Debug as buildtype.
 
 ## Run and benchmark
 The following executables are installed and allow you to run and benchmark our algorithms:
@@ -46,9 +45,9 @@ Use `--help` for an overview of the options. Probably, the following script does
 ```
 
 Note that the reduction style `core` disables all data reductions except for domination and clique.
-Whereas `elaborated` uses all of them. It can be set with `--reduction_style2` 
+Whereas `elaborated` uses all of them. It can be set with `--reduction_style` 
 
-For further details about our data reductions, we recommend reading [our paper](https://arxiv.org/abs/2308.15515).
+For further details about our data reductions, and further configurations we recommend reading [our paper](https://arxiv.org/abs/2308.15515).
 
 ## How to use our reduction pack `red2pack` as a subroutine 
 If you want to use our reduction pack `red2pack` as a subroutine, e.g., you want to build your own M2S solver,
