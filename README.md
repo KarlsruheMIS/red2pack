@@ -14,7 +14,7 @@ To compile and initialize the build environment, please make sure you have the f
 ## Setup
 First of all, you need to clone this project. Then you can download KaMIS by cloning it as a submodule. Both can be done as follows:
 ```shell
-git@github.com:KarlsruheMIS/red2pack.git
+git clone git@github.com:KarlsruheMIS/red2pack.git
 git submodule update --init
 ```
 
