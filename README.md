@@ -35,7 +35,7 @@ The following executables are installed and allow you to run and benchmark our a
 - `red2pack_branch_and_reduce` using the weighted B&R solver from KaMIS
 - `red2pack_heuristic` using OnlineMIS from KaMIS
 
-Use `--help` for an overview of the options. Probably, the following script does all that you want:
+Use `--help` for an overview of the options. Here are two example calls for our solvers: 
 ```bash
 # run heuristic:
 ./deploy/red2pack_heuristic tests/graphs/lesmis.graph --seed=0 --time_limit=100 
@@ -45,7 +45,7 @@ Use `--help` for an overview of the options. Probably, the following script does
 ```
 
 Note that the reduction style `core` disables all data reductions except for domination and clique.
-Whereas `elaborated` uses all of them. It can be set with `--reduction_style` 
+Whereas `elaborated` (default) uses all of them. It can be set with `--reduction_style` 
 
 For further details about our data reductions, and further configurations we recommend reading [our paper](https://arxiv.org/abs/2308.15515).
 
