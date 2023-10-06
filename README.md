@@ -2,7 +2,9 @@
 ![reduce-and-transform](img/reduce-and-transform.svg "Red2pack: Apply maximum 2-packing set reductions and transform to maximum independent set problem")
 
 ## Description
-This project provides a branch-and–reduce and heuristic solver for the maximum 2-packing set problem.
+A 2-packing set for an undirected graph $G=(V,E)$ is a subset $S \subset V$ such that any two
+vertices $v_1,v_2 \in S$ have no common neighbors. Finding a 2-packing set of maximum cardinality is a
+NP-hard problem. This project provides a branch-and–reduce and heuristic solver for the maximum 2-packing set problem.
 They apply exhaustively novel maximum 2-packing set (M2S) data reductions in a preprocessing step and transform the kernel to an equivalent maximum independent set (MIS) problem instance.
 This is joint work between Jannick Borowitz, Ernestine Großmann, Christian Schulz, and Dominik Schweisgut.
 
@@ -12,22 +14,20 @@ To compile and initialize the build environment, please make sure you have the f
 - cmake 3.16 or newer
 
 ## Setup
-First of all, you need to clone this project. Then you can download KaMIS by cloning it as a submodule:
+First of all, you need to clone this project. Then you can download KaMIS by cloning it as a submodule. Both can be done as follows:
 ```shell
+git clone git@github.com:KarlsruheMIS/red2pack.git
+cd red2pack
 git submodule update --init
 ```
 
 ## Build (Linux/MacOS)
 We solve the MIS problem using the weighted branch-and-reduce (B&R) solver and OnlineMIS of KaMIS. 
 
-In the case you want to run tests
-- read [Testing](tests/README.md).
-
 To build the executables, please run:
 ```shell
-bash compile_withcmake.sh
+./compile_withcmake.sh
 ```
-
 The script builds the binaries in the `build` directory and installs the solvers in `deploy`.
 
 ## Run and benchmark
