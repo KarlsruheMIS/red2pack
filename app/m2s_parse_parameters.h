@@ -44,7 +44,7 @@ int parse_parameters(int argn, char **argv, red2pack::M2SConfig &m2s_config, MIS
 
         struct arg_str *filename = arg_strn(NULL, NULL, "FILE", 1, 1, "Path to graph file.");
         struct arg_lit *console_log = arg_lit0(NULL, "console_log", "Stream the log into the console");
-        struct arg_lit *silent = arg_lit0(NULL, "silent", "Run the program without intermediate output.");
+        struct arg_lit *silent = arg_lit0(NULL, "silent", "Suppress program output.");
         struct arg_str *output = arg_str0(NULL, "output", NULL, "Path to store resulting 2-packing-set.");
         struct arg_dbl *time_limit = arg_dbl0(NULL, "time_limit", NULL, "Time limit in s. Default 1000s.");
 
