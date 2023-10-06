@@ -22,14 +22,10 @@ git submodule update --init
 ## Build (Linux/MacOS)
 We solve the MIS problem using the weighted branch-and-reduce (B&R) solver and OnlineMIS of KaMIS. 
 
-In the case you want to run tests
-- read [Testing](tests/README.md).
-
 To build the executables, please run:
 ```shell
-bash compile_withcmake.sh
+./compile_withcmake.sh
 ```
-
 The script builds the binaries in the `build` directory and installs the solvers in `deploy`.
 
 ## Run and benchmark
