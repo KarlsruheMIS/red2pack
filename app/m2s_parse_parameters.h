@@ -40,7 +40,7 @@ int parse_parameters(int argn, char **argv, red2pack::M2SConfig &m2s_config, MIS
         /* struct arg_lit *disable_twin = arg_lit0(NULL, "disable_twin", "disable reduction twin"); */
         /* struct arg_lit *disable_domination = arg_lit0(NULL, "disable_domination", "disable reduction domination"); */
         /* struct arg_lit *disable_fast_domination = arg_lit0(NULL, "disable_fast_domination", "disable reduction fast_domination"); */
-        struct arg_lit *full_two_neighborhood = arg_lit0(NULL, "full_two_neighborhood", "disable on demand two neighborhood");
+        struct arg_lit *disable_on_demand_two_neighborhood = arg_lit0(NULL, "disable_on_demand_two_neighborhood", "Construct the 2 neighborhood for each vertex at the beginning.");
 
         struct arg_str *filename = arg_strn(NULL, NULL, "FILE", 1, 1, "Path to graph file.");
         struct arg_lit *console_log = arg_lit0(NULL, "console_log", "Stream the log into the console");
@@ -58,7 +58,7 @@ int parse_parameters(int argn, char **argv, red2pack::M2SConfig &m2s_config, MIS
                             /* disable_twin, */
                             /* disable_domination, */
                             /* disable_fast_domination, */
-                            full_two_neighborhood,
+                            disable_on_demand_two_neighborhood,
                             reduction_style, 
                             kernel_file_name, 
                             console_log, 
@@ -136,7 +136,7 @@ int parse_parameters(int argn, char **argv, red2pack::M2SConfig &m2s_config, MIS
         /* if (disable_twin->count > 0) m2s_config.disable_twin = true; */
         /* if (disable_domination->count > 0) m2s_config.disable_domination = true; */
         /* if (disable_fast_domination->count > 0) m2s_config.disable_fast_domination = true; */
-        if (full_two_neighborhood->count > 0) m2s_config.on_demand_two_neighborhood = false;
+        if (disable_on_demand_two_neighborhood->count > 0) m2s_config.on_demand_two_neighborhood = false;
 
         if (output->count > 0) {
                 m2s_config.output_filename = output->sval[0];
