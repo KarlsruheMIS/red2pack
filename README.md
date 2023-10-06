@@ -2,7 +2,9 @@
 ![reduce-and-transform](img/reduce-and-transform.svg "Red2pack: Apply maximum 2-packing set reductions and transform to maximum independent set problem")
 
 ## Description
-This project provides a branch-and–reduce and heuristic solver for the maximum 2-packing set problem.
+A 2-packing set for an undirected graph $G=(V,E)$ is a subset $\mS \subset V$ such that any two
+vertices $v_1,v_2 \in \mS$ have no common neighbors. Finding a 2-packing set of maximum cardinality is a
+NP-hard problem. This project provides a branch-and–reduce and heuristic solver for the maximum 2-packing set problem.
 They apply exhaustively novel maximum 2-packing set (M2S) data reductions in a preprocessing step and transform the kernel to an equivalent maximum independent set (MIS) problem instance.
 This is joint work between Jannick Borowitz, Ernestine Großmann, Christian Schulz, and Dominik Schweisgut.
 
