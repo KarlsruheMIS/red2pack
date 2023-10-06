@@ -38,7 +38,7 @@ inline void m2s_configuration_mis::standard(MISConfig &mis_config) {
   mis_config.sort_freenodes = true;
   // Reductions
   mis_config.perform_reductions = true;
-  mis_config.reduction_style = MISConfig::Reduction_Style::NORMAL;
+  mis_config.reduction_style = MISConfig::Reduction_Style::DENSE;
   // Weights
   mis_config.weight_source = MISConfig::Weight_Source::FILE;
 }

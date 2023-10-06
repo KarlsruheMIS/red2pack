@@ -16,6 +16,14 @@ int main(int argc, char **argv) {
         auto ret_code = parse_parameters(argc, argv, m2s_config, mis_config, graph_filepath);
         if (ret_code) return 0;
 
+        // supress output
+        std::streambuf* backup = std::cout.rdbuf();
+        std::ofstream ofs;
+        ofs.open("/dev/null");
+        if(m2s_config.silent) {
+                std::cout.rdbuf(ofs.rdbuf()); 
+        }
+
         onlinemis::MISConfig mis_cfg_onlinemis;
         onlinemis::configuration_mis configurator_omis;
         configurator_omis.standard(mis_cfg_onlinemis);

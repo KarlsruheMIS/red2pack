@@ -25,12 +25,11 @@ In the case you want to run tests
 
 To build the executables, please run:
 ```shell
-BUILDTYPE="Release" # set "Debug" if you want to debug the project
-ENABLE_TESTING="False" # set True if you want to build CTests
-bash compile_withcmake.sh $BUILDTYPE $ENABLE_TESTING
+bash compile_withcmake.sh Release False
 ```
 
 The script builds the binaries in the `build` directory and installs the solvers in `deploy`.
+Alternatively to Release, you can also choose Debug as buildtype.
 
 ## Run and benchmark
 The following executables are installed and allow you to run and benchmark our algorithms:
@@ -39,35 +38,20 @@ The following executables are installed and allow you to run and benchmark our a
 
 Use `--help` for an overview of the options. Probably, the following script does all that you want:
 ```bash
-# set a few parameters
-RED2PACK_SOLVER=./deploy/red2pack_branch_and_reduce # or /deploy/red2pack_heuristic
-RED2PACK_REDUCTION_STYLE=elaborated # or "core"
-SEED=0
-TIMELIMIT=300 # seconds
-GRAPH=tests/graphs/lesmis.graph
-LOG=$SEED-$TIMELIMIT-$RED2PACK_REDUCTION_STYLE-$(basename $RED2PACK_SOLVER)-$(basename ${GRAPH%.graph}).log
+# run heuristic:
+./deploy/red2pack_heuristic tests/graphs/lesmis.graph --seed=0 --time_limit=100 
 
-# run
-$RED2PACK_SOLVER $GRAPH --seed=$SEED --time_limit=$TIMELIMIT --reduction_style2=$RED2PACK_REDUCTION_STYLE --on_demand_two_neighborhood > $LOG
+# run branch and reduce:
+./deploy/red2pack_branch_and_reduce tests/graphs/lesmis.graph --seed=0 --time_limit=100
 ```
 
-You can turn off single data reductions by adding the respective flag:
-- `--disable_deg_one_reduction`
-- `--disable_deg_two_reduction`
-- `--disable_twin_reduction`
-- `--disable_fast_domination`
-- `--disable_clique`
-- `--disable_domination`
-
 Note that the reduction style `core` disables all data reductions except for domination and clique.
-Whereas `elaborated` uses all of them.
+Whereas `elaborated` uses all of them. It can be set with `--reduction_style2` 
 
-Moreover, we suggest adding the option `--on_demand_two_neighborhood`, which notifies the solver to construct and store the two-neighborhood of a vertex only when needed instead of pre-computing it.
+For further details about our data reductions, we recommend reading [our paper](https://arxiv.org/abs/2308.15515).
 
-For further details about our data reductions and the on-demand-two-neighborhood, we recommend reading [our paper](https://arxiv.org/abs/2308.15515).
-
-## How to use our reduction pack `red2pack` as a standalone
-If you want to use our reduction pack `red2pack` in a standalone fashion, e.g., you want to build your own M2S solver,
+## How to use our reduction pack `red2pack` as a subroutine 
+If you want to use our reduction pack `red2pack` as a subroutine, e.g., you want to build your own M2S solver,
 then the following tutorial will help you.
 
 1. Start a new CMake project,

@@ -13,7 +13,7 @@ void m2s_graph_io::writeTwoPackingSet(const std::vector<bool> &sol, const std::s
         std::cout << "writing 2-packing-set set to " << filename << " ... " << std::endl;
 
         for (NodeID node = 0; node < sol.size(); node++) {
-                std::cout << (node + 1) << std::endl;
+                f << sol[node] << "\n";
         }
 
         f.close();

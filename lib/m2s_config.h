@@ -23,6 +23,7 @@ struct M2SConfig {
         std::string kernel_file_name;
 
         bool console_log;
+        bool silent;
         bool print_log;
         bool write_2ps;
         int seed;

@@ -66,6 +66,7 @@ inline void m2s_configuration_m2s::standard(red2pack::M2SConfig &m2s_config) {
         m2s_config.seed = 0;
         // Output
         m2s_config.console_log = false;
+        m2s_config.silent = false;
         m2s_config.write_2ps = false;
         // Reductions
         m2s_config.reduction_style = red2pack::M2SConfig::Reduction_Style2::elaborated;
@@ -81,7 +82,7 @@ inline void m2s_configuration_m2s::standard(red2pack::M2SConfig &m2s_config) {
         /* m2s_config.disable_deg_one_e = false; */
         m2s_config.disable_clique = false;
         /* m2s_config.disable_clique_e = false; */
-        m2s_config.on_demand_two_neighborhood = false;
+        m2s_config.on_demand_two_neighborhood = true;
 }
 
 #endif  // INC_2_PACKING_SET_M2S_CONFIGURATION_M2S_H
