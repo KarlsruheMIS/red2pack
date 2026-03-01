@@ -1,8 +1,7 @@
 #ifndef INC_2_PACKING_SET_M2S_CONFIGURATION_MIS_H
 #define INC_2_PACKING_SET_M2S_CONFIGURATION_MIS_H
 
-#include "definitions.h"
-#include "mis_config.h"
+#include <mis_config.h>
 
 class m2s_configuration_mis {
 public:
@@ -38,7 +37,7 @@ inline void m2s_configuration_mis::standard(MISConfig &mis_config) {
   mis_config.sort_freenodes = true;
   // Reductions
   mis_config.perform_reductions = true;
-  mis_config.reduction_style = MISConfig::Reduction_Style::DENSE;
+  mis_config.reduction_style = MISConfig::Reduction_Style::NORMAL;
   // Weights
   mis_config.weight_source = MISConfig::Weight_Source::FILE;
 }

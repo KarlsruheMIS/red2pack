@@ -12,7 +12,8 @@ add_compile_options(-fpermissive)
 
 add_compile_definitions(INSTANCES_PATH="${CMAKE_CURRENT_SOURCE_DIR}/graphs")
 
-add_executable(test_red2pack_solver test_red2pack_solver.cpp $<TARGET_OBJECTS:libkaffpa2> $<TARGET_OBJECTS:libsources> $<TARGET_OBJECTS:libonlinemis> "$<TARGET_OBJECTS:${RED2PACK_LIB}>" "$<TARGET_OBJECTS:${RED2PACK_LIB}-onlinemis>")
+add_executable(test_red2pack_solver test_red2pack_solver.cpp)
+target_link_libraries(test_red2pack_solver PUBLIC red2pack::kamis-wmis::lib red2pack::onlinemis::lib)
 target_link_libraries(test_red2pack_solver PRIVATE Catch2::Catch2WithMain)
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)

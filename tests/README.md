@@ -17,6 +17,7 @@ The set of instances is a sample of common 2-packing set instances.
 To build and run the tests, execute the following snippet:
 ```bash
 bash compile_with_cmake.sh Debug True
+cmake -DCMAKE_BUILD_DIR=Debug -S . -B build -DRED2PACK_ENABLE_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
 cd build
 ctest
 ```

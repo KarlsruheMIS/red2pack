@@ -7,15 +7,24 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cstdint>
 
+#include <red2pack/red2pack_def.h>
+#include <red2pack/tools/m2s_graph_io.h>
+#include <red2pack/data_structure/m2s_graph_access.h>
+#include <red2pack/data_structure/fast_set.h>
+#include <red2pack/m2s_config.h>
+#include <red2pack/tools/m2s_graph_io.h>
+#include <red2pack/tools/m2s_log.h>
+#include <red2pack-kamis-wmis/algorithms/branch_and_reduce.h>
+#include <red2pack-onlinemis/algorithms/heuristic.h>
 #include "../app/m2s_configuration_m2s.h"
 #include "../app/m2s_configuration_mis.h"
 #include "../extern/onlinemis/configuration_mis.h"
 #include "../extern/onlinemis/mis_config.h"
-#include "algorithms/branch_and_reduce.h"
-#include "algorithms/heuristic.h"
-#include "tools/m2s_graph_io.h"
 
-bool is_maximal_2ps(red2pack::m2s_graph_access& graph, const std::vector<bool>& sol, const NodeID sol_size) {
+
+bool is_maximal_2ps(red2pack::m2s_graph_access& graph, const std::vector<bool>& sol, const red2pack::NodeID sol_size) {
+        using namespace red2pack;
+
         NodeID check_sol_size = 0;
         fast_set touched(graph.number_of_nodes());
 
@@ -120,7 +129,7 @@ TEMPLATE_LIST_TEST_CASE("Testing M2S Solvers", "[template][m2s]", Solver_Types) 
         for (const auto& instance : instances) {
                 M2SConfig m2sConfig;
                 m2s_configuration_m2s configurator_m2s;
-                configurator_m2s.standard(m2sConfig);
+                configurator_m2s.standard_unweighted(m2sConfig);
                 m2sConfig.time_limit = time_limit;
 
                 auto graph = std::make_unique<m2s_graph_access>();
@@ -138,7 +147,9 @@ TEMPLATE_LIST_TEST_CASE("Testing M2S Solvers", "[template][m2s]", Solver_Types) 
 
                 typename TestType::Solver solver(std::move(graph), m2sConfig, misConfig);
                 INFO("Testing " << TestType().info << " for " << instance);
-                solver.solve();
+                timer t;
+                t.restart();
+                solver.solve(t);
                 graph = std::move(solver.detach());
                 auto res = is_maximal_2ps(*graph, solver.get_solution(), solver.get_solution_size());
                 REQUIRE(res);
