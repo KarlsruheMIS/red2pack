@@ -24,7 +24,7 @@ The figure shows an example where a vertex $v$ is included and its neighbors and
 Once the reduction process has finished, the reduced graph is transformed into an M(W)IS problem where an M(W)IS corresponds to an M(W)2PS in the reduced graph.
  
 ## 🎉 Version 2.0.0: Major Changes
-- We updated KaMIS (dependency) to a fork that is based on KaMIS version 3.0.0. KaMIS version 3.0.0 removes some memory leaks in the static graph class and provides new maximum weight independent set solvers such as $\texttt{m}^2\text{wis(+s)}$ which is used in our reduce-and-transform scheme. The forked version adds the ability to query the running time of the weighted branch-and-reduce solver for finding the best solution.
+- We updated KaMIS (dependency) to KaMIS version 3.0.0. KaMIS version 3.0.0 removes some memory leaks in the static graph class and provides new maximum weight independent set solvers such as $\texttt{m}^2\text{wis(+s)}$ which is used in our reduce-and-transform scheme. The forked version adds the ability to query the running time of the weighted branch-and-reduce solver for finding the best solution.
 - Added solvers for MW2S (for more details see paper [^redw2pack] [^redw2packJournal].
 - Restructured the CMake project and libraries for a more simple integration in new projects
 - Renamed [unweighted reduction styles](#unweighted-reduction-styles) (core $\to$ main, elaborated $\to$ strong) 
