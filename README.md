@@ -236,20 +236,22 @@ If you use `red2pack_heuristic`, please also cite the following work, as we solv
 
 If you use `redw2pack_rnt_chils` or `drp`, please also cite the following work, as they use CHILS as subroutine:
 ```
-@InProceedings{gromann_et_al:LIPIcs.SEA.2025.22,
-  author =	{Gro{\ss}mann, Ernestine and Langedal, Kenneth and Schulz, Christian},
-  title =	{{Concurrent Iterated Local Search for the Maximum Weight Independent Set Problem}},
-  booktitle =	{23rd International Symposium on Experimental Algorithms (SEA 2025)},
-  pages =	{22:1--22:18},
-  series =	{Leibniz International Proceedings in Informatics (LIPIcs)},
-  ISBN =	{978-3-95977-375-1},
-  ISSN =	{1868-8969},
-  year =	{2025},
-  volume =	{338},
-  editor =	{Mutzel, Petra and Prezza, Nicola},
-  publisher =	{Schloss Dagstuhl -- Leibniz-Zentrum f{\"u}r Informatik},
-  address =	{Dagstuhl, Germany},
-  doi =		{10.4230/LIPIcs.SEA.2025.22}
+@inproceedings{gromann_et_al:LIPIcs.SEA.2025.22,
+  author       = {Gro{\ss}mann, Ernestine and 
+                  Langedal, Kenneth and 
+                  Schulz, Christian},
+  title        = {Concurrent Iterated Local Search for the Maximum Weight Independent Set Problem},
+  booktitle    = {23rd International Symposium on Experimental Algorithms (SEA 2025)},
+  pages        = {22:1--22:18},
+  series       = {Leibniz International Proceedings in Informatics (LIPIcs)},
+  ISBN         = {978-3-95977-375-1},
+  ISSN         = {1868-8969},
+  year         = {2025},
+  volume       = {338},
+  editor       = {Mutzel, Petra and Prezza, Nicola},
+  publisher    = {Schloss Dagstuhl -- Leibniz-Zentrum f{\"u}r Informatik},
+  address      = {Dagstuhl, Germany},
+  doi          = {10.4230/LIPIcs.SEA.2025.22}
 }
 ```
 
