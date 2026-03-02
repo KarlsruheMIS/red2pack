@@ -1,10 +1,10 @@
 [submodule "extern/KaMIS"]
 	path = extern/KaMIS
-	url = git@github.com:KarlsruheMIS/KaMIS.git
+	url = https://github.com/KarlsruheMIS/KaMIS.git
 	branch = master
 [submodule "extern/malloc_count"]
 	path = extern/malloc_count
-	url = git@github.com:bingmann/malloc_count.git
+	url = https://github.com/bingmann/malloc_count.git
 [submodule "extern/CHILS"]
 	path = extern/CHILS
 	url = https://github.com/KennethLangedal/CHILS
