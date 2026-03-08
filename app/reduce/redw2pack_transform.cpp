@@ -1,4 +1,6 @@
+#ifdef RED2PACK_ENABLE_MALLOC
 #include <malloc_count.h>
+#endif
 #include <red2pack/algorithms/kernel/weighted_reduce_algorithm.h>
 #include <red2pack/data_structure/fast_set.h>
 #include <red2pack/data_structure/m2s_graph_access.h>
@@ -38,6 +40,9 @@ int main(int argc, char** argv) {
         m2s_log::instance()->set_config(m2s_config);
 
         // read graph
+#ifdef RED2PACK_ENABLE_MALLOC
+        malloc_count_reset_peak();
+#endif
         m2s_graph_access graph;
         m2s_graph_io::readGraphWeighted(graph, graph_filepath);
         m2s_log::instance()->set_graph(graph);
@@ -58,7 +63,6 @@ int main(int argc, char** argv) {
         m2s_log::instance()->set_best_size(0);  // if the reducer is not used
         m2s_log::instance()->finish_solving();
         /*===============================BENCHMARK END===============================*/
-
         // PRINT RESULTS
         m2s_log::instance()->print_results();
         if (m2s_config.write_transformed) {
