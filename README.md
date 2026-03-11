@@ -31,6 +31,7 @@ Then it may be of interest to find a 2-packing set of maximum weight (sum of wei
 This project provides exact and heuristic solvers for the maximum (weight) 2-packing set problem.  
 They exhaustively apply novel maximum (weight) 2-packing set (M(W)2S) data reductions in a preprocessing step and transform the reduced graph to an equivalent maximum (weight) independent set (M(W)IS) problem instance.  
 This is joint work by Jannick Borowitz, Ernestine Großmann, Christian Schulz, and Dominik Schweisgut.
+Part of the [KarlsruheMIS](https://github.com/KarlsruheMIS) organization.
 
 <p align="center">  
   <img src="img/reduce-and-transform.svg" alt="Red2pack: Apply maximum 2-packing set reductions and transform to maximum independent set problem" width="100%">  
