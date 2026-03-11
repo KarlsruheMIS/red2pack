@@ -15,6 +15,7 @@
   <a href="https://arxiv.org/abs/2502.12856"><img src="https://img.shields.io/badge/arXiv-2502.12856-b31b1b.svg" alt="arXiv"></a>
   <a href="https://doi.org/10.1002/net.70028"><img src="https://img.shields.io/badge/Networks-10.1002/net.70028-blue" alt="Networks"></a>
   <a href="https://www.uni-heidelberg.de"><img src="https://img.shields.io/badge/Heidelberg-University-c1002a" alt="Heidelberg University"></a>
+  <a href="https://www.kit.edu"><img src="https://img.shields.io/badge/KIT-Karlsruhe-009682" alt="KIT Karlsruhe"></a>
 </p>
 
 <p align="center">  
