@@ -59,12 +59,20 @@ cd red2pack
 git submodule update --init --recursive
 ```
 
-## Build (Linux/macOS)
-The easiest way to build and install all solvers into `red2pack/deploy` is to run:
+## Quick Start
+
+### Install via Homebrew
+
+```bash
+brew install KarlsruheMIS/kamis/red2pack
+```
+
+### Or build from source
+
 ```shell
 ./compile_with_cmake.sh Release # or `Debug'
 ```
-Or you can build with CMake specific targets and set additional CMake options:
+Or build with CMake directly:
 ```shell
 # add -DRED2PACK_BUILD_ILP_SOLVERS=ON to enable ILP-based solvers
 cmake -DCMAKE_BUILD_TYPE=Release -S . -B build # or `Debug' instead of `Release'
