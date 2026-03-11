@@ -1,7 +1,21 @@
-# red2pack: C++ Solvers for the (Weight) 2-Packing Set  
+# red2pack v2.0.0
 
-![build status](https://github.com/KarlsruheMIS/red2pack/actions/workflows/cmake-single-platform.yml/badge.svg?branch=master)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<p align="center">
+  <a href="https://github.com/KarlsruheMIS/red2pack/actions"><img src="https://github.com/KarlsruheMIS/red2pack/actions/workflows/cmake-single-platform.yml/badge.svg?branch=master" alt="Build Status"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <a href="https://isocpp.org/"><img src="https://img.shields.io/badge/C++-17-blue.svg" alt="C++"></a>
+  <a href="https://cmake.org/"><img src="https://img.shields.io/badge/CMake-3.16+-064F8C.svg" alt="CMake"></a>
+  <a href="https://github.com/KarlsruheMIS/red2pack"><img src="https://img.shields.io/badge/Linux-supported-success.svg" alt="Linux"></a>
+  <a href="https://github.com/KarlsruheMIS/red2pack"><img src="https://img.shields.io/badge/macOS-supported-success.svg" alt="macOS"></a>
+  <a href="https://github.com/KarlsruheMIS/red2pack/stargazers"><img src="https://img.shields.io/github/stars/KarlsruheMIS/red2pack" alt="GitHub Stars"></a>
+  <a href="https://github.com/KarlsruheMIS/red2pack/issues"><img src="https://img.shields.io/github/issues/KarlsruheMIS/red2pack" alt="GitHub Issues"></a>
+  <a href="https://github.com/KarlsruheMIS/red2pack/commits"><img src="https://img.shields.io/github/last-commit/KarlsruheMIS/red2pack" alt="Last Commit"></a>
+  <a href="https://arxiv.org/abs/2308.15515"><img src="https://img.shields.io/badge/arXiv-2308.15515-b31b1b.svg" alt="arXiv"></a>
+  <a href="https://doi.org/10.7155/jgaa.v29i1.3064"><img src="https://img.shields.io/badge/JGAA'25-10.7155/jgaa.v29i1.3064-blue" alt="JGAA 2025"></a>
+  <a href="https://arxiv.org/abs/2502.12856"><img src="https://img.shields.io/badge/arXiv-2502.12856-b31b1b.svg" alt="arXiv"></a>
+  <a href="https://doi.org/10.1002/net.70028"><img src="https://img.shields.io/badge/Networks-10.1002/net.70028-blue" alt="Networks"></a>
+  <a href="https://www.uni-heidelberg.de"><img src="https://img.shields.io/badge/Heidelberg-University-c1002a" alt="Heidelberg University"></a>
+</p>
 
 <p align="center">  
   <img src="img/logo.svg" alt="red2pack project logo" width="400">  
