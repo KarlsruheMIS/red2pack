@@ -1,7 +1,8 @@
+# red2pack: C++ Solvers for the (Weight) 2-Packing Set  
+
 ![build status](https://github.com/KarlsruheMIS/red2pack/actions/workflows/cmake-single-platform.yml/badge.svg?branch=master)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-# red2pack: C++ Solvers for the (Weight) 2-Packing Set  
 <p align="center">  
   <img src="img/logo.svg" alt="red2pack project logo" width="400">  
 </p> 
