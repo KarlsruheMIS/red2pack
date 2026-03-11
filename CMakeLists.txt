@@ -18,7 +18,7 @@ option(RED2PACK_ENABLE_APPS "Build all executables." ON)
 option(RED2PACK_ENABLE_TESTS "Build tests" OFF)
 option(RED2PACK_ENABLE_EXAMPLES "Build examples" ON)
 option(RED2PACK_BUILD_ILP_SOLVERS "Build ILP solvers" OFF)
-option(RED2PACK_USE_MALLOC_COUNT "Use malloc_count to profile memory usage" ON)
+option(RED2PACK_USE_MALLOC_COUNT "Use malloc_count to profile memory usage" OFF)
 option(RED2PACK_64BITS_MODE "Use 64bit for edge ids" OFF)
 
 if (RED2PACK_64BITS_MODE)
