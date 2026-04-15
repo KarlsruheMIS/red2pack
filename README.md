@@ -33,6 +33,8 @@ They exhaustively apply novel maximum (weight) 2-packing set (M(W)2S) data reduc
 This is joint work by Jannick Borowitz, Ernestine Großmann, Christian Schulz, and Dominik Schweisgut.
 Part of the [KarlsruheMIS](https://github.com/KarlsruheMIS) organization.
 
+> **Python Interface:** An easy-to-use Python interface for this software is available in [CHSZLabLib](https://github.com/CHSZLab/CHSZLabLib).
+
 <p align="center">  
   <img src="img/reduce-and-transform.svg" alt="Red2pack: Apply maximum 2-packing set reductions and transform to maximum independent set problem" width="100%">  
 </p>
